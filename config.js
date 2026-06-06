@@ -35,6 +35,26 @@ export const CONFIG = {
   },
   startingMeters: { corruption: 0, purity: 50, fame: 0, unmasking: 0, hopeTally: 0 },
 
+  // ---- economy ----
+  // currencySymbol is shown next to coin counts everywhere. Swap freely:
+  //   "¤" scarab/generic · "§" double-S · "₷" spesmilo · "✦" etc.
+  economy: {
+    currencySymbol: "¤",
+    startingCoins: 20,
+    // Shop catalog. type drives what `use <item>` does (T8 combat uses these):
+    //   heal -> restores `amount` HP · stamina -> restores `amount` Stamina · material -> sell-only
+    shop: [
+      { id: "healing_draught", name: "healing draught", price: 8, sell: 4, type: "heal", amount: 20 },
+      { id: "stamina_tonic",   name: "stamina tonic",   price: 6, sell: 3, type: "stamina", amount: 15 },
+      { id: "moonstone_shard", name: "moonstone shard", price: 12, sell: 6, type: "material" },
+    ],
+  },
+
+  // ---- exploration ----
+  exploration: {
+    staminaPerMove: 2, // Stamina spent per room move; hitting 0 forces a retreat to the hub
+  },
+
   // ---- combat ----
   combat: {
     dodgeChancePerPoint: 0.015,   // dodge stat * this = evade probability (cap below)

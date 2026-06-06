@@ -6,6 +6,12 @@ The AI assigns one of these bases (by best fit to the animals), picks/sets a nam
 the personality/voice. Each base has a **small** (inline, day-to-day) and **large** (story
 scenes) version.
 
+> **Implementation note (2026-06-06):** the original kaomoji below use full-width CJK
+> punctuation and combining marks that DON'T align on the monospace grid (they rendered
+> broken in the panel). The game now ships a monospace-safe ASCII set in `src/mascot.js`
+> (the `ART` map) — that file is the source of truth for what renders. The designs below
+> are kept as reference / inspiration.
+
 ## IMPORTANT: font safety
 
 These use some Unicode beyond pure ASCII (`⩊ ૮ ა ∿ ✦ ♡` etc.). They render beautifully in some

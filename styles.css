@@ -1,0 +1,309 @@
+/* ============================================================
+   MAGICAL.EXE — Charm-style terminal CSS
+   Aesthetic homage to Charm's Lip Gloss (cozy terminal), recreated
+   in CSS only. Not affiliated with Charmbracelet, Inc.
+   ============================================================ */
+
+/* ---- Design tokens ---- */
+:root {
+  /* Charm-ish palette: soft-but-vivid purples/pinks/teals on a deep dark base */
+  --bg-deep:    #14101f;   /* page behind the window */
+  --bg-window:  #1c1730;   /* terminal window surface */
+  --bg-panel:   #221b39;   /* side panels */
+  --bg-input:   #2a2247;   /* input line */
+
+  --border:     #3a2f5c;   /* default rounded border */
+  --border-soft:#2f2750;
+
+  --text:       #e8e3f5;   /* primary text */
+  --text-dim:   #a99fce;   /* secondary text */
+  --text-muted: #6f6594;   /* hints, placeholders */
+
+  --pink:       #ff7eb6;
+  --peach:      #ffb27e;
+  --teal:       #5fe3c8;
+  --purple:     #b48ef0;
+  --lilac:      #cda9ff;
+  --gold:       #ffd479;
+
+  --accent:     var(--purple);
+
+  /* shape & rhythm */
+  --radius:      14px;
+  --radius-sm:   9px;
+  --pad:         18px;
+  --gap:         16px;
+  --font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code",
+          "Fira Code", Menlo, Consolas, monospace;
+
+  --glow: 0 0 0 1px rgba(180, 142, 240, 0.12),
+          0 18px 50px -20px rgba(0, 0, 0, 0.8);
+}
+
+/* ---- Reset-ish ---- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 700px at 70% -10%, rgba(180,142,240,0.10), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(95,227,200,0.08), transparent 55%),
+    var(--bg-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+/* ---- The terminal "window" ---- */
+.screen {
+  width: min(1080px, 100%);
+  height: min(720px, calc(100vh - 56px));
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-window);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--glow);
+  overflow: hidden;
+}
+
+/* ---- Title bar ---- */
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
+  border-bottom: 1px solid var(--border-soft);
+}
+.dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot--pink  { background: var(--pink); }
+.dot--peach { background: var(--peach); }
+.dot--teal  { background: var(--teal); }
+
+.titlebar__name {
+  margin-left: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--lilac);
+  text-shadow: 0 0 12px rgba(205, 169, 255, 0.35);
+}
+.titlebar__hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---- Layout: terminal + side panels ---- */
+.layout {
+  flex: 1;
+  min-height: 0;            /* allow children to scroll */
+  display: grid;
+  grid-template-columns: 1fr 268px;
+  gap: var(--gap);
+  padding: var(--gap);
+}
+
+/* ---- Terminal region (scrollback + input) ---- */
+.terminal {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(0,0,0,0.12), transparent);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: var(--pad);
+}
+
+.output {
+  flex: 1;
+  min-height: 0;
+  overflow-y: scroll;            /* always reserve the track so it's always visible */
+  padding-right: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg-input);
+}
+.output::-webkit-scrollbar { width: 10px; }
+.output::-webkit-scrollbar-track {
+  background: var(--bg-input);
+  border-radius: 9px;
+}
+.output::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9px;
+  border: 2px solid var(--bg-input); /* inset look so the track always reads */
+}
+.output::-webkit-scrollbar-thumb:hover { background: var(--purple); }
+
+/* output line types */
+.line { margin: 0 0 4px; }
+.line--echo   { color: var(--text-dim); }
+.line--echo .prompt-mark { color: var(--teal); margin-right: 6px; }
+.line--system { color: var(--text); }
+.line--mascot { color: var(--lilac); }
+.line--hint   { color: var(--text-muted); font-style: italic; }
+.line--banner { color: var(--pink); }
+
+/* ---- huh-style selection menu ---- */
+.menu {
+  margin-top: 12px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu__item {
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  white-space: pre;
+  cursor: pointer;
+  transition: background 90ms ease, color 90ms ease;
+}
+.menu__item--active {
+  color: var(--pink);
+  background: rgba(255, 126, 182, 0.10);
+  font-weight: 700;
+}
+
+/* ---- Rotating example prompt ---- */
+.example-prompt {
+  margin-top: 10px;
+  padding-left: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  user-select: none;
+}
+
+/* ---- Input line ---- */
+.inputline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.inputline:focus-within {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(180, 142, 240, 0.16);
+}
+.prompt {
+  color: var(--teal);
+  font-weight: 700;
+  user-select: none;
+}
+.inputline__field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  caret-color: var(--pink);
+}
+.inputline__field::placeholder { color: var(--text-muted); }
+
+/* ---- Side panels ---- */
+.panels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-height: 0;
+}
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 14px var(--pad);
+  display: flex;
+  flex-direction: column;
+}
+.panel--stats { flex: 0 0 auto; }
+.panel--mascot { flex: 1; min-height: 0; }
+
+.panel__title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--peach);
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 8px;
+}
+.panel__body { color: var(--text-dim); font-size: 14px; }
+.panel__body--muted { color: var(--text-muted); font-style: italic; }
+
+/* STATUS panel: monospace block so columns line up */
+.stat-block {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  white-space: pre;
+}
+.stat-block::first-line {
+  color: var(--lilac);
+  font-weight: 700;
+}
+
+.panel--mascot .panel__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1;
+}
+.mascot-art {
+  margin: 0;
+  font-family: var(--font);
+  line-height: 1.35;
+  color: var(--lilac);
+  text-shadow: 0 0 14px rgba(205, 169, 255, 0.3);
+  text-align: center;
+}
+
+/* ---- Responsive: stack everything in one column on narrow screens ---- */
+@media (max-width: 720px) {
+  body {
+    padding: 0;
+    align-items: flex-start;
+    overflow-y: auto;            /* let the page scroll on mobile */
+  }
+  .screen {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+  .layout {
+    grid-template-columns: 1fr;  /* terminal, then panels, full width */
+  }
+  .terminal { min-height: 60vh; }
+  .panels {
+    flex-direction: column;      /* full-width panels -> mascot art renders like desktop */
+  }
+  .panel--mascot .panel__body { min-height: 160px; }
+}

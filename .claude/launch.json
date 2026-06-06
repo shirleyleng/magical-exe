@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "magical-exe",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["scripts/devserver.py", "4321"],
+      "port": 4321
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGICAL.EXE</title>
+  <!-- Locked game font: JetBrains Mono (handles the mascots.md Unicode glyphs).
+       monospace fallback keeps things sane if the CDN is unreachable. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- The fake-terminal "window". Plain DOM, styled with CSS to look terminal-y.
+       NOT xterm.js, NOT a real emulator. -->
+  <main class="screen" role="application" aria-label="MAGICAL.EXE terminal">
+    <!-- Title / chrome bar -->
+    <header class="titlebar">
+      <span class="dot dot--pink" aria-hidden="true"></span>
+      <span class="dot dot--peach" aria-hidden="true"></span>
+      <span class="dot dot--teal" aria-hidden="true"></span>
+      <span class="titlebar__name">✦ MAGICAL.EXE ✦</span>
+      <span class="titlebar__hint">v0.1 · terminal shell</span>
+    </header>
+
+    <div class="layout">
+      <!-- REGION 1: terminal (scrollback + input) -->
+      <section class="terminal" aria-label="Game output">
+        <div id="output" class="output" aria-live="polite" tabindex="0"></div>
+        <div id="menu" class="menu" role="listbox" aria-label="Choose an option" hidden></div>
+        <div id="example-prompt" class="example-prompt" aria-hidden="true"></div>
+        <form id="input-form" class="inputline" autocomplete="off">
+          <label class="prompt" for="input" aria-hidden="true">&gt;</label>
+          <input
+            id="input"
+            class="inputline__field"
+            type="text"
+            name="command"
+            placeholder="type a command…"
+            aria-label="Command input"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+          />
+        </form>
+      </section>
+
+      <!-- REGIONS 2 & 3: persistent panels (empty placeholders for now) -->
+      <aside class="panels" aria-label="Status panels">
+        <!-- REGION 2: stat panel -->
+        <section class="panel panel--stats" aria-label="Stats">
+          <h2 class="panel__title">STATUS</h2>
+          <!-- painted by render.js (renderStats) -->
+          <div id="stat-panel" class="panel__body"></div>
+        </section>
+
+        <!-- REGION 3: mascot panel -->
+        <section class="panel panel--mascot" aria-label="Mascot">
+          <h2 class="panel__title">MASCOT</h2>
+          <!-- painted by render.js (renderMascot) -->
+          <div id="mascot-panel" class="panel__body"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
