@@ -40,8 +40,8 @@ function corsHeaders(origin: string | null): Record<string, string> {
 // players can't tamper with it. The static system text gets cache_control: ephemeral
 // (a no-op at our prompt sizes — Haiku 4.5's min cacheable prefix is 4096 tokens and
 // ours are far smaller — but harmless and future-proof). System prompts are verbatim
-// from docs/PROMPTS.md. T11 shipped `ping`; T12 adds parse (A) / narrate (C) / city (E).
-// T13 will add the combat judge (B).
+// from docs/PROMPTS.md. T11 shipped `ping`; T12 added parse (A) / narrate (C) / city (E);
+// T13 adds the combat plausibility judge (B).
 const CC = { type: "ephemeral" } as const;
 
 const SYS_PARSE =
@@ -66,6 +66,38 @@ const SYS_NARRATE =
   `results beyond what is provided. Match the player's pronouns and the scene's mood. Keep it\n` +
   `tight and evocative, never purple. Second person ("you").\n` +
   `Output plain prose only — no markdown, headings, titles, or quotation marks around it.`;
+
+const SYS_JUDGE =
+  `You are the physics/plausibility judge for a magical-girl text game's combat. The player\n` +
+  `proposes a creative action. Decide if it is PLAUSIBLE given the environment tags and the\n` +
+  `player's current abilities. Approve grounded, clever uses of the environment. Reject\n` +
+  `anything that requires powers the player does not have or that breaks the world's rules.\n\n` +
+  `Guidelines:\n` +
+  `- Approve: using the environment sensibly (throw sand to blind, kick a rock, use water to\n` +
+  `  douse flame, hide behind cover). Effects are MINOR to MODERATE, short-lived.\n` +
+  `- Reject: inventing new powers (teleport, dimension doors, instant kills, summoning),\n` +
+  `  affecting things not present, or anything that trivializes the fight.\n` +
+  `- If the action is "forbidden/dark" in flavor (drawing on corruption), approve it but set\n` +
+  `  "corruptionCost" > 0.\n` +
+  `- You judge plausibility and propose an effect TYPE and MAGNITUDE only. You do NOT set\n` +
+  `  damage numbers, hit/miss, or final stats — the engine does that.\n\n` +
+  `Return ONLY JSON, no prose, no backticks:\n` +
+  `{ "approved": true|false,\n` +
+  `  "reason": "<one short sentence, shown to player>",\n` +
+  `  "effect": "<none|blind|stagger|slow|expose|defend|burn|douse|distract>",\n` +
+  `  "target": "<self|enemy>",\n` +
+  `  "turns": <int 0-2>,\n` +
+  `  "magnitude": "<minor|moderate>",\n` +
+  `  "corruptionCost": <int, 0 if not forbidden> }\n\n` +
+  `Examples:\n` +
+  `- tags ["beach","sand"], action "throw sand in its eyes"\n` +
+  `  -> {"approved":true,"reason":"You fling a handful of sand into its eyes.","effect":"blind","target":"enemy","turns":1,"magnitude":"minor","corruptionCost":0}\n` +
+  `- tags ["forest"], action "open a dimension door to eject the monster"\n` +
+  `  -> {"approved":false,"reason":"You don't have that power... yet.","effect":"none","target":"enemy","turns":0,"magnitude":"minor","corruptionCost":0}\n` +
+  `- tags ["any"], action "drain its life with forbidden magic"\n` +
+  `  -> {"approved":true,"reason":"Dark threads coil from your hand — it costs you.","effect":"stagger","target":"enemy","turns":1,"magnitude":"moderate","corruptionCost":8}\n` +
+  `- tags ["cave","dark"], action "instantly kill it"\n` +
+  `  -> {"approved":false,"reason":"There's no shortcut here.","effect":"none","target":"enemy","turns":0,"magnitude":"minor","corruptionCost":0}`;
 
 const SYS_CITY =
   `Write 2-4 cozy, atmospheric sentences introducing a player's hometown for a magical-girl\n` +
@@ -120,6 +152,21 @@ function buildPayload(kind: string, vars: Record<string, unknown>, model: string
         model,
         max_tokens: 200,
         system: [{ type: "text", text: SYS_NARRATE, cache_control: CC }],
+        messages: [{ role: "user", content: user }],
+      };
+    }
+
+    case "judge": {
+      const user =
+        `environmentTags: ${JSON.stringify(vars.environmentTags ?? [])}\n` +
+        `playerAbilities: ${JSON.stringify(vars.abilities ?? [])}\n` +
+        `playerTier: ${asText(vars.transformationTier)}\n` +
+        `enemy: ${asText(vars.enemyName)}\n` +
+        `action: ${JSON.stringify(asText(vars.rawText))}`;
+      return {
+        model,
+        max_tokens: 200,
+        system: [{ type: "text", text: SYS_JUDGE, cache_control: CC }],
         messages: [{ role: "user", content: user }],
       };
     }

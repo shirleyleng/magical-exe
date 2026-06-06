@@ -68,6 +68,18 @@ export const CONFIG = {
       maxPlayerTurnsBeforeIntervene: 5,
       bossHpVisibleDrainPerHit: 0.01, // boss HP "barely moves" so loss reads as scripted
     },
+    // T13: freeform creative combat actions, gated by the AI plausibility judge
+    // (PROMPTS.md B). The AI only proposes an effect TYPE + MAGNITUDE; these knobs
+    // turn that into real numbers. minor/moderate scale each effect.
+    judge: {
+      maxTurns: 2,                              // hard cap on an effect's duration
+      missChance:    { minor: 0.4, moderate: 0.7 },  // blind/distract: enemy miss chance
+      powerDownPct:  { minor: 0.2, moderate: 0.35 }, // slow: enemy damage reduction
+      defenseDownPct:{ minor: 0.3, moderate: 0.5 },  // expose: enemy defense reduction
+      dmgReduction:  { minor: 0.3, moderate: 0.5 },  // defend: incoming-damage reduction (self)
+      burnDamage:    { minor: 4,   moderate: 8 },    // burn: flat damage per enemy turn
+      hubEnvTags: ["quiet street", "lamplight", "night", "pavement"], // tags for hub skirmishes
+    },
   },
 
   // ---- axes ----

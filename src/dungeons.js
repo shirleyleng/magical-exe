@@ -11,6 +11,10 @@ export const DUNGEONS = {
     id: "forest",
     name: "Moonlit Forest",
     entrance: "forest_entrance",
+    // Baseline environment tags for the whole dungeon (T13 plausibility judge).
+    // Rooms add their own `tags` on top; together they tell the judge what the
+    // player can plausibly improvise with.
+    env: ["forest", "trees", "moonlit", "night", "undergrowth"],
     rooms: {
       forest_entrance: {
         name: "Moonlit Edge",
@@ -18,6 +22,7 @@ export const DUNGEONS = {
         exits: { north: "forest_clearing" },
         items: [],
         encounter: null,
+        tags: ["treeline", "open path", "cool air"],
       },
       forest_clearing: {
         name: "Moonlit Clearing",
@@ -25,6 +30,7 @@ export const DUNGEONS = {
         exits: { south: "forest_entrance", north: "forest_den", east: "forest_pond" },
         items: ["dew vial"],
         encounter: { monster: "shadow_imp", chance: 0.5 },
+        tags: ["clearing", "open", "grass", "loose stones"],
       },
       forest_pond: {
         name: "Still Pond",
@@ -32,6 +38,7 @@ export const DUNGEONS = {
         exits: { west: "forest_clearing" },
         items: ["moonstone shard"],
         encounter: null,
+        tags: ["water", "pond", "mud", "reeds"],
       },
       forest_den: {
         name: "Bramble Den",
@@ -39,6 +46,7 @@ export const DUNGEONS = {
         exits: { south: "forest_clearing", north: "forest_heart" },
         items: [],
         encounter: { monster: "shadow_imp", chance: 0.6 },
+        tags: ["thorns", "brambles", "cramped", "dark"],
       },
       forest_heart: {
         name: "Heart of the Wood",
@@ -47,6 +55,7 @@ export const DUNGEONS = {
         items: [],
         encounter: null,
         boss: "boss1",
+        tags: ["standing stones", "ring", "thick corruption", "open ground"],
       },
     },
   },

@@ -25,6 +25,7 @@ import {
 import { enterDungeon, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import {
   startCombat, playerAttack, playerGuard, combatUse, combatLook, playerFlee,
+  applyJudgedAction,
 } from "./combat.js";
 import { handleBossDefeat } from "./progress.js";
 import { listSlots, deleteSlot, hasSlot } from "./persist.js";
@@ -132,13 +133,19 @@ function onInput(s, event) {
 
   const cmd = parse(raw);
   if (!cmd.matched) {
-    // Deterministic parser missed. Fall back to the AI parser if it's available;
-    // otherwise give the plain nudge. The AI call runs as an effect (main.js) and
-    // comes back as an "ai-result" event handled by onAIResult.
+    // Deterministic parser missed. Fall back to AI if available; otherwise nudge.
+    // In a fight the fallback is the plausibility JUDGE (freeform creative actions,
+    // PROMPTS.md B); elsewhere it's the intent PARSER (A). Both run as an effect
+    // (main.js) and return as an "ai-result" event handled by onAIResult.
     if (aiAvailable()) {
       s.ui.busy = true;
-      s.ui.effect = { type: "ai", kind: "parse", raw, vars: buildParseContext(s, raw) };
-      pushLine(s, "(thinking…)", "hint");
+      if (s.model.mode === "combat" && s.model.combat) {
+        s.ui.effect = { type: "ai", kind: "judge", raw, vars: buildJudgeContext(s, raw) };
+        pushLine(s, "(weighing it…)", "hint");
+      } else {
+        s.ui.effect = { type: "ai", kind: "parse", raw, vars: buildParseContext(s, raw) };
+        pushLine(s, "(thinking…)", "hint");
+      }
       return s;
     }
     pushLine(s, "Hmm, I didn't quite catch that.", "system");
@@ -207,20 +214,6 @@ function buildParseContext(s, raw) {
   const mode = m.mode;
   const inv = m.character.inventory || [];
 
-  if (mode === "combat") {
-    const enemy = m.combat?.enemy?.name;
-    return {
-      mode,
-      allowedActions: ["attack", "guard", "use", "retreat", "look"],
-      presentEntities: [
-        ...(enemy ? [enemy] : []),
-        ...(m.character.abilities || []),
-        ...inv,
-      ],
-      rawText: raw,
-    };
-  }
-
   if (mode === "exploration") {
     return {
       mode,
@@ -244,6 +237,44 @@ function buildParseContext(s, raw) {
       "forest",                                                        // explore target
     ],
     rawText: raw,
+  };
+}
+
+/* ---- AI combat judge (T13, PROMPTS.md B) ----
+   Context for a freeform creative combat action: what's around to improvise with,
+   what the player can actually do, and who they're fighting. The judge approves a
+   grounded effect TYPE + MAGNITUDE only — the engine (combat.js) sets the numbers. */
+function buildJudgeContext(s, raw) {
+  const m = s.model;
+  const c = m.combat || {};
+  return {
+    environmentTags: c.envTags || [],
+    abilities: m.character.abilities || [],
+    transformationTier: m.character.transformationTier,
+    enemyName: c.enemy ? c.enemy.name : "the enemy",
+    rawText: raw,
+  };
+}
+
+/** Validate + normalize a judge verdict (PROMPTS.md B schema). Returns a clean
+ *  verdict object, or null if the reply is unusable (engine disposes, AI proposes). */
+const JUDGE_EFFECTS = new Set([
+  "none", "blind", "stagger", "slow", "expose", "defend", "burn", "douse", "distract",
+]);
+function normalizeVerdict(data) {
+  if (!data || typeof data !== "object") return null;
+  if (typeof data.approved !== "boolean") return null;
+  const effect = JUDGE_EFFECTS.has(data.effect) ? data.effect : "none";
+  const turns = Number.isFinite(data.turns) ? Math.max(0, Math.trunc(data.turns)) : 0;
+  const cost = Number.isFinite(data.corruptionCost) ? Math.max(0, Math.trunc(data.corruptionCost)) : 0;
+  return {
+    approved: data.approved,
+    reason: typeof data.reason === "string" && data.reason.trim() ? data.reason.trim() : null,
+    effect,
+    target: data.target === "self" ? "self" : "enemy",
+    turns,
+    magnitude: data.magnitude === "moderate" ? "moderate" : "minor",
+    corruptionCost: cost,
   };
 }
 
@@ -278,6 +309,31 @@ function onAIResult(s, event) {
     const text = res && res.ok ? cleanProse(res.text) : "";
     if (text) pushLine(s, text, "mascot");
     return s;
+  }
+
+  if (kind === "judge") {
+    // The fight may have ended while the call was in flight (it can't, since input
+    // is locked — but guard anyway). If so, just drop the reply.
+    if (s.model.mode !== "combat" || !s.model.combat) return s;
+    if (!res || !res.ok) {
+      pushLine(s, aiUnavailableLine(res && res.reason), "system");
+      pushLine(s, "In a fight you can always: attack · guard · use <ability> · flee.", "hint");
+      return s;
+    }
+    const verdict = normalizeVerdict(parseAIJson(res.text));
+    if (!verdict) {
+      pushLine(s, "You hesitate — that didn't come together.", "system");
+      pushLine(s, "Try: attack · guard · use <ability> · flee.", "hint");
+      return s;
+    }
+    if (verdict.reason) pushLine(s, verdict.reason, "mascot");
+    if (!verdict.approved) {
+      // Rejected ideas don't cost a turn — try something else.
+      pushLine(s, "(Try: attack · guard · use <ability> · flee.)", "hint");
+      return s;
+    }
+    const out = applyJudgedAction(s, verdict);
+    return out.ui.justDefeatedBoss ? handleBossDefeat(out) : out;
   }
 
   // kind === "parse"
