@@ -120,4 +120,13 @@ export const CONFIG = {
     enablePromptCaching: true,
     narrationOptional: true,      // skip narration on trivial turns to save tokens
   },
+
+  // ---- Supabase (AI proxy backend) ----
+  // Public, client-safe values from your Supabase project (Settings -> API).
+  // The anon key is protected by Row-Level Security; safe to ship in the browser.
+  supabase: {
+    url: "https://YOUR_PROJECT_REF.supabase.co",
+    anonKey: "YOUR_SUPABASE_ANON_PUBLIC_KEY",
+    functionName: "ai-proxy",
+  },
 };

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MAGICAL.EXE — AI proxy test (T11)</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: #1a1726; color: #e8e3f5; margin: 0; padding: 2rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.1rem; color: #c9a8ff; }
+    p { max-width: 60ch; color: #b6aed0; }
+    button {
+      font: inherit; cursor: pointer; margin: 0.25rem 0.5rem 0.25rem 0;
+      background: #3a2f5c; color: #e8e3f5; border: 1px solid #6b5ba8;
+      border-radius: 8px; padding: 0.5rem 1rem;
+    }
+    button:hover { background: #4a3d72; }
+    #status { margin: 1rem 0; }
+    pre {
+      background: #110f1a; border: 1px solid #322b4a; border-radius: 8px;
+      padding: 1rem; overflow: auto; white-space: pre-wrap; word-break: break-word;
+      min-height: 3rem;
+    }
+    .ok { color: #8ee6a8; } .bad { color: #ff9aa8; } .muted { color: #6f6790; }
+  </style>
+</head>
+<body>
+  <h1>MAGICAL.EXE — AI proxy test (T11)</h1>
+  <p>
+    Standalone harness for the Supabase <code>ai-proxy</code> Edge Function. It does NOT
+    touch the game. Serve via <code>scripts/devserver.py</code> and open
+    <code>http://localhost:4321/ai-test.html</code> so the origin matches the function's
+    CORS allowlist.
+  </p>
+
+  <div>
+    <button id="ping">Ping AI</button>
+    <button id="status-btn">Check config</button>
+  </div>
+
+  <div id="status" class="muted">Ready.</div>
+  <pre id="out">—</pre>
+
+  <script type="module">
+    import { pingAI, aiAvailable } from "./src/ai.js";
+
+    const statusEl = document.getElementById("status");
+    const outEl = document.getElementById("out");
+    const setStatus = (msg, cls = "muted") => {
+      statusEl.className = cls;
+      statusEl.textContent = msg;
+    };
+
+    document.getElementById("status-btn").addEventListener("click", () => {
+      if (aiAvailable()) {
+        setStatus("Supabase config present — backend is configured.", "ok");
+      } else {
+        setStatus("Supabase NOT configured (placeholder url/key in config.js).", "bad");
+      }
+    });
+
+    document.getElementById("ping").addEventListener("click", async () => {
+      setStatus("Calling ai-proxy…", "muted");
+      outEl.textContent = "…";
+      const res = await pingAI();
+      outEl.textContent = JSON.stringify(res, null, 2);
+      if (res.ok) {
+        setStatus("ok:true — round-trip succeeded. Expect text {\"pong\":true}.", "ok");
+      } else {
+        setStatus(`ok:false — reason="${res.reason}". (Game would degrade to deterministic-only.)`, "bad");
+      }
+    });
+  </script>
+</body>
+</html>

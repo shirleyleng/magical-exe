@@ -103,6 +103,19 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   enforced server-side). Logs calls to a usage table.
 - DONE: function proxies a Haiku call; caps enforced; over-cap returns graceful refusal.
 
+### T11b — Bot protection: CAPTCHA on anonymous sign-in
+- GOAL: stop bots from minting anon sessions to drain the API key (Supabase recommends this
+  for anonymous auth). Complements the server-side caps in T11 — defense in depth.
+- BUILD: enable a CAPTCHA provider in Supabase Auth (Cloudflare Turnstile or hCaptcha — both
+  free); render the widget at first AI use (NOT on game start — keep the cold open friction-free);
+  pass the token on `signInAnonymously({ options: { captchaToken } })`. Degrade gracefully if the
+  widget fails to load (fall back to deterministic-only, never block play). Add provider keys:
+  site key (public, client) + secret key (Supabase dashboard, server-side).
+- DONE: anon sign-in requires a solved CAPTCHA; a scripted sign-in without a token is rejected;
+  the game still loads and plays with AI simply unavailable if the widget can't run.
+- NOTE: needs a Cloudflare Turnstile or hCaptcha account (free). Turnstile is the lighter-weight,
+  less-intrusive option. Do AFTER T11 works end-to-end, so CAPTCHA is the only new variable.
+
 ### T12 — AI fallback parser + narration + city description
 - GOAL: the AI translator/narrator layer (PROMPTS.md A, C, E).
 - BUILD: when deterministic parser misses -> call proxy -> structured action -> validate ->
