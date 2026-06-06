@@ -64,13 +64,15 @@ const SYS_NARRATE =
   `You are the narrator of a cozy-but-earnest magical-girl text game. Write 1-3 sentences of\n` +
   `vivid, warm prose describing the OUTCOME you are given. Do NOT invent new events, items, or\n` +
   `results beyond what is provided. Match the player's pronouns and the scene's mood. Keep it\n` +
-  `tight and evocative, never purple. Second person ("you").`;
+  `tight and evocative, never purple. Second person ("you").\n` +
+  `Output plain prose only — no markdown, headings, titles, or quotation marks around it.`;
 
 const SYS_CITY =
   `Write 2-4 cozy, atmospheric sentences introducing a player's hometown for a magical-girl\n` +
   `game. You may use the city's name and general vibe, but DO NOT assert specific factual\n` +
   `claims (exact landmarks, population, real streets) as if verified. Keep it warm, slightly\n` +
-  `nostalgic, evocative of an ordinary life about to change. Second person.`;
+  `nostalgic, evocative of an ordinary life about to change. Second person.\n` +
+  `Output plain prose only — no markdown, no headings, and do NOT title it with the city name.`;
 
 function asText(v: unknown): string {
   return v == null ? "" : String(v);

@@ -247,6 +247,12 @@ function buildParseContext(s, raw) {
   };
 }
 
+/** Tidy AI prose for the terminal: drop a leading markdown heading (the model
+ *  sometimes titles the city with "# Name") and trim. */
+function cleanProse(text) {
+  return String(text || "").replace(/^\s*#{1,6}\s+.*(?:\r?\n)+/, "").trim();
+}
+
 /** Friendly message when the AI parser couldn't be used (gated / offline). */
 function aiUnavailableLine(reason) {
   if (reason === "resting" || reason === "limit") {
@@ -262,14 +268,15 @@ function onAIResult(s, event) {
   const { kind, res, vars, raw } = event;
 
   if (kind === "city") {
-    const text = res && res.ok ? (res.text || "").trim() : "";
+    const text = res && res.ok ? cleanProse(res.text) : "";
     pushLine(s, text || vars.fallback, "system");
     pushLine(s, "(city flavor — not a factual claim.)", "hint");
     return s;
   }
 
   if (kind === "narrate") {
-    if (res && res.ok && (res.text || "").trim()) pushLine(s, res.text.trim(), "mascot");
+    const text = res && res.ok ? cleanProse(res.text) : "";
+    if (text) pushLine(s, text, "mascot");
     return s;
   }
 
