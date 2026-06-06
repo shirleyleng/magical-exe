@@ -1,0 +1,7 @@
+.DS_Store
+config.js          # local balance copy; config.example.js is the tracked source
+node_modules/
+.env
+.env.local
+*.local
+dist/
