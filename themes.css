@@ -1,0 +1,88 @@
+/* ============================================================
+   MAGICAL.EXE — selectable themes
+   Each [data-theme] block overrides the design tokens defined in
+   styles.css :root. Set data-theme on <html> to switch the whole UI.
+
+   Credits / inspirations (aesthetic homage only — no vendored code):
+   - "Lip Gloss"     — Charm's Lip Gloss, https://charm.sh (not affiliated).
+   - "Cotton Candy"  — Compute Cuter, https://computecuter.com by sailorhg
+                       (header art by _dollgirls). Kawaii-pastel homage.
+   - "Phosphor"      — classic green-CRT terminals.
+   - "Moonlit"       — original; the game's moonlit-forest night palette.
+   - "Matcha"        — original; cozy cream + sage.
+   ============================================================ */
+
+/* ---- Lip Gloss (default — mirrors styles.css :root) ---- */
+[data-theme="lipgloss"] {
+  --bg-deep:#14101f; --bg-window:#1c1730; --bg-panel:#221b39; --bg-input:#2a2247;
+  --border:#3a2f5c; --border-soft:#2f2750;
+  --text:#e8e3f5; --text-dim:#a99fce; --text-muted:#6f6594;
+  --pink:#ff7eb6; --peach:#ffb27e; --teal:#5fe3c8; --purple:#b48ef0; --lilac:#cda9ff; --gold:#ffd479;
+  --accent:var(--purple);
+}
+
+/* ---- Cotton Candy (Compute Cuter homage — light kawaii pastel) ---- */
+[data-theme="cottoncandy"] {
+  --bg-deep:#f9ecf5; --bg-window:#fff6fc; --bg-panel:#fcecf6; --bg-input:#ffffff;
+  --border:#f2c8e2; --border-soft:#f8dcef;
+  --text:#5c3a54; --text-dim:#8a6480; --text-muted:#bd95b1;
+  --pink:#e85fae; --peach:#f0875f; --teal:#2fb791; --purple:#a567dd; --lilac:#8f5fcf; --gold:#e0962a;
+  --accent:var(--pink);
+  --glow: 0 0 0 1px rgba(232,95,174,0.16), 0 18px 50px -22px rgba(180,90,150,0.30);
+  --terminal-veil: rgba(255,255,255,0.45); /* light theme: lighten the terminal instead of darkening */
+}
+[data-theme="cottoncandy"] .titlebar__name,
+[data-theme="cottoncandy"] .mascot-art { text-shadow:none; }
+
+/* ---- Phosphor (retro green CRT) ---- */
+[data-theme="phosphor"] {
+  --bg-deep:#050a06; --bg-window:#08120a; --bg-panel:#0a160c; --bg-input:#0c1a0e;
+  --border:#1d3a22; --border-soft:#143018;
+  --text:#9bf6a8; --text-dim:#57c873; --text-muted:#2f6e41;
+  --pink:#f6c45f; --peach:#f6a35f; --teal:#5ff6c4; --purple:#8ff6a8; --lilac:#c2f6cc; --gold:#f6e35f;
+  --accent:var(--teal);
+}
+
+/* ---- Moonlit (magical-girl night — deep indigo + cyan/silver) ---- */
+[data-theme="moonlit"] {
+  --bg-deep:#0a0f24; --bg-window:#111737; --bg-panel:#151c45; --bg-input:#1a224f;
+  --border:#2b356f; --border-soft:#222b5b;
+  --text:#e7ecff; --text-dim:#a7b4e6; --text-muted:#6d79af;
+  --pink:#ff9ad1; --peach:#ffd49a; --teal:#6fe0ff; --purple:#9aa6ff; --lilac:#c3caff; --gold:#ffe79a;
+  --accent:var(--teal);
+}
+
+/* ---- Matcha (cozy cream + sage — warm light) ---- */
+[data-theme="matcha"] {
+  --bg-deep:#f1eddc; --bg-window:#faf7ea; --bg-panel:#efead6; --bg-input:#fffef8;
+  --border:#d6cfb0; --border-soft:#e2dcc2;
+  --text:#43432d; --text-dim:#6e6b4c; --text-muted:#9a9472;
+  --pink:#d76f88; --peach:#cf9046; --teal:#4fa87a; --purple:#9777c4; --lilac:#a98ccb; --gold:#c79a3a;
+  --accent:var(--teal);
+  --glow: 0 0 0 1px rgba(120,150,110,0.16), 0 18px 50px -22px rgba(90,100,60,0.28);
+  --terminal-veil: rgba(255,255,255,0.5);
+}
+[data-theme="matcha"] .titlebar__name,
+[data-theme="matcha"] .mascot-art { text-shadow:none; }
+
+/* ---- Rosé Pine (dark) — https://rosepinetheme.com (SIL OFL / MIT) ---- */
+[data-theme="rosepine"] {
+  --bg-deep:#191724; --bg-window:#1f1d2e; --bg-panel:#26233a; --bg-input:#2a2740;
+  --border:#524f67; --border-soft:#403d52;
+  --text:#e0def4; --text-dim:#908caa; --text-muted:#6e6a86;
+  --pink:#eb6f92; --peach:#ebbcba; --teal:#9ccfd8; --purple:#c4a7e7; --lilac:#d3bdf0; --gold:#f6c177;
+  --accent:var(--purple);
+}
+
+/* ---- Rosé Pine Dawn (light) — https://rosepinetheme.com (SIL OFL / MIT) ---- */
+[data-theme="rosepinedawn"] {
+  --bg-deep:#faf4ed; --bg-window:#fffaf3; --bg-panel:#f2e9e1; --bg-input:#fffaf3;
+  --border:#cecacd; --border-soft:#dfdad9;
+  --text:#575279; --text-dim:#797593; --text-muted:#9893a5;
+  --pink:#b4637a; --peach:#d7827e; --teal:#56949f; --purple:#907aa9; --lilac:#907aa9; --gold:#ea9d34;
+  --accent:var(--purple);
+  --glow: 0 0 0 1px rgba(144,122,169,0.16), 0 18px 50px -22px rgba(110,90,140,0.28);
+  --terminal-veil: rgba(255,255,255,0.5);
+}
+[data-theme="rosepinedawn"] .titlebar__name,
+[data-theme="rosepinedawn"] .mascot-art { text-shadow:none; }

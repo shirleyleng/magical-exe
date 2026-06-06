@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MAGICAL.EXE — theme gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="themes.css" />
+  <style>
+    body { display:block; padding:24px; background:#0d0b14; overflow-y:auto; }
+    .gallery-head { color:#e8e3f5; font-family:var(--font); max-width:1100px; margin:0 auto 18px; }
+    .gallery-head h1 { margin:0 0 4px; letter-spacing:.12em; }
+    .gallery-head p { margin:0; color:#a99fce; font-size:13px; }
+    .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:22px; max-width:1100px; margin:0 auto; }
+    .card { display:flex; flex-direction:column; gap:8px; }
+    .card__label { font-family:var(--font); font-weight:700; letter-spacing:.06em; color:#e8e3f5; font-size:14px; }
+    .card__note { font-family:var(--font); color:#8a82a8; font-size:11px; margin-top:-4px; }
+    /* Each frame paints its theme's page background and hosts a mini terminal. */
+    .frame { border-radius:16px; padding:14px; background:var(--bg-deep); border:1px solid rgba(255,255,255,.06); }
+    .frame .screen { width:100%; height:auto; }
+    .frame .layout { grid-template-columns:1fr 168px; gap:10px; padding:10px; }
+    .frame .terminal { padding:12px; }
+    .frame .output { overflow:visible; }
+    .frame .panel { padding:10px 12px; }
+    .frame .stat-block { font-size:11px; line-height:1.5; }
+    .frame .mascot-art { font-size:11px; }
+    .frame .panel__title { font-size:10px; }
+  </style>
+</head>
+<body>
+  <div class="gallery-head">
+    <h1>✦ MAGICAL.EXE — theme gallery ✦</h1>
+    <p>Pick the ones you'd like in the in-game theme switcher. Credits: Lip Gloss → Charm (charm.sh); Cotton Candy → Compute Cuter (computecuter.com, by sailorhg).</p>
+  </div>
+  <div id="grid" class="grid"></div>
+
+  <script>
+    const THEMES = [
+      { id:"lipgloss",    name:"Lip Gloss",    note:"Charm homage · deep purple, pink + teal (current default)" },
+      { id:"cottoncandy", name:"Cotton Candy", note:"Compute Cuter homage · light kawaii pastel" },
+      { id:"moonlit",     name:"Moonlit",      note:"magical-girl night · indigo + cyan/silver" },
+      { id:"phosphor",    name:"Phosphor",     note:"retro green CRT terminal" },
+      { id:"matcha",      name:"Matcha",       note:"cozy cream + sage (warm light)" },
+      { id:"rosepine",    name:"Rosé Pine",    note:"rosepinetheme.com · soho-vibes dark, iris + foam + rose" },
+      { id:"rosepinedawn",name:"Rosé Pine Dawn",note:"rosepinetheme.com · the light variant" },
+    ];
+
+    const mock = `
+      <main class="screen" role="application">
+        <header class="titlebar">
+          <span class="dot dot--pink"></span><span class="dot dot--peach"></span><span class="dot dot--teal"></span>
+          <span class="titlebar__name">✦ MAGICAL.EXE ✦</span>
+          <span class="titlebar__hint">v0.1</span>
+        </header>
+        <div class="layout">
+          <section class="terminal">
+            <div class="output">
+<p class="line line--banner">✦ MAGICAL.EXE ✦</p>
+<p class="line line--system">The light settles. Standing before you is Faye.</p>
+<p class="line line--mascot">"Nice to finally meet you, Lumi. This is Brightwater, isn't it?"</p>
+<p class="line line--hint">Type /help any time. Try: train power · rest · status</p>
+<p class="line line--echo"><span class="prompt-mark">&gt;</span>train power</p>
+<p class="line line--system">You train hard. Your power is now 9.</p>
+            </div>
+            <div class="menu">
+              <div class="menu__item menu__item--active">› Girl</div>
+              <div class="menu__item">  Boy</div>
+              <div class="menu__item">  Person</div>
+            </div>
+            <div class="example-prompt">try: "head into the forest"</div>
+            <form class="inputline" onsubmit="return false">
+              <label class="prompt">&gt;</label>
+              <input class="inputline__field" value="explore" />
+            </form>
+          </section>
+          <aside class="panels">
+            <section class="panel panel--stats">
+              <h2 class="panel__title">STATUS</h2>
+              <div class="panel__body"><pre class="stat-block">Lumi  ·  balanced
+Day 3 · hub · soldier
+Slots 2/6
+
+HP    44/44
+PWR 9   SPR 7
+DODGE 5
+Purity 60  Corr 10
+Coins ✦42</pre></div>
+            </section>
+            <section class="panel panel--mascot">
+              <h2 class="panel__title">MASCOT</h2>
+              <div class="panel__body"><pre class="mascot-art">  ·  ✦  ·
+   /\\_/\\
+  ( =w= )
+  ( >w&lt; )~
+  ·  ✦  ·</pre></div>
+            </section>
+          </aside>
+        </div>
+      </main>`;
+
+    const grid = document.getElementById("grid");
+    for (const t of THEMES) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML =
+        `<div class="card__label">${t.name}</div>` +
+        `<div class="card__note">${t.note}</div>` +
+        `<div class="frame" data-theme="${t.id}">${mock}</div>`;
+      grid.appendChild(card);
+    }
+  </script>
+</body>
+</html>

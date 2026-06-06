@@ -117,12 +117,28 @@ body {
   padding: var(--gap);
 }
 
+/* ---- HUD reveal ----
+   Before the player meets their mascot, it's just a person at a terminal:
+   the side panels are hidden and the terminal spans full width. At the reveal
+   (character.created) render.js drops .hud-hidden and the panels animate in. */
+.layout.hud-hidden { grid-template-columns: 1fr; }
+.layout.hud-hidden .panels { display: none; }
+
+@keyframes hud-reveal {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.panels--reveal { animation: hud-reveal 600ms cubic-bezier(.2,.7,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .panels--reveal { animation: none; }
+}
+
 /* ---- Terminal region (scrollback + input) ---- */
 .terminal {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(0,0,0,0.12), transparent);
+  background: linear-gradient(180deg, var(--terminal-veil, rgba(0,0,0,0.12)), transparent);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius);
   padding: var(--pad);

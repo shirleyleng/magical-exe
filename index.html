@@ -13,6 +13,7 @@
     rel="stylesheet"
   />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="themes.css" />
 </head>
 <body>
   <!-- The fake-terminal "window". Plain DOM, styled with CSS to look terminal-y.
@@ -27,7 +28,9 @@
       <span class="titlebar__hint">v0.1 · terminal shell</span>
     </header>
 
-    <div class="layout">
+    <!-- hud-hidden: STATUS + MASCOT stay hidden until the player meets their
+         mascot (character.created). render.js manages this class. -->
+    <div class="layout hud-hidden">
       <!-- REGION 1: terminal (scrollback + input) -->
       <section class="terminal" aria-label="Game output">
         <div id="output" class="output" aria-live="polite" tabindex="0"></div>

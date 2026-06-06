@@ -17,6 +17,7 @@ import { freshModel, pushLine } from "./state.js";
 import { parse, HELP } from "./parser.js";
 import { beginCreation, handleCreationInput, handleMenuSelect } from "./creation.js";
 import { aiAvailable, parseAIJson } from "./ai.js";
+import { THEMES, themeName } from "./theme.js";
 import {
   refreshSlotsMax, trainCommand, openTrainMenu, openShopMenu,
   sellCommand, useItem, doRest, handleHubMenu, slotsFree,
@@ -61,6 +62,15 @@ export function update(state, event) {
         s.ui.menu = null;
         if (opt.value === "__cancel__") { pushLine(s, "(cancelled)", "hint"); return s; }
         return requestLoad(s, opt.value);
+      }
+      if (m.kind === "theme") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") { pushLine(s, "(kept current theme)", "hint"); return s; }
+        s.ui.effect = { type: "theme", id: opt.value }; // main.js applies + persists
+        pushLine(s, `Theme set to ${themeName(opt.value)}.`, "system");
+        return s;
       }
       return handleHubMenu(s, m.kind, m.options[m.index]);
     }
@@ -152,6 +162,19 @@ function openLoadMenu(s) {
   options.push({ label: "Cancel", value: "__cancel__" });
   pushLine(s, "Your saved games:", "system");
   s.ui.menu = { active: true, kind: "load", options, index: 0 };
+  return s;
+}
+
+/** Theme switcher — a menu of palettes; selection applies + persists via an effect. */
+function openThemeMenu(s) {
+  const current = document.documentElement.dataset.theme || "lipgloss";
+  const options = THEMES.map((t) => ({
+    label: `${t.name}${t.id === current ? " (current)" : ""} — ${t.note}`,
+    value: t.id,
+  }));
+  options.push({ label: "Cancel", value: "__cancel__" });
+  pushLine(s, "Choose a theme:", "system");
+  s.ui.menu = { active: true, kind: "theme", options, index: 0 };
   return s;
 }
 
@@ -340,6 +363,9 @@ function route(s, cmd) {
     case "map":
       pushLine(s, "You don't have a map yet.", "system");
       return s;
+
+    case "theme":
+      return openThemeMenu(s);
   }
 
   if (s.model.mode === "combat") return routeCombat(s, cmd);

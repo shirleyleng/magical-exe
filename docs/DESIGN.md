@@ -305,3 +305,14 @@ touching logic:
 Charm's libraries are MIT-licensed; this game recreates the *aesthetic* in CSS and does not
 include Charm code. The credit is a courtesy. (If Charm code is ever vendored, include their
 MIT license text verbatim.)
+
+### Theme credits (selectable palettes — `themes.css`)
+The in-game themes are aesthetic homages recreated in CSS; no theme code is vendored.
+- **Lip Gloss** — [Charm](https://charm.sh)'s Lip Gloss (as above).
+- **Cotton Candy** — inspired by [Compute Cuter](https://computecuter.com) by **sailorhg**
+  (header art by **_dollgirls**), a kawaii-pastel computing-aesthetic guide.
+- **Rosé Pine / Rosé Pine Dawn** — palettes from [Rosé Pine](https://rosepinetheme.com)
+  (the Rosé Pine theme is MIT-licensed; we use only the colour values).
+- **Moonlit · Matcha · Phosphor** — original palettes for this game.
+
+These credits should also appear on the in-game about/credits screen (T21).

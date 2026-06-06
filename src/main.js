@@ -12,6 +12,7 @@ import { update } from "./update.js";
 import { render, initDom } from "./render.js";
 import { saveModel, loadActive, loadSlot } from "./persist.js";
 import { callAI } from "./ai.js";
+import { applyTheme, getStoredTheme, setStoredTheme } from "./theme.js";
 
 let state;
 
@@ -46,10 +47,19 @@ async function applyEffect() {
     dispatch({ type: "ai-result", kind: effect.kind, raw: effect.raw, vars: effect.vars, res });
     return;
   }
+
+  if (effect.type === "theme") {
+    state.ui.effect = null;
+    applyTheme(effect.id);
+    setStoredTheme(effect.id);
+    render(state);
+    return;
+  }
 }
 
 function boot() {
   initDom();
+  applyTheme(getStoredTheme()); // restore the saved palette before first paint
 
   const loaded = loadActive();
   state = createState(loaded);

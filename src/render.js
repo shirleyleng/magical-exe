@@ -26,18 +26,37 @@ export function initDom() {
     form: document.getElementById("input-form"),
     stat: document.getElementById("stat-panel"),
     mascot: document.getElementById("mascot-panel"),
+    layout: document.querySelector(".layout"),
+    panels: document.querySelector(".panels"),
   };
   els.output.innerHTML = "";
   renderedCount = 0;
 }
 
 export function render(state) {
+  renderHud(state.model);
   renderLog(state.log);
   renderMenu(state.ui);
   renderExample(state.model, state.ui);
   renderStats(state.model);
   renderMascot(state.model);
   scrollToBottom();
+}
+
+/* ---- HUD reveal: show STATUS + MASCOT once the player has met their mascot.
+   Plays the entrance animation once, on the transition from hidden -> shown. */
+function renderHud(model) {
+  const created = !!(model.character && model.character.created);
+  const wasHidden = els.layout.classList.contains("hud-hidden");
+  els.layout.classList.toggle("hud-hidden", !created);
+  if (wasHidden && created) {
+    els.panels.classList.add("panels--reveal");
+    els.panels.addEventListener(
+      "animationend",
+      () => els.panels.classList.remove("panels--reveal"),
+      { once: true }
+    );
+  }
 }
 
 /* ---- always keep the newest line in view ---- */

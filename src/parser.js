@@ -53,6 +53,7 @@ const VERBS = {
   delete: "delete", del: "delete", remove: "delete",
   help: "help", commands: "help", "?": "help",
   map: "map",
+  theme: "theme", themes: "theme", palette: "theme",
 };
 
 const NO_MATCH = (raw) => ({ matched: false, verb: null, target: null, targetRaw: null, modifier: null, raw });
@@ -98,5 +99,6 @@ export const HELP = [
   "  Hub:     train <stat> · rest · shop · buy <item> · sell <item> · explore",
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",
+  "  Theme:   theme  (switch the color palette)",
   "Or just describe what you want to do in your own words — the mascot will try to follow.",
 ];
