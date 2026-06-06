@@ -13,6 +13,7 @@ import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { getEnemy } from "./enemies.js";
 import { useItem } from "./hub.js";
+import { requestNarration } from "./narrate.js";
 
 const coin = () => CONFIG.economy.currencySymbol;
 
@@ -233,6 +234,14 @@ function endCombat(state, outcome) {
     for (const item of c.enemy.loot) {
       if (rolls(0.5)) { ch.inventory.push(item); pushLine(state, `You find a ${item}.`, "system"); }
     }
+    // Narrate ordinary victories (boss wins are scripted story beats — leave them alone).
+    if (!c.enemy.isBoss) {
+      requestNarration(state, {
+        scene: `a clash with a ${c.enemy.name}`,
+        resolved: `you defeated the ${c.enemy.name}`,
+        mood: "triumphant, breathless",
+      });
+    }
     if (c.returnMode === "exploration" && c.returnRoom) {
       model.world.cleared[c.returnRoom] = true;
     }
@@ -255,6 +264,13 @@ function endCombat(state, outcome) {
   // defeat — gentle: wake at home, barely standing.
   pushLine(state, "Darkness rushes in… and you wake at home, aching but alive.", "banner");
   ch.stats.hp = Math.max(1, Math.round(ch.stats.maxHp * 0.25));
+  if (!c.enemy.isBoss) {
+    requestNarration(state, {
+      scene: `a losing fight with a ${c.enemy.name}`,
+      resolved: `the ${c.enemy.name} overwhelmed you; you barely made it home`,
+      mood: "melancholy, shaken",
+    });
+  }
   model.combat = null;
   model.mode = "hub";
   model.world.currentLocation = "homebase";

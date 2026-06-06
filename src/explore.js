@@ -13,6 +13,25 @@ import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { DUNGEONS, getRoom, BOSS_ENEMY } from "./dungeons.js";
 import { startCombat } from "./combat.js";
+import { requestNarration } from "./narrate.js";
+
+/** Narrate a room the first time it's entered (T12). Skips re-visits to limit
+ *  cost and repetition; only fires while still exploring (no combat triggered). */
+function maybeNarrateRoom(state) {
+  const model = state.model;
+  if (model.mode !== "exploration") return;
+  const roomId = model.world.currentRoom;
+  if (!model.world.visited) model.world.visited = {};
+  if (model.world.visited[roomId]) return;
+  model.world.visited[roomId] = true;
+  const r = currentRoom(model);
+  if (!r) return;
+  requestNarration(state, {
+    scene: `${r.name} — ${r.desc}`,
+    resolved: `you step into the ${r.name.toLowerCase()} and take it in`,
+    mood: model.world.currentLocation === "forest" ? "hushed, moonlit, a little eerie" : "atmospheric",
+  });
+}
 
 function currentRoom(model) {
   return getRoom(model.world.currentLocation, model.world.currentRoom);
@@ -41,6 +60,7 @@ export function enterDungeon(state, dungeonId = "forest") {
   model.world.currentRoom = d.entrance;
   pushLine(state, `You slip away to the ${d.name}.`, "system");
   describeRoom(state);
+  maybeNarrateRoom(state);
   return state;
 }
 
@@ -112,6 +132,7 @@ export function moveDir(state, dir) {
   if (nr && nr.encounter && !model.world.cleared[dest] && Math.random() < nr.encounter.chance) {
     return startCombat(state, nr.encounter.monster, { returnMode: "exploration", returnRoom: dest });
   }
+  maybeNarrateRoom(state); // no encounter — narrate the new room
   return state;
 }
 
