@@ -36,11 +36,47 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-// Prompt assembly lives server-side so the cached prefix is identical for every user
-// (max prompt-cache savings) and players can't tamper with it. The static system text
-// gets cache_control: ephemeral. T11 ships `ping` only — T12/T13 add parse/judge/
-// narrate/mascot/city per docs/PROMPTS.md.
-function buildPayload(kind: string, _vars: Record<string, unknown>, model: string) {
+// Prompt assembly lives server-side so the prompt is identical for every user and
+// players can't tamper with it. The static system text gets cache_control: ephemeral
+// (a no-op at our prompt sizes — Haiku 4.5's min cacheable prefix is 4096 tokens and
+// ours are far smaller — but harmless and future-proof). System prompts are verbatim
+// from docs/PROMPTS.md. T11 shipped `ping`; T12 adds parse (A) / narrate (C) / city (E).
+// T13 will add the combat judge (B).
+const CC = { type: "ephemeral" } as const;
+
+const SYS_PARSE =
+  `You are the input parser for a text game. Convert the player's free text into ONE\n` +
+  `structured action drawn ONLY from the allowed actions for the current context. Do not\n` +
+  `invent actions, items, places, or entities. If the input doesn't map to any allowed\n` +
+  `action, return {"action":"unknown","reason":"<short reason>"}.\n\n` +
+  `Return ONLY a JSON object. No preamble, no markdown, no backticks.\n\n` +
+  `Schema:\n` +
+  `{ "action": "<one of the allowed action names>",\n` +
+  `  "target": "<entity id from the provided lists, or null>",\n` +
+  `  "modifier": "<optional short string, or null>" }\n\n` +
+  `Context you will be given each turn:\n` +
+  `- mode: "hub" | "exploration" | "combat"\n` +
+  `- allowedActions: [ ... ]      // the only legal action names this turn\n` +
+  `- presentEntities: [ ... ]     // items/monsters/NPCs/exits the player can refer to\n` +
+  `Only use ids that appear in allowedActions / presentEntities.`;
+
+const SYS_NARRATE =
+  `You are the narrator of a cozy-but-earnest magical-girl text game. Write 1-3 sentences of\n` +
+  `vivid, warm prose describing the OUTCOME you are given. Do NOT invent new events, items, or\n` +
+  `results beyond what is provided. Match the player's pronouns and the scene's mood. Keep it\n` +
+  `tight and evocative, never purple. Second person ("you").`;
+
+const SYS_CITY =
+  `Write 2-4 cozy, atmospheric sentences introducing a player's hometown for a magical-girl\n` +
+  `game. You may use the city's name and general vibe, but DO NOT assert specific factual\n` +
+  `claims (exact landmarks, population, real streets) as if verified. Keep it warm, slightly\n` +
+  `nostalgic, evocative of an ordinary life about to change. Second person.`;
+
+function asText(v: unknown): string {
+  return v == null ? "" : String(v);
+}
+
+function buildPayload(kind: string, vars: Record<string, unknown>, model: string) {
   switch (kind) {
     case "ping":
       return {
@@ -52,11 +88,51 @@ function buildPayload(kind: string, _vars: Record<string, unknown>, model: strin
             text:
               "You are a connectivity test for a text game. Reply with ONLY this exact " +
               'JSON and nothing else: {"pong":true}',
-            cache_control: { type: "ephemeral" },
+            cache_control: CC,
           },
         ],
         messages: [{ role: "user", content: "ping" }],
       };
+
+    case "parse": {
+      const user =
+        `mode: ${asText(vars.mode)}\n` +
+        `allowedActions: ${JSON.stringify(vars.allowedActions ?? [])}\n` +
+        `presentEntities: ${JSON.stringify(vars.presentEntities ?? [])}\n` +
+        `playerInput: ${JSON.stringify(asText(vars.rawText))}`;
+      return {
+        model,
+        max_tokens: 200,
+        system: [{ type: "text", text: SYS_PARSE, cache_control: CC }],
+        messages: [{ role: "user", content: user }],
+      };
+    }
+
+    case "narrate": {
+      const user =
+        `pronouns: ${asText(vars.pronouns)}\n` +
+        `scene: ${asText(vars.scene)}\n` +
+        `resolved: ${asText(vars.resolved)}\n` +
+        `mood: ${asText(vars.mood)}`;
+      return {
+        model,
+        max_tokens: 200,
+        system: [{ type: "text", text: SYS_NARRATE, cache_control: CC }],
+        messages: [{ role: "user", content: user }],
+      };
+    }
+
+    case "city": {
+      const user =
+        `city: ${JSON.stringify(asText(vars.cityName))}, occupation: ${asText(vars.occupation)}`;
+      return {
+        model,
+        max_tokens: 250,
+        system: [{ type: "text", text: SYS_CITY, cache_control: CC }],
+        messages: [{ role: "user", content: user }],
+      };
+    }
+
     default:
       return null; // unknown kind -> 400
   }

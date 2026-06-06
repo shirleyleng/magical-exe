@@ -133,6 +133,16 @@ export function takeItem(state, target) {
   return state;
 }
 
+/** Entities the player can refer to right now in exploration: exits + room items.
+ *  Used to build context for the AI fallback parser (T12). */
+export function explorationEntities(model) {
+  const r = currentRoom(model);
+  if (!r) return [];
+  const exits = Object.keys(r.exits || {});
+  const items = liveItems(model, model.world.currentRoom);
+  return [...exits, ...items];
+}
+
 export function retreat(state, forced = false) {
   const model = state.model;
   model.mode = "hub";

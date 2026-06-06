@@ -1,37 +1,60 @@
-/* MAGICAL.EXE — AI client (T11)
+/* MAGICAL.EXE — AI client (T11 + T12)
  *
  * The browser side of the AI layer. Talks ONLY to the Supabase `ai-proxy` Edge
  * Function — never to Anthropic directly. Responsibilities:
- *   - Lazily create the Supabase client from the public config (url + anon key).
+ *   - Lazily load supabase-js (dynamic import) and build the client from the
+ *     public config. The import is LAZY on purpose: the game's core modules
+ *     statically import this file, and a blocked/offline esm.sh must NOT break
+ *     game boot. Nothing here touches the network until the first AI call.
  *   - Sign in anonymously (one shared in-flight promise; session persists in
  *     localStorage and auto-refreshes).
  *   - callAI(kind, vars): POST to the proxy with the user's JWT, return the
  *     proxy's JSON. NEVER throws — on any failure returns { ok:false, reason }
  *     so the game degrades to deterministic-only.
- *
- * T11 wires `ping` only (connectivity test). T12/T13 build parse/judge/narrate on top.
+ *   - parseAIJson: strip ```json fences and JSON.parse (Haiku wraps JSON in
+ *     fences even when told not to — see PROMPTS.md implementation notes).
  */
 import { CONFIG } from "../config.js";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_ESM = "https://esm.sh/@supabase/supabase-js@2";
+
+function configured() {
+  const sb = CONFIG.supabase || {};
+  return !!(
+    sb.url && sb.anonKey &&
+    !sb.url.includes("YOUR_") && !sb.anonKey.includes("YOUR_")
+  );
+}
+
+/** True if the Supabase backend is configured (not whether a call will succeed). */
+export function aiAvailable() {
+  return configured();
+}
 
 let _client = null;
-function client() {
+let _clientPromise = null;
+async function getClient() {
   if (_client) return _client;
-  const sb = CONFIG.supabase || {};
-  // Treat unconfigured / placeholder values as "AI disabled".
-  if (!sb.url || !sb.anonKey || sb.url.includes("YOUR_") || sb.anonKey.includes("YOUR_")) {
-    return null;
+  if (!configured()) return null;
+  if (!_clientPromise) {
+    _clientPromise = import(SUPABASE_ESM)
+      .then(({ createClient }) => {
+        _client = createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey, {
+          auth: { persistSession: true, autoRefreshToken: true },
+        });
+        return _client;
+      })
+      .catch((e) => {
+        console.warn("[ai] failed to load supabase-js:", e);
+        _clientPromise = null; // allow a later retry
+        return null;
+      });
   }
-  _client = createClient(sb.url, sb.anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true },
-  });
-  return _client;
+  return _clientPromise;
 }
 
 let _signIn = null;
-async function ensureSession() {
-  const sb = client();
-  if (!sb) return null;
+async function ensureSession(sb) {
   const { data: { session } } = await sb.auth.getSession();
   if (session) return session;
   // Collapse concurrent first-use calls into a single sign-in.
@@ -46,11 +69,6 @@ async function ensureSession() {
   return data.session;
 }
 
-/** True if the Supabase backend is configured (not whether a call will succeed). */
-export function aiAvailable() {
-  return client() != null;
-}
-
 /**
  * Call the AI proxy. Returns the proxy's JSON, e.g.
  *   { ok:true, kind, text, usage }            on success
@@ -58,12 +76,18 @@ export function aiAvailable() {
  * Always resolves — callers branch on `.ok` and fall back to deterministic play.
  */
 export async function callAI(kind, vars = {}) {
-  const sb = client();
+  let sb;
+  try {
+    sb = await getClient();
+  } catch (e) {
+    console.warn("[ai] client load error:", e);
+    return { ok: false, reason: "disabled" };
+  }
   if (!sb) return { ok: false, reason: "disabled" };
 
   let session;
   try {
-    session = await ensureSession();
+    session = await ensureSession(sb);
   } catch (e) {
     console.warn("[ai] session error:", e);
     return { ok: false, reason: "auth" };
@@ -87,6 +111,23 @@ export async function callAI(kind, vars = {}) {
   } catch (e) {
     console.warn("[ai] callAI network error:", e);
     return { ok: false, reason: "network" };
+  }
+}
+
+/**
+ * Parse a model reply that should be a JSON object. Strips ```json / ``` fences
+ * first (Haiku adds them even when told not to). Returns the parsed object, or
+ * null if it isn't valid JSON — callers treat null as "couldn't understand".
+ */
+export function parseAIJson(text) {
+  if (typeof text !== "string") return null;
+  let t = text.trim();
+  const fenced = t.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenced) t = fenced[1].trim();
+  try {
+    return JSON.parse(t);
+  } catch {
+    return null;
   }
 }
 

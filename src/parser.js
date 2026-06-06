@@ -98,5 +98,5 @@ export const HELP = [
   "  Hub:     train <stat> · rest · shop · buy <item> · sell <item> · explore",
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",
-  "Freeform AI actions arrive later — for now, these are your verbs.",
+  "Or just describe what you want to do in your own words — the mascot will try to follow.",
 ];

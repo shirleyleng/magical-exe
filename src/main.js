@@ -11,6 +11,7 @@ import { createState } from "./state.js";
 import { update } from "./update.js";
 import { render, initDom } from "./render.js";
 import { saveModel, loadActive, loadSlot } from "./persist.js";
+import { callAI } from "./ai.js";
 
 let state;
 
@@ -21,9 +22,11 @@ function dispatch(event) {
   if (state.ui.effect) applyEffect();
 }
 
-/** Run a deferred side-effect requested by update (e.g. swapping saves). */
-function applyEffect() {
+/** Run a deferred side-effect requested by update (e.g. swapping saves, AI calls). */
+async function applyEffect() {
   const effect = state.ui.effect;
+  if (!effect) return;
+
   if (effect.type === "load") {
     const model = loadSlot(effect.name);
     if (model) {
@@ -34,6 +37,14 @@ function applyEffect() {
       state.ui.effect = null;
       render(state);
     }
+    return;
+  }
+
+  if (effect.type === "ai") {
+    state.ui.effect = null; // consume before awaiting
+    const res = await callAI(effect.kind, effect.vars);
+    dispatch({ type: "ai-result", kind: effect.kind, raw: effect.raw, vars: effect.vars, res });
+    return;
   }
 }
 
@@ -64,6 +75,7 @@ function boot() {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    if (state.ui.busy) return; // an AI call is in flight — ignore input until it resolves
     const text = input.value;
     input.value = "";
     histIndex = null;

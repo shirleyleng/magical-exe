@@ -12,14 +12,16 @@
    parser plumbing and routing is what T3 establishes.
    ============================================================ */
 
+import { CONFIG } from "../config.js";
 import { freshModel, pushLine } from "./state.js";
 import { parse, HELP } from "./parser.js";
 import { beginCreation, handleCreationInput, handleMenuSelect } from "./creation.js";
+import { aiAvailable, parseAIJson } from "./ai.js";
 import {
   refreshSlotsMax, trainCommand, openTrainMenu, openShopMenu,
   sellCommand, useItem, doRest, handleHubMenu, slotsFree,
 } from "./hub.js";
-import { enterDungeon, moveDir, lookRoom, takeItem, retreat } from "./explore.js";
+import { enterDungeon, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import {
   startCombat, playerAttack, playerGuard, combatUse, combatLook, playerFlee,
 } from "./combat.js";
@@ -64,6 +66,8 @@ export function update(state, event) {
     }
     case "loaded":
       return onLoaded(s, event);
+    case "ai-result":
+      return onAIResult(s, event);
     case "menuCancel": {
       const m = s.ui.menu;
       if (m && m.active && m.kind !== "creation") {
@@ -118,6 +122,15 @@ function onInput(s, event) {
 
   const cmd = parse(raw);
   if (!cmd.matched) {
+    // Deterministic parser missed. Fall back to the AI parser if it's available;
+    // otherwise give the plain nudge. The AI call runs as an effect (main.js) and
+    // comes back as an "ai-result" event handled by onAIResult.
+    if (aiAvailable()) {
+      s.ui.busy = true;
+      s.ui.effect = { type: "ai", kind: "parse", raw, vars: buildParseContext(s, raw) };
+      pushLine(s, "(thinking…)", "hint");
+      return s;
+    }
     pushLine(s, "Hmm, I didn't quite catch that.", "system");
     pushLine(s, "Type /help for the list of commands.", "hint");
     return s;
@@ -160,6 +173,111 @@ function onLoaded(s, event) {
   pushLine(s, "Type /help for commands.", "hint");
   pushLine(s, "");
   return s;
+}
+
+/* ---- AI fallback parser (T12) ----
+   Build the context the AI parser needs (PROMPTS.md A): the legal verbs this turn
+   and the entities the player can refer to. Keep allowedActions in sync with the
+   route() switches below. */
+function buildParseContext(s, raw) {
+  const m = s.model;
+  const mode = m.mode;
+  const inv = m.character.inventory || [];
+
+  if (mode === "combat") {
+    const enemy = m.combat?.enemy?.name;
+    return {
+      mode,
+      allowedActions: ["attack", "guard", "use", "retreat", "look"],
+      presentEntities: [
+        ...(enemy ? [enemy] : []),
+        ...(m.character.abilities || []),
+        ...inv,
+      ],
+      rawText: raw,
+    };
+  }
+
+  if (mode === "exploration") {
+    return {
+      mode,
+      allowedActions: ["move", "look", "take", "use", "retreat"],
+      presentEntities: [...explorationEntities(m), ...inv],
+      rawText: raw,
+    };
+  }
+
+  // hub
+  return {
+    mode,
+    allowedActions: [
+      "train", "rest", "shop", "buy", "sell", "explore",
+      "use", "attack", "look", "status", "inventory",
+    ],
+    presentEntities: [
+      "power", "spirit", "defense", "speed", "dodge", "hp", "stamina", // train targets
+      ...CONFIG.economy.shop.map((it) => it.name),                     // shop / sell targets
+      ...inv,
+      "forest",                                                        // explore target
+    ],
+    rawText: raw,
+  };
+}
+
+/** Friendly message when the AI parser couldn't be used (gated / offline). */
+function aiUnavailableLine(reason) {
+  if (reason === "resting" || reason === "limit") {
+    return "The mascot's a little tuckered out — sticking to plain commands for now.";
+  }
+  return "Hmm, I didn't quite catch that.";
+}
+
+/* Handle the AI's reply. kind:"parse" -> validate + route a command;
+   kind:"city"|"narrate" -> append the prose (or a fallback). */
+function onAIResult(s, event) {
+  s.ui.busy = false;
+  const { kind, res, vars, raw } = event;
+
+  if (kind === "city") {
+    const text = res && res.ok ? (res.text || "").trim() : "";
+    pushLine(s, text || vars.fallback, "system");
+    pushLine(s, "(city flavor — not a factual claim.)", "hint");
+    return s;
+  }
+
+  if (kind === "narrate") {
+    if (res && res.ok && (res.text || "").trim()) pushLine(s, res.text.trim(), "mascot");
+    return s;
+  }
+
+  // kind === "parse"
+  if (!res || !res.ok) {
+    pushLine(s, aiUnavailableLine(res && res.reason), "system");
+    pushLine(s, "Type /help for the list of commands.", "hint");
+    return s;
+  }
+
+  const data = parseAIJson(res.text);
+  const verb = data && typeof data.action === "string" ? data.action : null;
+  const allowed = (vars && vars.allowedActions) || [];
+  if (!verb || verb === "unknown" || !allowed.includes(verb)) {
+    const why = data && typeof data.reason === "string" ? data.reason : null;
+    pushLine(s, why ? `Hmm — ${why}` : "Hmm, I didn't quite catch that.", "system");
+    pushLine(s, "Type /help for the list of commands.", "hint");
+    return s;
+  }
+
+  const target = data.target != null ? String(data.target) : null;
+  const cmd = {
+    matched: true,
+    verb,
+    target: target ? target.toLowerCase() : null,
+    targetRaw: target,
+    modifier: data.modifier != null ? String(data.modifier) : null,
+    raw: raw || res.text,
+  };
+  const out = route(s, cmd);
+  return out.ui.justDefeatedBoss ? handleBossDefeat(out) : out;
 }
 
 /* ---- command router ----

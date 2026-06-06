@@ -13,6 +13,7 @@
 
 import { pushLine, pronounsFor } from "./state.js";
 import { fuseMascot, randomNames, ART } from "./mascot.js";
+import { aiAvailable } from "./ai.js";
 
 /* ---- Map a free-toy answer to a recognizable magical weapon object ---- */
 function toyToWeapon(toy) {
@@ -257,8 +258,21 @@ function commit(state) {
   pushLine(state, `A fusion of ${mascot.animals.join(", ")} — ${mascot.voice}.`, "system");
   pushLine(state, `"Nice to finally meet you, ${ch.name}. This is ${ch.city}, isn't it?"`, "mascot");
 
-  pushLine(state, cityPlaceholder(ch.city, ch.occupation), "system");
-  pushLine(state, "(city flavor — not a factual claim; richer description comes later.)", "hint");
+  // City description: AI-generated (PROMPTS.md E) when available, with the
+  // deterministic placeholder as the instant + offline fallback. The AI call runs
+  // as an effect (main.js) and appends via update.js > onAIResult ("city").
+  const placeholder = cityPlaceholder(ch.city, ch.occupation);
+  if (aiAvailable()) {
+    pushLine(state, `"${ch.city}… let me tell you what I see."`, "mascot");
+    state.ui.effect = {
+      type: "ai",
+      kind: "city",
+      vars: { cityName: ch.city, occupation: occLabel(ch.occupation), fallback: placeholder },
+    };
+  } else {
+    pushLine(state, placeholder, "system");
+    pushLine(state, "(city flavor — not a factual claim.)", "hint");
+  }
 
   pushLine(state, "");
   pushLine(state, `Welcome, magical ${labelFor(d.gender)}. Your story begins on Day 1.`, "banner");
@@ -273,6 +287,17 @@ function commit(state) {
 
 function labelFor(gender) {
   return gender === "girl" ? "girl" : gender === "boy" ? "boy" : "person";
+}
+
+/** Readable occupation string for the AI city prompt (PROMPTS.md E). */
+function occLabel(occupation) {
+  switch (occupation.type) {
+    case "working": return `working at ${occupation.detail || "a little shop in town"}`;
+    case "highschool": return "in high school";
+    case "university": return "at university";
+    case "grad": return "in grad school";
+    default: return "an ordinary life";
+  }
 }
 
 function cityPlaceholder(city, occupation) {
