@@ -80,7 +80,14 @@ export function enterDungeon(state, dungeonId = "forest") {
   model.mode = "exploration";
   model.world.currentLocation = dungeonId;
   model.world.currentRoom = d.entrance;
-  pushLine(state, `You slip away to the ${d.name}.`, "system");
+  if (dungeonId === "secret") {
+    const place = model.character.secretPlace;
+    pushLine(state, place
+      ? `The mist takes the shape of somewhere you'd know in your sleep — ${place}.`
+      : "The mist takes the shape of somewhere you'd know in your sleep.", "system");
+  } else {
+    pushLine(state, `You slip away to the ${d.name}.`, "system");
+  }
   describeRoom(state);
   maybeNarrateRoom(state);
   return state;

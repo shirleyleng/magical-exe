@@ -16,6 +16,9 @@ const DIRECTIONS = {
   w: "west", west: "west",
   u: "up", up: "up",
   d: "down", down: "down",
+  in: "in", inside: "in", enter: "in",
+  out: "out", outside: "out", back: "out",
+  across: "across",
 };
 
 // First-token synonyms -> canonical verb.
@@ -41,6 +44,7 @@ const VERBS = {
   // hub
   train: "train", practice: "train",
   spar: "spar", sparring: "spar", duel: "spar",
+  alliance: "alliance", hq: "alliance", allies: "alliance", contact: "alliance", report: "alliance",
   rest: "rest", sleep: "rest",
   lielow: "lielow", lie: "lielow", hide: "lielow", laylow: "lielow", lay: "lielow",
   misdirect: "misdirect", misdirection: "misdirect", decoy: "misdirect", cover: "misdirect",
@@ -103,7 +107,7 @@ export const HELP = [
   "  Look:    look (l) · examine <thing> (x)",
   "  Items:   take <item> · drop <item> · use <item> · inventory (i)",
   "  Combat:  attack · guard · burst · use <ability> · spare",
-  "  Hub:     train <stat> · spar <stat> · rest · shop · buy <item> · sell <item> · explore",
+  "  Hub:     train <stat> · spar <stat> · rest · shop · buy <item> · sell <item> · explore · alliance",
   "  Lay low: lie low · misdirection   (cool your Unmasking when the heat rises)",
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",

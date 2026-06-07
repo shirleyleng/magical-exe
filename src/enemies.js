@@ -85,6 +85,17 @@ export const ENEMIES = {
     isBoss: true,
   },
 
+  // ---- T18: the secret-place "boss" — your own doubt, fought at Knight tier.
+  //      Beating it recovers the weapon + mascot and triggers Awakened. ----
+  doubt_echo: {
+    id: "doubt_echo",
+    name: "the Hollow Doubt",
+    maxHp: 120, power: 17, defense: 7, speed: 8, dodge: 3,
+    coins: 0,
+    loot: [],
+    isBoss: true,
+  },
+
   // ---- T16: the rival, Sable — a winnable duel, NOT a story boss (no bossId). ----
   rival_sable: {
     id: "rival_sable",

@@ -127,7 +127,8 @@ export function handleStoryLoss(state) {
 
   const model = state.model;
   const flags = model.world.flags;
-  flags.mascotGone = true; // gates: training disabled, sparring available, HUD MASCOT panel
+  flags.mascotGone = true;       // gates: training disabled + HUD MASCOT panel (lifted when the mascot returns)
+  flags.sparringUnlocked = true; // gates: sparring available (stays unlocked even after the mascot returns)
   const m = mascotName(state);
   const rival = (model.rivals && model.rivals[0]) || { name: "Sable" };
 

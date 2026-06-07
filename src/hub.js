@@ -160,7 +160,10 @@ export function learnAbility(state, name, slotKey = "training") {
    a risk/reward grind (config.sparring) that mostly grinds you down, sometimes
    breaks through, and occasionally just goes badly. The hopelessness theme made
    mechanical — but the only road forward. */
-const sparringOpen = (state) => state.model.world.flags.mascotGone === true;
+// Sparring unlocks at the mascot's disappearance (T17) and stays available even
+// after the mascot returns (T18) — the rivalry persists. Keyed on its own flag,
+// NOT mascotGone, so recovering the mascot reopens training without closing spar.
+const sparringOpen = (state) => state.model.world.flags.sparringUnlocked === true;
 
 function pickSparOutcome() {
   const outs = CONFIG.sparring.outcomes;
@@ -442,6 +445,38 @@ export function doMisdirect(state) {
   ch.unmasking = Math.max(floor, before - ax.misdirectionReduction);
   pushLine(state, `You plant a false lead — a staged sighting clear across town. (-${before - ch.unmasking} Unmasking · 1 slot)`, "system");
   relaxUnmasking(state);
+  return state;
+}
+
+/* ---- T18: the alliance ----
+   Reach out to the magical alliance. Before the Spire loss it's just distant
+   flavor; after it (flags.boss4Attempted), the elder reveals the road to
+   Awakened and unlocks the secret-place dungeon (flags.secretPlaceUnlocked).
+   Free — no slot, like the shop. */
+export function visitAlliance(state) {
+  const model = state.model;
+  const flags = model.world.flags;
+  const ch = model.character;
+
+  if (!flags.boss4Attempted) {
+    pushLine(state, "You reach out through the alliance channel. It's thin and far away — a hundred cities calling at once. There's nothing they can do for you tonight.", "system");
+    return state;
+  }
+
+  if (!flags.secretPlaceUnlocked) {
+    flags.allianceVisited = true;
+    flags.secretPlaceUnlocked = true;
+    pushLine(state, "You finally reach the alliance — really reach them, the way Sable told you to.", "banner");
+    pushLine(state, `An elder's voice answers, worn and kind: "We wondered when you'd call. Your mascot didn't fail you — it bought you time. What took it can't be beaten as you are now. You have to AWAKEN."`, "mascot");
+    pushLine(state, `"Awakening isn't given, child. You walk back to who you were before any of this — your truest place — and you face the doubt that waits there. Your weapon sleeps in that place. So does your mascot."`, "mascot");
+    const place = ch.secretPlace ? `“${ch.secretPlace}”` : "the place you used to hide when the world was too much";
+    const toy = ch.magicalWeapon && ch.magicalWeapon.fromToy ? ` And you remember ${ch.magicalWeapon.fromToy} — the one thing you never quite threw away.` : "";
+    pushLine(state, `You know the place at once: ${place}.${toy}`, "system");
+    pushLine(state, "(A misted path opens. Type explore to seek your secret place.)", "hint");
+    return state;
+  }
+
+  pushLine(state, `The alliance has told you all they can. "Go to your secret place. Awaken. Then finish what took your mascot." The channel goes quiet.`, "mascot");
   return state;
 }
 

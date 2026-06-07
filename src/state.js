@@ -85,6 +85,8 @@ export function freshModel(opts = {}) {
       flags: {
         metRival: false, rivalChallengeDay: null, rivalReturnDay: null, rivalReturned: false,
         bossesDefeated: [], storyBeats: [],
+        boss4Attempted: false, mascotGone: false, sparringUnlocked: false,
+        allianceVisited: false, secretPlaceUnlocked: false,
       },
     },
     combat: null,      // active fight state, or null (set by combat.js)
@@ -117,6 +119,12 @@ export function createState(model) {
     // Backfill T17 (Boss #4 story-loss / mascot-gone) flags.
     if (f.boss4Attempted === undefined) f.boss4Attempted = false;
     if (f.mascotGone === undefined) f.mascotGone = false;
+    // Sparring stays unlocked once earned, even after the mascot returns (T18);
+    // for pre-T18 saves, infer it from whether the mascot had gone.
+    if (f.sparringUnlocked === undefined) f.sparringUnlocked = !!f.mascotGone;
+    // Backfill T18 (alliance / secret-place) flags.
+    if (f.allianceVisited === undefined) f.allianceVisited = false;
+    if (f.secretPlaceUnlocked === undefined) f.secretPlaceUnlocked = false;
   }
   // Backfill T17 mascot presence fields for saves made before the mascot could leave.
   if (m.mascot) {

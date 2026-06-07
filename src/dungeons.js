@@ -185,6 +185,44 @@ export const DUNGEONS = {
       },
     },
   },
+
+  // ---- T18: the secret place — a misted dungeon of memory, unlocked by the
+  //      alliance (flags.secretPlaceUnlocked). Its heart holds your own doubt;
+  //      beating it recovers the magical weapon + the mascot and ignites Awakened.
+  secret: {
+    id: "secret",
+    name: "the Misted Place",
+    entrance: "secret_threshold",
+    unlockReqFlag: "secretPlaceUnlocked",
+    env: ["mist", "memory", "childhood", "hush", "soft light", "doubt"],
+    rooms: {
+      secret_threshold: {
+        name: "The Threshold",
+        desc: "The mist thins, and the ground underfoot is suddenly, impossibly familiar — the place you used to go when the world was too much. It's smaller than you remember, and softer. A path leads deeper in.",
+        exits: { in: "secret_hollow" },
+        items: [],
+        encounter: null,
+        tags: ["mist", "familiar ground", "soft light"],
+      },
+      secret_hollow: {
+        name: "The Remembering",
+        desc: "Memories hang in the mist like washing on a line: the mascot teaching you to stand, to breathe, to try again. Among them, half-seen, the shape of a beloved old toy turns slowly, just out of reach. The mist deepens ahead.",
+        exits: { out: "secret_threshold", in: "secret_heart" },
+        items: ["dew vial"],
+        encounter: { monster: "grief_wisp", chance: 0.4 },
+        tags: ["memory", "childhood", "mist", "old toy"],
+      },
+      secret_heart: {
+        name: "The Still Heart",
+        desc: "At the center of everything, the mascot lies sleeping, curled around a small object that gives off its own quiet light. Between you and them stands a figure wearing your own face — and your own worst doubt.",
+        exits: { out: "secret_hollow" },
+        items: [],
+        encounter: null,
+        boss: "secretPlace",
+        tags: ["hush", "soft light", "doubt", "no cover"],
+      },
+    },
+  },
 };
 
 export function getRoom(dungeonId, roomId) {
@@ -198,6 +236,7 @@ export const BOSS_ENEMY = {
   boss2: "tideheart_wraith",
   boss3: "hour_warden",
   boss4: "grief_herald",
+  secretPlace: "doubt_echo",
 };
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
@@ -213,8 +252,12 @@ function meetsTier(model, tier) {
     `unlockReqTier` (if any) has been reached. */
 export function unlockedDungeons(model) {
   const beaten = model.world.flags.bossesDefeated || [];
+  const flags = model.world.flags || {};
   return Object.values(DUNGEONS).filter(
-    (d) => (!d.unlockReqBoss || beaten.includes(d.unlockReqBoss)) && meetsTier(model, d.unlockReqTier)
+    (d) =>
+      (!d.unlockReqBoss || beaten.includes(d.unlockReqBoss)) &&
+      meetsTier(model, d.unlockReqTier) &&
+      (!d.unlockReqFlag || flags[d.unlockReqFlag])
   );
 }
 
