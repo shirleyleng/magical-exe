@@ -59,7 +59,8 @@ const html = `<!doctype html>
     .card .mascot-art { font-size:14px; margin:0; }
     .card__label { font-family:var(--font); font-weight:700; letter-spacing:.05em; color:#e8e3f5; font-size:13px; }
     .card__note { font-family:var(--font); color:#8a82a8; font-size:10.5px; text-align:center; line-height:1.4; }
-    .ascend-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:18px; max-width:1100px; margin:0 auto; }
+    .ascend-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); gap:18px; max-width:1100px; margin:0 auto; }
+    .ascend-card .mascot-art { font-size:12px; }
     .ascend-card { background:var(--bg-deep,#14101f); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:16px; }
     .ascend-card .row { display:flex; gap:14px; justify-content:space-around; }
     .ascend-col { display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
@@ -97,12 +98,7 @@ const html = `<!doctype html>
   <h2 class="section">The roster <small>— 9 bases · the fusion picks one from your three favourite animals</small></h2>
   <div id="roster" class="grid"></div>
 
-  <h2 class="section">Ascended forms <small>— how each mascot ends the story</small></h2>
-  <div class="deity-hero">
-    <pre class="mascot-art" id="deity"></pre>
-    <div class="card__label" style="color:#9fe3c8;">Virtuous Ascension</div>
-    <div class="card__note" style="max-width:480px;">The mascot blazes up into its own guardian-spirit deity. This radiant form is shared — the same apotheosis for every mascot.</div>
-  </div>
+  <h2 class="section">Ascended forms <small>— how each mascot ends the story (each gets its own three)</small></h2>
   <div id="ascend" class="ascend-grid"></div>
 
   <!-- Inlined from src/mascot.js + src/mascotAnim.js (imports/exports stripped) -->
@@ -137,21 +133,24 @@ ${bundle}
       cells.push({ base, pre });
     }
 
-    document.getElementById("deity").textContent = ART.deity_large;
     const ascend = document.getElementById("ascend");
+    const esc = (s) => (s || "").replace(/</g, "&lt;");
     for (const base of BASES) {
       const card = document.createElement("div");
       card.className = "ascend-card";
       const large = ART[base + "_large"] || ART.blob_large;
+      const deity = ART[base + "_deity"] || ART.deity_large;
       card.innerHTML =
         '<div class="card__label" style="text-align:center; margin-bottom:10px;">' + (LABELS[base] || base) + '</div>' +
         '<div class="row">' +
+          '<div class="ascend-col"><h4 class="virtuous">Virtuous Ascension</h4>' +
+            '<pre class="mascot-art" style="color:#9fe3c8;text-shadow:0 0 10px rgba(120,220,170,.35);">' + esc(deity) + '</pre></div>' +
           '<div class="ascend-col"><h4 class="corrupt">Eldritch Merge</h4>' +
-            '<pre class="mascot-art mascot-art--corrupt">' + corruptArt(large).replace(/</g,"&lt;") + '</pre></div>' +
+            '<pre class="mascot-art mascot-art--corrupt">' + esc(corruptArt(large)) + '</pre></div>' +
           '<div class="ascend-col"><h4 class="dark">Dark Ascension</h4>' +
-            '<pre class="mascot-art mascot-art--dimmed">' + (ART[base + "_small"]||"").replace(/</g,"&lt;") + '</pre></div>' +
+            '<pre class="mascot-art mascot-art--dimmed">' + esc(ART[base + "_small"]) + '</pre></div>' +
         '</div>' +
-        '<div class="card__note" style="margin-top:10px;">Eldritch Merge corrupts this mascot\\'s own art (deterministic). Dark Ascension keeps it bound, its light guttered to an ember.</div>';
+        '<div class="card__note" style="margin-top:10px;">Virtuous: ascends into its own guardian-spirit deity. Eldritch Merge: corrupts this mascot\\'s own art (deterministic). Dark Ascension: bound, its light guttered to an ember.</div>';
       ascend.appendChild(card);
     }
 

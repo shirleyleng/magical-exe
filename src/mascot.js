@@ -91,12 +91,54 @@ export const ART = {
   ☆ · ✦ · ☆`,
 
   // T19 — Virtuous Ascension: the mascot becomes its own guardian-animal deity.
-  // A crowned, radiant elevation of the celebration pose.
+  // A crowned, radiant elevation of the celebration pose (generic fallback).
   deity_large: ` ☆  ·  ✦  ·  ☆
   .  \\( ^o^ )/  .
  ✦ ──( ♡♡♡ )── ✦
   '  /  |||  \\  '
  ☆  ·  ✦  ·  ☆`,
+
+  // Per-base Virtuous Ascension forms — each fusion ascends into its OWN
+  // guardian-spirit deity: its real face, haloed and winged in radiance.
+  blob_deity: `   ☆ · ✦ · ☆
+  ✦ ( o   o ) ✦
+ ──( \\  w  / )──
+   ✦ · ♡♡♡ · ✦
+    ☆ · ✦ · ☆`,
+  catflick_deity: `   ☆ · ✦ · ☆
+   ✦  /\\_/\\  ✦
+ ──( =w= )──
+   ✦ · ♡♡♡ · ✦
+    ☆ · ✦ · ☆`,
+  peek_deity: `   ☆ · ✦ · ☆
+  ✦ ( o w o ) ✦
+ ── c(   )o ──
+   ✦ · ♡♡♡ · ✦
+    ☆ · ✦ · ☆`,
+  bean_deity: `   ☆ · ✦ · ☆
+  ✦ ( ^ o ^ ) ✦
+ ──(  ♡♡♡  )──
+    ☆ · ✦ · ☆`,
+  wing_deity: `   ☆ · ✦ · ☆
+ ✦ <( ^ v ^ )> ✦
+ ──  \\ ♡♡♡ /  ──
+    ☆ · ✦ · ☆`,
+  loaf_deity: `   ☆ · ✦ · ☆
+  ✦ ( =^.^= ) ✦
+ ──[ ♡♡♡♡♡ ]──
+    ☆ · ✦ · ☆`,
+  deer_deity: `   ☆ ·\\|/· ☆
+   ✦  (o.o)  ✦
+ ──(  ♡ ♡ ♡  )──
+    ☆ · ✦ · ☆`,
+  aqua_deity: `   ☆ · ✦ · ☆
+  ✦  >( o )>  ✦
+ ── ~ ♡♡♡ ~ ──
+    ☆ · ✦ · ☆`,
+  fluff_deity: `   ☆ · ✦ · ☆
+  ✦ (( ^o^ )) ✦
+ ──(  ♡♡♡  )──
+    ☆ · ✦ · ☆`,
 };
 
 /* ---- T19 — Eldritch Merge: corrupt the player's OWN mascot art ----
@@ -135,10 +177,10 @@ export const FRAMES = {
   blob: {
     blink: `( -   - )
  \\  w  /`,
-    speakOpen: `( o   o )
+    speakOpen: `( ^   ^ )
  \\  o  /`,
-    speakClosed: `( o   o )
- \\  _  /`,
+    speakWide: `( ^   ^ )
+ \\  O  /`,
     hit: `( >   < )
  \\  o  /`,
     hurt: `( x   x )
@@ -148,9 +190,9 @@ export const FRAMES = {
     blink: ` /\\_/\\
 ( -w- )`,
     speakOpen: ` /\\_/\\
-( =o= )`,
-    speakClosed: ` /\\_/\\
-( =_= )`,
+( ^o^ )`,
+    speakWide: ` /\\_/\\
+( ^O^ )`,
     hit: ` /\\_/\\
 ( >w< )`,
     hurt: ` /\\_/\\
@@ -159,9 +201,9 @@ export const FRAMES = {
   peek: {
     blink: `( - w - )
  c(   )o`,
-    speakOpen: `( o o o )
+    speakOpen: `( ^ o ^ )
  c(   )o`,
-    speakClosed: `( o _ o )
+    speakWide: `( ^ O ^ )
  c(   )o`,
     hit: `( > w < )
  c(   )o`,
@@ -171,14 +213,14 @@ export const FRAMES = {
   bean: {
     blink: `( - - - )`,
     speakOpen: `( ^ o ^ )`,
-    speakClosed: `( ^ _ ^ )`,
+    speakWide: `( ^ O ^ )`,
     hit: `( > - < )`,
     hurt: `( x _ x )`,
   },
   wing: {
     blink: `<( - v - )>`,
-    speakOpen: `<( o o o )>`,
-    speakClosed: `<( o _ o )>`,
+    speakOpen: `<( ^ o ^ )>`,
+    speakWide: `<( ^ O ^ )>`,
     hit: `<( > v < )>`,
     hurt: `<( x _ x )>`,
   },
@@ -187,7 +229,7 @@ export const FRAMES = {
 [_______]`,
     speakOpen: `( =^o^= )
 [_______]`,
-    speakClosed: `( =^_^= )
+    speakWide: `( =^O^= )
 [_______]`,
     hit: `( =>.<= )
 [_______]`,
@@ -198,9 +240,9 @@ export const FRAMES = {
     blink: ` \\|/
 (-.-)`,
     speakOpen: ` \\|/
-(ooo)`,
-    speakClosed: ` \\|/
-(o_o)`,
+(^o^)`,
+    speakWide: ` \\|/
+(^O^)`,
     hit: ` \\|/
 (>.<)`,
     hurt: ` \\|/
@@ -211,8 +253,8 @@ export const FRAMES = {
 >(-)>`,
     speakOpen: ` · ·
 >(o)>`,
-    speakClosed: ` · ·
->(_)>`,
+    speakWide: ` · ·
+>(O)>`,
     hit: ` · ·
 >(O)>`,
     hurt: ` · ·
@@ -221,7 +263,7 @@ export const FRAMES = {
   fluff: {
     blink: `((-.-))`,
     speakOpen: `((^o^))`,
-    speakClosed: `((^_^))`,
+    speakWide: `((^O^))`,
     hit: `((>.<))`,
     hurt: `((x_x))`,
   },

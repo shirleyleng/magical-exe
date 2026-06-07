@@ -33,7 +33,8 @@
     .card .mascot-art { font-size:14px; margin:0; }
     .card__label { font-family:var(--font); font-weight:700; letter-spacing:.05em; color:#e8e3f5; font-size:13px; }
     .card__note { font-family:var(--font); color:#8a82a8; font-size:10.5px; text-align:center; line-height:1.4; }
-    .ascend-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:18px; max-width:1100px; margin:0 auto; }
+    .ascend-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); gap:18px; max-width:1100px; margin:0 auto; }
+    .ascend-card .mascot-art { font-size:12px; }
     .ascend-card { background:var(--bg-deep,#14101f); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:16px; }
     .ascend-card .row { display:flex; gap:14px; justify-content:space-around; }
     .ascend-col { display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
@@ -71,12 +72,7 @@
   <h2 class="section">The roster <small>— 9 bases · the fusion picks one from your three favourite animals</small></h2>
   <div id="roster" class="grid"></div>
 
-  <h2 class="section">Ascended forms <small>— how each mascot ends the story</small></h2>
-  <div class="deity-hero">
-    <pre class="mascot-art" id="deity"></pre>
-    <div class="card__label" style="color:#9fe3c8;">Virtuous Ascension</div>
-    <div class="card__note" style="max-width:480px;">The mascot blazes up into its own guardian-spirit deity. This radiant form is shared — the same apotheosis for every mascot.</div>
-  </div>
+  <h2 class="section">Ascended forms <small>— how each mascot ends the story (each gets its own three)</small></h2>
   <div id="ascend" class="ascend-grid"></div>
 
   <!-- Inlined from src/mascot.js + src/mascotAnim.js (imports/exports stripped) -->
@@ -173,12 +169,54 @@ const ART = {
   ☆ · ✦ · ☆`,
 
   // T19 — Virtuous Ascension: the mascot becomes its own guardian-animal deity.
-  // A crowned, radiant elevation of the celebration pose.
+  // A crowned, radiant elevation of the celebration pose (generic fallback).
   deity_large: ` ☆  ·  ✦  ·  ☆
   .  \\( ^o^ )/  .
  ✦ ──( ♡♡♡ )── ✦
   '  /  |||  \\  '
  ☆  ·  ✦  ·  ☆`,
+
+  // Per-base Virtuous Ascension forms — each fusion ascends into its OWN
+  // guardian-spirit deity: its real face, haloed and winged in radiance.
+  blob_deity: `   ☆ · ✦ · ☆
+  ✦ ( o   o ) ✦
+ ──( \\  w  / )──
+   ✦ · ♡♡♡ · ✦
+    ☆ · ✦ · ☆`,
+  catflick_deity: `   ☆ · ✦ · ☆
+   ✦  /\\_/\\  ✦
+ ──( =w= )──
+   ✦ · ♡♡♡ · ✦
+    ☆ · ✦ · ☆`,
+  peek_deity: `   ☆ · ✦ · ☆
+  ✦ ( o w o ) ✦
+ ── c(   )o ──
+   ✦ · ♡♡♡ · ✦
+    ☆ · ✦ · ☆`,
+  bean_deity: `   ☆ · ✦ · ☆
+  ✦ ( ^ o ^ ) ✦
+ ──(  ♡♡♡  )──
+    ☆ · ✦ · ☆`,
+  wing_deity: `   ☆ · ✦ · ☆
+ ✦ <( ^ v ^ )> ✦
+ ──  \\ ♡♡♡ /  ──
+    ☆ · ✦ · ☆`,
+  loaf_deity: `   ☆ · ✦ · ☆
+  ✦ ( =^.^= ) ✦
+ ──[ ♡♡♡♡♡ ]──
+    ☆ · ✦ · ☆`,
+  deer_deity: `   ☆ ·\\|/· ☆
+   ✦  (o.o)  ✦
+ ──(  ♡ ♡ ♡  )──
+    ☆ · ✦ · ☆`,
+  aqua_deity: `   ☆ · ✦ · ☆
+  ✦  >( o )>  ✦
+ ── ~ ♡♡♡ ~ ──
+    ☆ · ✦ · ☆`,
+  fluff_deity: `   ☆ · ✦ · ☆
+  ✦ (( ^o^ )) ✦
+ ──(  ♡♡♡  )──
+    ☆ · ✦ · ☆`,
 };
 
 /* ---- T19 — Eldritch Merge: corrupt the player's OWN mascot art ----
@@ -217,10 +255,10 @@ const FRAMES = {
   blob: {
     blink: `( -   - )
  \\  w  /`,
-    speakOpen: `( o   o )
+    speakOpen: `( ^   ^ )
  \\  o  /`,
-    speakClosed: `( o   o )
- \\  _  /`,
+    speakWide: `( ^   ^ )
+ \\  O  /`,
     hit: `( >   < )
  \\  o  /`,
     hurt: `( x   x )
@@ -230,9 +268,9 @@ const FRAMES = {
     blink: ` /\\_/\\
 ( -w- )`,
     speakOpen: ` /\\_/\\
-( =o= )`,
-    speakClosed: ` /\\_/\\
-( =_= )`,
+( ^o^ )`,
+    speakWide: ` /\\_/\\
+( ^O^ )`,
     hit: ` /\\_/\\
 ( >w< )`,
     hurt: ` /\\_/\\
@@ -241,9 +279,9 @@ const FRAMES = {
   peek: {
     blink: `( - w - )
  c(   )o`,
-    speakOpen: `( o o o )
+    speakOpen: `( ^ o ^ )
  c(   )o`,
-    speakClosed: `( o _ o )
+    speakWide: `( ^ O ^ )
  c(   )o`,
     hit: `( > w < )
  c(   )o`,
@@ -253,14 +291,14 @@ const FRAMES = {
   bean: {
     blink: `( - - - )`,
     speakOpen: `( ^ o ^ )`,
-    speakClosed: `( ^ _ ^ )`,
+    speakWide: `( ^ O ^ )`,
     hit: `( > - < )`,
     hurt: `( x _ x )`,
   },
   wing: {
     blink: `<( - v - )>`,
-    speakOpen: `<( o o o )>`,
-    speakClosed: `<( o _ o )>`,
+    speakOpen: `<( ^ o ^ )>`,
+    speakWide: `<( ^ O ^ )>`,
     hit: `<( > v < )>`,
     hurt: `<( x _ x )>`,
   },
@@ -269,7 +307,7 @@ const FRAMES = {
 [_______]`,
     speakOpen: `( =^o^= )
 [_______]`,
-    speakClosed: `( =^_^= )
+    speakWide: `( =^O^= )
 [_______]`,
     hit: `( =>.<= )
 [_______]`,
@@ -280,9 +318,9 @@ const FRAMES = {
     blink: ` \\|/
 (-.-)`,
     speakOpen: ` \\|/
-(ooo)`,
-    speakClosed: ` \\|/
-(o_o)`,
+(^o^)`,
+    speakWide: ` \\|/
+(^O^)`,
     hit: ` \\|/
 (>.<)`,
     hurt: ` \\|/
@@ -293,8 +331,8 @@ const FRAMES = {
 >(-)>`,
     speakOpen: ` · ·
 >(o)>`,
-    speakClosed: ` · ·
->(_)>`,
+    speakWide: ` · ·
+>(O)>`,
     hit: ` · ·
 >(O)>`,
     hurt: ` · ·
@@ -303,7 +341,7 @@ const FRAMES = {
   fluff: {
     blink: `((-.-))`,
     speakOpen: `((^o^))`,
-    speakClosed: `((^_^))`,
+    speakWide: `((^O^))`,
     hit: `((>.<))`,
     hurt: `((x_x))`,
   },
@@ -456,7 +494,7 @@ function fuseMascot(animals = [], name = "Pip") {
 const TICK_MS = 150;
 const AREA = 3; // figure rows under the deco line -> 4 lines total, always
 const SPARKLES = ["·  ·  ·", "✦  ·  ☆", "·  ✦  ·", "☆  ·  ✦"];
-const HAPPY_SPARKLE = "✦  ☆  ✦";
+const HAPPY_SPARKLES = ["✦  ☆  ✦", "☆  ✦  ☆", "✦  ·  ✦", "·  ✦  ·"]; // twinkle for happy
 const NO_SPARKLE = ""; // speak/hurt drop the deco line
 // Gentle side-to-side idle drift (px), applied as a CSS translateX so it never
 // touches the monospace grid. Each position is held 2 ticks (~300ms).
@@ -501,10 +539,13 @@ function idleFrame(b) {
     see swayPx — so it isn't baked into the text here.) Shared by the live
     animator AND the mascot gallery so both show exactly the same motion. */
 function composeFrameAt(b, tick, reactionKind) {
-  if (reactionKind === "happy") return compose(ART.star_small, HAPPY_SPARKLE, 0); // sparkles
+  if (reactionKind === "happy") {
+    // jumping up and down with twinkling sparkles
+    return compose(ART.star_small, HAPPY_SPARKLES[Math.floor(tick / 2) % HAPPY_SPARKLES.length], tick % 2);
+  }
   if (reactionKind === "speak") {
-    // mouth opens and closes (o <-> _), no sparkle deco
-    return compose(figureFor(b, tick % 2 ? "speakClosed" : "speakOpen"), NO_SPARKLE, 0);
+    // a cute round mouth pulsing open/wide (o <-> O) with happy squint eyes, no sparkle
+    return compose(figureFor(b, tick % 2 ? "speakWide" : "speakOpen"), NO_SPARKLE, 0);
   }
   if (reactionKind === "hit") return compose(figureFor(b, "hit"), SPARKLES[tick % SPARKLES.length], 0);
   if (reactionKind === "hurt") return compose(figureFor(b, "hurt"), NO_SPARKLE, 0); // somber, no sparkle
@@ -589,21 +630,24 @@ function initMascotAnim(elGetter) {
       cells.push({ base, pre });
     }
 
-    document.getElementById("deity").textContent = ART.deity_large;
     const ascend = document.getElementById("ascend");
+    const esc = (s) => (s || "").replace(/</g, "&lt;");
     for (const base of BASES) {
       const card = document.createElement("div");
       card.className = "ascend-card";
       const large = ART[base + "_large"] || ART.blob_large;
+      const deity = ART[base + "_deity"] || ART.deity_large;
       card.innerHTML =
         '<div class="card__label" style="text-align:center; margin-bottom:10px;">' + (LABELS[base] || base) + '</div>' +
         '<div class="row">' +
+          '<div class="ascend-col"><h4 class="virtuous">Virtuous Ascension</h4>' +
+            '<pre class="mascot-art" style="color:#9fe3c8;text-shadow:0 0 10px rgba(120,220,170,.35);">' + esc(deity) + '</pre></div>' +
           '<div class="ascend-col"><h4 class="corrupt">Eldritch Merge</h4>' +
-            '<pre class="mascot-art mascot-art--corrupt">' + corruptArt(large).replace(/</g,"&lt;") + '</pre></div>' +
+            '<pre class="mascot-art mascot-art--corrupt">' + esc(corruptArt(large)) + '</pre></div>' +
           '<div class="ascend-col"><h4 class="dark">Dark Ascension</h4>' +
-            '<pre class="mascot-art mascot-art--dimmed">' + (ART[base + "_small"]||"").replace(/</g,"&lt;") + '</pre></div>' +
+            '<pre class="mascot-art mascot-art--dimmed">' + esc(ART[base + "_small"]) + '</pre></div>' +
         '</div>' +
-        '<div class="card__note" style="margin-top:10px;">Eldritch Merge corrupts this mascot\'s own art (deterministic). Dark Ascension keeps it bound, its light guttered to an ember.</div>';
+        '<div class="card__note" style="margin-top:10px;">Virtuous: ascends into its own guardian-spirit deity. Eldritch Merge: corrupts this mascot\'s own art (deterministic). Dark Ascension: bound, its light guttered to an ember.</div>';
       ascend.appendChild(card);
     }
 

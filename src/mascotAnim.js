@@ -23,7 +23,7 @@ import { ART, FRAMES } from "./mascot.js";
 const TICK_MS = 150;
 const AREA = 3; // figure rows under the deco line -> 4 lines total, always
 const SPARKLES = ["·  ·  ·", "✦  ·  ☆", "·  ✦  ·", "☆  ·  ✦"];
-const HAPPY_SPARKLE = "✦  ☆  ✦";
+const HAPPY_SPARKLES = ["✦  ☆  ✦", "☆  ✦  ☆", "✦  ·  ✦", "·  ✦  ·"]; // twinkle for happy
 const NO_SPARKLE = ""; // speak/hurt drop the deco line
 // Gentle side-to-side idle drift (px), applied as a CSS translateX so it never
 // touches the monospace grid. Each position is held 2 ticks (~300ms).
@@ -68,10 +68,13 @@ export function idleFrame(b) {
     see swayPx — so it isn't baked into the text here.) Shared by the live
     animator AND the mascot gallery so both show exactly the same motion. */
 export function composeFrameAt(b, tick, reactionKind) {
-  if (reactionKind === "happy") return compose(ART.star_small, HAPPY_SPARKLE, 0); // sparkles
+  if (reactionKind === "happy") {
+    // jumping up and down with twinkling sparkles
+    return compose(ART.star_small, HAPPY_SPARKLES[Math.floor(tick / 2) % HAPPY_SPARKLES.length], tick % 2);
+  }
   if (reactionKind === "speak") {
-    // mouth opens and closes (o <-> _), no sparkle deco
-    return compose(figureFor(b, tick % 2 ? "speakClosed" : "speakOpen"), NO_SPARKLE, 0);
+    // a cute round mouth pulsing open/wide (o <-> O) with happy squint eyes, no sparkle
+    return compose(figureFor(b, tick % 2 ? "speakWide" : "speakOpen"), NO_SPARKLE, 0);
   }
   if (reactionKind === "hit") return compose(figureFor(b, "hit"), SPARKLES[tick % SPARKLES.length], 0);
   if (reactionKind === "hurt") return compose(figureFor(b, "hurt"), NO_SPARKLE, 0); // somber, no sparkle

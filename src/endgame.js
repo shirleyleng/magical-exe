@@ -29,6 +29,13 @@ import { refreshSlotsMax } from "./hub.js";
 import { ART, corruptArt } from "./mascot.js";
 
 const mascotName = (state) => (state.model.mascot && state.model.mascot.name) || "your mascot";
+
+/** The mascot's OWN Virtuous Ascension deity art (per-base), or the generic one. */
+function deityArt(state) {
+  const k = state.model.mascot && state.model.mascot.artKeyLarge;
+  const base = k ? k.replace(/_large$/, "") : "";
+  return ART[`${base}_deity`] || ART.deity_large;
+}
 const rivalName = (state) => ((state.model.rivals && state.model.rivals[0] && state.model.rivals[0].name) || "Sable");
 
 /** The hope you personally need to hold an ascension, lowered by Fame (the city's
@@ -124,7 +131,7 @@ function virtuousAscension(state) {
   pushLine(state, "", "system");
   pushLine(state, "VIRTUOUS ASCENSION", "banner");
   pushLine(state, "You open your hands. It should be far too little against something so vast — and it isn't, because it was never just yours to give. The whole city pours through you at once, warm and unbearable and bright, and the grey doesn't fight it so much as finally, gratefully let go.", "system");
-  pushLine(state, ART.deity_large, "mascot");
+  pushLine(state, deityArt(state), "mascot");
   pushLine(state, `Beside you ${m} blazes up past anything it has ever been — no longer a small bright voice but its own true thing, a guardian-spirit of this place, haloed and enormous and laughing. "We did it. We actually—" Its voice breaks, all light. "Look at them. Look at them remembering how."`, "mascot");
   pushLine(state, "Above you the clouds thin for the first time in longer than anyone will admit, and somewhere far below a whole city looks up.", "system");
   ascensionCoda(state, slotGain);
