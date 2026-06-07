@@ -135,65 +135,95 @@ export const FRAMES = {
   blob: {
     blink: `( -   - )
  \\  w  /`,
-    speak: `( o   o )
+    speakOpen: `( o   o )
  \\  o  /`,
+    speakClosed: `( o   o )
+ \\  _  /`,
     hit: `( >   < )
  \\  o  /`,
+    hurt: `( x   x )
+ \\  _  /`,
   },
   catflick: {
     blink: ` /\\_/\\
 ( -w- )`,
-    speak: ` /\\_/\\
+    speakOpen: ` /\\_/\\
 ( =o= )`,
+    speakClosed: ` /\\_/\\
+( =_= )`,
     hit: ` /\\_/\\
 ( >w< )`,
+    hurt: ` /\\_/\\
+( x_x )`,
   },
   peek: {
     blink: `( - w - )
  c(   )o`,
-    speak: `( o o o )
+    speakOpen: `( o o o )
+ c(   )o`,
+    speakClosed: `( o _ o )
  c(   )o`,
     hit: `( > w < )
+ c(   )o`,
+    hurt: `( x _ x )
  c(   )o`,
   },
   bean: {
     blink: `( - - - )`,
-    speak: `( ^ o ^ )`,
-    hit: `( x - x )`,
+    speakOpen: `( ^ o ^ )`,
+    speakClosed: `( ^ _ ^ )`,
+    hit: `( > - < )`,
+    hurt: `( x _ x )`,
   },
   wing: {
     blink: `<( - v - )>`,
-    speak: `<( o o o )>`,
+    speakOpen: `<( o o o )>`,
+    speakClosed: `<( o _ o )>`,
     hit: `<( > v < )>`,
+    hurt: `<( x _ x )>`,
   },
   loaf: {
     blink: `( =-.-= )
 [_______]`,
-    speak: `( =^o^= )
+    speakOpen: `( =^o^= )
+[_______]`,
+    speakClosed: `( =^_^= )
 [_______]`,
     hit: `( =>.<= )
+[_______]`,
+    hurt: `( =x_x= )
 [_______]`,
   },
   deer: {
     blink: ` \\|/
 (-.-)`,
-    speak: ` \\|/
+    speakOpen: ` \\|/
 (ooo)`,
+    speakClosed: ` \\|/
+(o_o)`,
     hit: ` \\|/
 (>.<)`,
+    hurt: ` \\|/
+(x_x)`,
   },
   aqua: {
     blink: ` · ·
 >(-)>`,
-    speak: ` · ·
->(O)>`,
+    speakOpen: ` · ·
+>(o)>`,
+    speakClosed: ` · ·
+>(_)>`,
     hit: ` · ·
+>(O)>`,
+    hurt: ` · ·
 >(x)>`,
   },
   fluff: {
     blink: `((-.-))`,
-    speak: `((^o^))`,
+    speakOpen: `((^o^))`,
+    speakClosed: `((^_^))`,
     hit: `((>.<))`,
+    hurt: `((x_x))`,
   },
 };
 

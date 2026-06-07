@@ -74,6 +74,8 @@ function recoverWeaponAndMascot(state) {
   pushLine(state, `And curled around it, half-buried in its own faint glow, ${m} stirs — battered, dimmed almost to nothing, but breathing. Its eyes crack open and find yours, and fill. "…You came back. For me. You absolute, wonderful idiot. I knew you would. I told myself you would the whole time."`, "mascot");
   if (model.mascot) { model.mascot.present = true; model.mascot.injured = false; }
   model.world.flags.mascotGone = false; // training reopens (sparring stays — its own flag)
+  if (state.ui) state.ui.mascotReact = "hurt"; // it's back, but battered — the hurt animation plays
+
 }
 
 /* Narrative beats that fire when a boss falls, regardless of whether a tier-up

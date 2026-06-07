@@ -21,9 +21,14 @@
 import { ART, FRAMES } from "./mascot.js";
 
 const TICK_MS = 150;
-const AREA = 3; // figure rows under the sparkle line -> 4 lines total, always
+const AREA = 3; // figure rows under the deco line -> 4 lines total, always
 const SPARKLES = ["·  ·  ·", "✦  ·  ☆", "·  ✦  ·", "☆  ·  ✦"];
 const HAPPY_SPARKLE = "✦  ☆  ✦";
+const NO_SPARKLE = ""; // speak/hurt drop the deco line
+// Gentle side-to-side idle drift (px), applied as a CSS translateX so it never
+// touches the monospace grid. Each position is held 2 ticks (~300ms).
+const SWAY = [0, 1, 2, 1, 0, -1, -2, -1];
+export function swayPx(tick) { return SWAY[Math.floor(tick / 2) % SWAY.length] * 1.5; }
 
 let getEl = null;
 let timer = null;
@@ -58,16 +63,22 @@ export function idleFrame(b) {
 }
 
 /** Pure: the composed frame for a base at a given tick. With `reactionKind`
-    ("speak"|"hit"|"happy") it returns that reaction pose; otherwise the idle
-    blink/bob/sparkle frame. Shared by the live animator AND the mascot gallery
-    so both show exactly the same motion. */
+    ("speak"|"hit"|"hurt"|"happy") it returns that reaction pose; otherwise the
+    idle blink+sparkle frame. (The idle side-to-side drift is a CSS translateX —
+    see swayPx — so it isn't baked into the text here.) Shared by the live
+    animator AND the mascot gallery so both show exactly the same motion. */
 export function composeFrameAt(b, tick, reactionKind) {
-  if (reactionKind === "happy") return compose(ART.star_small, HAPPY_SPARKLE, tick % 2);
-  if (reactionKind) return compose(figureFor(b, reactionKind), SPARKLES[tick % SPARKLES.length], 0);
-  const bob = Math.floor(tick / 6) % 2; // gentle rise/settle ~every 0.9s
+  if (reactionKind === "happy") return compose(ART.star_small, HAPPY_SPARKLE, 0); // sparkles
+  if (reactionKind === "speak") {
+    // mouth opens and closes (o <-> _), no sparkle deco
+    return compose(figureFor(b, tick % 2 ? "speakClosed" : "speakOpen"), NO_SPARKLE, 0);
+  }
+  if (reactionKind === "hit") return compose(figureFor(b, "hit"), SPARKLES[tick % SPARKLES.length], 0);
+  if (reactionKind === "hurt") return compose(figureFor(b, "hurt"), NO_SPARKLE, 0); // somber, no sparkle
+  // idle: blink + sparkle (the drift comes from swayPx, applied by the caller)
   const blink = tick % 26 === 0; // a quick blink ~every 3.9s
   const spark = SPARKLES[Math.floor(tick / 3) % SPARKLES.length];
-  return compose(figureFor(b, blink ? "blink" : "open"), spark, bob);
+  return compose(figureFor(b, blink ? "blink" : "open"), spark, 0);
 }
 
 /** Called by render each paint: which base, and is the mascot present? */
@@ -77,10 +88,11 @@ export function syncMascot(opts = {}) {
   if (!animate) reaction = null;
 }
 
-/** Trigger a one-shot reaction pose (kind: "speak" | "hit" | "happy"). */
+/** Trigger a one-shot reaction pose (kind: "speak" | "hit" | "hurt" | "happy"). */
 export function reactMascot(kind) {
   if (!animate || reduced) return;
-  reaction = { kind, until: tick + (kind === "happy" ? 9 : 3) };
+  const dur = kind === "hurt" ? 14 : kind === "happy" ? 9 : kind === "speak" ? 5 : 3;
+  reaction = { kind, until: tick + dur };
 }
 
 function frameNow() {
@@ -93,7 +105,11 @@ function step() {
   tick++;
   if (reduced || !animate) return; // render owns the static frame in these states
   const el = getEl && getEl();
-  if (el) el.textContent = frameNow();
+  if (!el) return;
+  const reacting = reaction && tick < reaction.until;
+  el.textContent = frameNow();
+  // Side-to-side drift only while idle; reactions stay put.
+  el.style.transform = reacting ? "" : `translateX(${swayPx(tick)}px)`;
 }
 
 /** Start the animator. `elGetter` returns the live mascot <pre> (or null).
