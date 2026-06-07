@@ -218,7 +218,7 @@ export const MASCOT_NAMES = [
 ];
 
 /* ---- Fusion: animal -> base style (mascots.md fusion rules) ---- */
-const ANIMAL_BASE = {
+export const ANIMAL_BASE = {
   // round / soft -> blob
   rabbit: "blob", bear: "blob", panda: "blob", pig: "blob", koala: "blob",
   hippo: "blob", wombat: "blob", quokka: "blob", chinchilla: "blob",

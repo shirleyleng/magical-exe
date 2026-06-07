@@ -57,6 +57,19 @@ export function idleFrame(b) {
   return compose(figureFor(b, "open"), SPARKLES[0], 0);
 }
 
+/** Pure: the composed frame for a base at a given tick. With `reactionKind`
+    ("speak"|"hit"|"happy") it returns that reaction pose; otherwise the idle
+    blink/bob/sparkle frame. Shared by the live animator AND the mascot gallery
+    so both show exactly the same motion. */
+export function composeFrameAt(b, tick, reactionKind) {
+  if (reactionKind === "happy") return compose(ART.star_small, HAPPY_SPARKLE, tick % 2);
+  if (reactionKind) return compose(figureFor(b, reactionKind), SPARKLES[tick % SPARKLES.length], 0);
+  const bob = Math.floor(tick / 6) % 2; // gentle rise/settle ~every 0.9s
+  const blink = tick % 26 === 0; // a quick blink ~every 3.9s
+  const spark = SPARKLES[Math.floor(tick / 3) % SPARKLES.length];
+  return compose(figureFor(b, blink ? "blink" : "open"), spark, bob);
+}
+
 /** Called by render each paint: which base, and is the mascot present? */
 export function syncMascot(opts = {}) {
   if (opts.base) base = opts.base;
@@ -71,15 +84,9 @@ export function reactMascot(kind) {
 }
 
 function frameNow() {
-  if (reaction && tick < reaction.until) {
-    if (reaction.kind === "happy") return compose(ART.star_small, HAPPY_SPARKLE, tick % 2);
-    return compose(figureFor(base, reaction.kind), SPARKLES[tick % SPARKLES.length], 0);
-  }
+  if (reaction && tick < reaction.until) return composeFrameAt(base, tick, reaction.kind);
   reaction = null;
-  const bob = Math.floor(tick / 6) % 2; // gentle rise/settle ~every 0.9s
-  const blink = tick % 26 === 0; // a quick blink ~every 3.9s
-  const spark = SPARKLES[Math.floor(tick / 3) % SPARKLES.length];
-  return compose(figureFor(base, blink ? "blink" : "open"), spark, bob);
+  return composeFrameAt(base, tick, null);
 }
 
 function step() {
