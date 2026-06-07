@@ -53,7 +53,7 @@ async function applyEffect() {
   if (effect.type === "theme") {
     state.ui.effect = null;
     applyTheme(effect.id);
-    setStoredTheme(effect.id);
+    if (!effect.preview) setStoredTheme(effect.id); // preview = apply only; commit = persist
     render(state);
     return;
   }

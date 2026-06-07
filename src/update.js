@@ -43,6 +43,7 @@ export function update(state, event) {
       if (m && m.active) {
         const n = m.options.length;
         m.index = (m.index + event.dir + n) % n; // wrap around
+        if (m.kind === "theme") s.ui.effect = themePreviewEffect(m);
       }
       return s;
     }
@@ -50,6 +51,7 @@ export function update(state, event) {
       const m = s.ui.menu;
       if (m && m.active && event.index >= 0 && event.index < m.options.length) {
         m.index = event.index;
+        if (m.kind === "theme") s.ui.effect = themePreviewEffect(m);
       }
       return s;
     }
@@ -76,9 +78,14 @@ export function update(state, event) {
       if (m.kind === "theme") {
         const opt = m.options[m.index];
         pushLine(s, opt.label, "echo");
+        const original = m.original;
         s.ui.menu = null;
-        if (opt.value === "__cancel__") { pushLine(s, "(kept current theme)", "hint"); return s; }
-        s.ui.effect = { type: "theme", id: opt.value }; // main.js applies + persists
+        if (opt.value === "__cancel__") {
+          s.ui.effect = { type: "theme", id: original, preview: true }; // undo live preview
+          pushLine(s, "(kept current theme)", "hint");
+          return s;
+        }
+        s.ui.effect = { type: "theme", id: opt.value }; // commit: main.js applies + persists
         pushLine(s, `Theme set to ${themeName(opt.value)}.`, "system");
         return s;
       }
@@ -91,6 +98,7 @@ export function update(state, event) {
     case "menuCancel": {
       const m = s.ui.menu;
       if (m && m.active && m.kind !== "creation") {
+        if (m.kind === "theme") s.ui.effect = { type: "theme", id: m.original, preview: true }; // undo preview
         s.ui.menu = null;
         pushLine(s, "(cancelled)", "hint");
       }
@@ -209,7 +217,8 @@ function showAbout(s) {
   return s;
 }
 
-/** Theme switcher — a menu of palettes; selection applies + persists via an effect. */
+/** Theme switcher — a menu of palettes. Moving the highlight previews the theme live
+   (applied but not persisted); enter keeps it, cancel/esc reverts to where you started. */
 function openThemeMenu(s) {
   const current = document.documentElement.dataset.theme || "lipgloss";
   const options = THEMES.map((t) => ({
@@ -217,9 +226,20 @@ function openThemeMenu(s) {
     value: t.id,
   }));
   options.push({ label: "Cancel", value: "__cancel__" });
+  const startIndex = Math.max(0, THEMES.findIndex((t) => t.id === current));
   pushLine(s, "Choose a theme:", "system");
-  s.ui.menu = { active: true, kind: "theme", options, index: 0 };
+  pushLine(s, "(scroll to preview live · enter to keep · esc to revert)", "hint");
+  // `original` lets cancel/esc revert the live preview to the palette we opened with.
+  s.ui.menu = { active: true, kind: "theme", options, index: startIndex, original: current };
   return s;
+}
+
+/** Preview effect for the theme menu's currently-highlighted option. The Cancel row
+   previews the original (so highlighting it shows what "keep current" looks like). */
+function themePreviewEffect(m) {
+  const opt = m.options[m.index];
+  const id = !opt || opt.value === "__cancel__" ? m.original : opt.value;
+  return { type: "theme", id, preview: true };
 }
 
 /** Request a slot load — the actual model swap is an effect main.js runs. */
