@@ -33,23 +33,23 @@ const STEPS = [
   {
     key: "name",
     kind: "text",
-    prompt: () => ["First — what name do you go by?"],
+    prompt: () => ["First — and this matters more than you'd think — what name do you go by?"],
     apply: (d, v) => { if (!v.trim()) return false; d.name = v.trim(); return true; },
   },
   {
     key: "difficulty",
     kind: "menu",
-    prompt: () => ["And how hard a road do you want? (you can change this later in settings)"],
+    prompt: () => ["And how hard a road do you want to walk? No wrong answer — the work counts either way. (you can change your mind later in settings)"],
     options: () => [
-      { label: "Gentle (Easy) — kinder foes, richer rewards", value: "easy" },
-      { label: "Standard (Normal) — the world as it's meant to be", value: "normal" },
+      { label: "Gentle (Easy) — the world goes easier on you; kinder foes, richer rewards", value: "easy" },
+      { label: "Standard (Normal) — the world as it actually is, teeth and all", value: "normal" },
     ],
     apply: (d, v) => { d.difficulty = v; return true; },
   },
   {
     key: "gender",
     kind: "menu",
-    prompt: () => ["How do you present in the world?"],
+    prompt: () => ["And how do you move through the world — what should the word ‘magical’ sit in front of?"],
     options: () => [
       { label: "Girl", value: "girl" },
       { label: "Boy", value: "boy" },
@@ -60,12 +60,12 @@ const STEPS = [
   {
     key: "occupation",
     kind: "menu",
-    prompt: () => ["What fills your ordinary days?"],
+    prompt: () => ["What's been filling your ordinary days — the life that's about to get a great deal less ordinary?"],
     options: () => [
-      { label: "Working", value: "working" },
-      { label: "High school", value: "highschool" },
-      { label: "University", value: "university" },
-      { label: "Post-graduate studies", value: "grad" },
+      { label: "Working — out earning your keep", value: "working" },
+      { label: "High school — almost out the other side", value: "highschool" },
+      { label: "University — lectures, instant noodles, big questions", value: "university" },
+      { label: "Post-graduate studies — in far too deep to stop now", value: "grad" },
     ],
     apply: (d, v) => { d.occupation = v; return true; },
   },
@@ -73,13 +73,13 @@ const STEPS = [
     key: "job",
     kind: "text",
     when: (d) => d.occupation === "working",
-    prompt: () => ["Where do you work? (a café? a bookshop? name it)"],
-    apply: (d, v) => { d.job = v.trim() || "a little shop in town"; return true; },
+    prompt: () => ["Where do you spend those hours? (a café? a bookshop? the night shift somewhere? name it — I want to picture it)"],
+    apply: (d, v) => { d.job = v.trim() || FALLBACK_WORKPLACE; return true; },
   },
   {
     key: "p1",
     kind: "menu",
-    prompt: () => ["Are you more reserved or adventurous?"],
+    prompt: () => ["At a party you don't know anyone at — do you find the quiet corner, or the loudest table?"],
     options: () => [
       { label: "Reserved", value: 0.3 },
       { label: "Balanced", value: 0.5 },
@@ -90,7 +90,7 @@ const STEPS = [
   {
     key: "p2",
     kind: "menu",
-    prompt: () => ["Are you more formal or casual?"],
+    prompt: () => ["And how do you carry yourself — buttoned-up and proper, or easy and come-as-you-are?"],
     options: () => [
       { label: "Formal", value: 0.3 },
       { label: "Balanced", value: 0.5 },
@@ -101,7 +101,7 @@ const STEPS = [
   {
     key: "p3",
     kind: "menu",
-    prompt: () => ["Are you more cautious or bold?"],
+    prompt: () => ["Last one of these, I promise — when the ice looks thin, do you test it first, or just go?"],
     options: () => [
       { label: "Cautious", value: 0.3 },
       { label: "Balanced", value: 0.5 },
@@ -112,13 +112,13 @@ const STEPS = [
   {
     key: "city",
     kind: "text",
-    prompt: () => ["What's the name of your city or town?"],
+    prompt: () => ["Now — where's home? The city or town that made you. What's it called?"],
     apply: (d, v) => { if (!v.trim()) return false; d.city = v.trim(); return true; },
   },
   {
     key: "animals",
     kind: "text",
-    prompt: () => ["Name your three favorite animals (comma-separated)."],
+    prompt: () => ["Here's a fun one. Three animals you love most — don't overthink it, just the first three that make you smile. (this is going to matter, but I won't say how yet)"],
     hint: "e.g.  cat, owl, fox",
     apply: (d, v) => {
       const list = v.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 3);
@@ -130,19 +130,19 @@ const STEPS = [
   {
     key: "toy",
     kind: "text",
-    prompt: () => ["What was your most beloved childhood toy or game?"],
+    prompt: () => ["And the thing you loved most when you were small — the toy or game you'd have run back into a burning house for. What was it?"],
     apply: (d, v) => { if (!v.trim()) return false; d.toy = v.trim(); return true; },
   },
   {
     key: "secret",
     kind: "text",
-    prompt: () => ["Name a secret or special place from your life."],
+    prompt: () => ["One more. Somewhere secret — the place you went when the world got too loud, the one that was only ever yours. Where was it?"],
     apply: (d, v) => { if (!v.trim()) return false; d.secret = v.trim(); return true; },
   },
   {
     key: "mascotName",
     kind: "menu",
-    prompt: () => ["Your companion stirs. What is its name?"],
+    prompt: () => ["Oh — oh, hold on, here I come. Your companion's about to wake. What should it be called? (a few names feel right; or give it your own)"],
     options: (d) => {
       if (!d._nameChoices) d._nameChoices = randomNames(3);
       return [
@@ -191,8 +191,8 @@ function advance(state) {
 export function beginCreation(state) {
   state.ui.flow = "creation";
   state.ui.creation = { index: 0, draft: {}, hint: "" };
-  pushLine(state, "A small voice, bright as a struck bell:", "system");
-  pushLine(state, "\"There you are! I've been waiting. Let's find out who you are.\"", "mascot");
+  pushLine(state, "A small voice, bright as a struck bell, somewhere very close to your ear:", "system");
+  pushLine(state, "\"There you are — oh, FINALLY there you are. I've been looking for ages, you have no idea. Don't be scared; this is the good part. Let's find out who you are.\"", "mascot");
   printStep(state, 0);
 }
 
@@ -229,7 +229,7 @@ export function handleMenuSelect(state) {
     state.ui.menu = null;
     c.textCapture = true;
     c.hint = "";
-    pushLine(state, "Type a name for your companion:", "mascot");
+    pushLine(state, "Go on, then — name me. Make it a good one:", "mascot");
     return state;
   }
 
@@ -266,17 +266,17 @@ function commit(state) {
 
   // ---- Reveal ----
   pushLine(state, "");
-  pushLine(state, `The light settles. Standing before you is ${mascot.name}.`, "system");
+  pushLine(state, `The light gathers, folds, and settles into something small and breathing. Standing before you — paws planted, ridiculously pleased with itself — is ${mascot.name}.`, "system");
   pushLine(state, ART[mascot.artKeyLarge] || ART.blob_large, "mascot");
-  pushLine(state, `A fusion of ${mascot.animals.join(", ")} — ${mascot.voice}.`, "system");
-  pushLine(state, `"Nice to finally meet you, ${ch.name}. This is ${ch.city}, isn't it?"`, "mascot");
+  pushLine(state, `The creatures you love, stitched into one impossible shape: ${mascot.animals.join(", ")}. ${cap(mascot.voice)} — all at once, somehow.`, "system");
+  pushLine(state, `"Nice to FINALLY meet you properly, ${ch.name}. This is ${ch.city} — your ${ch.city} — isn't it? Good. Good. Then we know exactly where to start."`, "mascot");
 
   // City description: AI-generated (PROMPTS.md E) when available, with the
   // deterministic placeholder as the instant + offline fallback. The AI call runs
   // as an effect (main.js) and appends via update.js > onAIResult ("city").
   const placeholder = cityPlaceholder(ch.city, ch.occupation);
   if (aiAvailable()) {
-    pushLine(state, `"${ch.city}… let me tell you what I see."`, "mascot");
+    pushLine(state, `"${ch.city}… mm. Let me tell you what I see when I look at it."`, "mascot");
     state.ui.effect = {
       type: "ai",
       kind: "city",
@@ -288,7 +288,7 @@ function commit(state) {
   }
 
   pushLine(state, "");
-  pushLine(state, `Welcome, magical ${labelFor(d.gender)}. Your story begins on Day 1.`, "banner");
+  pushLine(state, `Welcome, magical ${labelFor(d.gender)}. Whatever the city is about to ask of you — it begins here, on Day 1.`, "banner");
   pushLine(state, "Type /help any time. Try: train power · rest · status", "hint");
 
   // Leave creation; resume normal play in the hub.
@@ -302,25 +302,35 @@ function labelFor(gender) {
   return gender === "girl" ? "girl" : gender === "boy" ? "boy" : "person";
 }
 
+/** Capitalize the first letter (mascot voice descriptors are stored lowercase). */
+function cap(s) {
+  s = String(s || "");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* The cozy fallback for a job the player left blank — never a generic
+   "company," always a small, warm, lived-in place. */
+const FALLBACK_WORKPLACE = "the corner shop you more or less run by now";
+
 /** Readable occupation string for the AI city prompt (PROMPTS.md E). */
 function occLabel(occupation) {
   switch (occupation.type) {
-    case "working": return `working at ${occupation.detail || "a little shop in town"}`;
-    case "highschool": return "in high school";
-    case "university": return "at university";
-    case "grad": return "in grad school";
-    default: return "an ordinary life";
+    case "working": return `working at ${occupation.detail || FALLBACK_WORKPLACE}`;
+    case "highschool": return "in your last years of high school";
+    case "university": return "muddling through university";
+    case "grad": return "deep in grad school, half-asleep on good coffee";
+    default: return "living an ordinary, unhurried life";
   }
 }
 
 function cityPlaceholder(city, occupation) {
   const where =
     occupation.type === "working"
-      ? `on your way home from ${occupation.detail || "work"}`
+      ? `walking home from ${occupation.detail || FALLBACK_WORKPLACE}`
       : occupation.type === "highschool"
-      ? "on your way home from school"
+      ? "walking home from school with your bag half-open"
       : occupation.type === "university"
-      ? "between lectures"
-      : "after a long day of study";
-  return `${city} is the kind of place that hums quietly — narrow streets, warm windows, a sky that goes soft at dusk. It's ${where} that everything is about to change.`;
+      ? "drifting home between lectures"
+      : "trudging home after a long day bent over your work";
+  return `${city} is the kind of place that hums to itself when no one's listening — narrow streets that know your footsteps, windows gone gold at supper-time, a sky that softens to bruise-blue and lets the first stars through. It's ${where}, thinking about nothing in particular, that everything is about to change.`;
 }

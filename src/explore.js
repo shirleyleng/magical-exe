@@ -58,7 +58,7 @@ export function openExploreMenu(state) {
     return { label: `${d.name}${done}`, value: d.id };
   });
   options.push({ label: "Cancel", value: "__cancel__" });
-  pushLine(state, "Where will you venture?", "system");
+  pushLine(state, "Where will you venture? (Stamina is the price out there, not daylight — go until your legs give out.)", "system");
   state.ui.menu = { active: true, kind: "explore", options, index: 0 };
   return state;
 }
@@ -150,14 +150,14 @@ export function moveDir(state, dir) {
     // hidden number. You enter when you choose; your hope/path here is your ending.
     if (nr.boss === "finale") {
       if (model.world.flags.ascended) {
-        pushLine(state, "The Heart of the Grey is quiet now — just an empty hollow, and far above it, a city learning to be a city again.", "system");
+        pushLine(state, "The Heart of the Grey is quiet now — just an empty hollow where something terrible used to live, and far above it, a city slowly, clumsily, learning how to be a city again.", "system");
         return state;
       }
       const m = (model.mascot && model.mascot.name) || "Your mascot";
-      pushLine(state, `${m} presses close to your cheek, trembling — not with fear, exactly. "This is it. The real one. Whatever's been steering all of it… it's right there."`, "mascot");
-      pushLine(state, `${m}: "Listen to me. You can't out-hit this — not at the end. The city has to believe in you, and you have to believe back. …Do you feel it? Do you feel them believing?"`, "mascot");
+      pushLine(state, `${m} presses close against your cheek, trembling — not with fear, exactly. Something more like awe. "This is it. The real one. Everything that's been steering all of this, all this time… it's right down there, waiting for you."`, "mascot");
+      pushLine(state, `${m}: "Listen to me. Really listen, because it matters now more than anything I've ever told you: you can't out-hit this. Not at the end. The city has to believe in you — and you have to believe right back at it, hard as you can. …Do you feel it? Out there, under everything? Do you feel them starting to believe?"`, "mascot");
       const rival = (model.rivals && model.rivals[0]) || { name: "Sable" };
-      pushLine(state, `${rival.name} draws her blade and sets her shoulder to yours. "I'm right here. Don't you dare do this alone." `, "mascot");
+      pushLine(state, `${rival.name} draws her blade and sets her shoulder firm against yours, close as a promise. "I'm right here. Where I've always ended up. Don't you dare try to do this alone."`, "mascot");
       return startCombat(state, CONFIG.finale.phases[0], {
         returnMode: "exploration",
         returnRoom: dest,
@@ -167,7 +167,7 @@ export function moveDir(state, dir) {
       });
     }
     if (model.world.flags.bossesDefeated.includes(nr.boss)) {
-      pushLine(state, "The heart of the wood is still and clean now.", "system");
+      pushLine(state, "This place is still and clean now — whatever the corruption left here, you've already swept it out. Only quiet remains.", "system");
       return state;
     }
     // Boss #4 is a scripted story-loss until you've recovered your magical weapon
@@ -179,10 +179,10 @@ export function moveDir(state, dir) {
       !model.character.magicalWeapon.found;
     if (storyLoss) {
       const m = (model.mascot && model.mascot.name) || "Your mascot";
-      pushLine(state, `${m}: "...No. No, not this one — turn back!"`, "mascot");
-      pushLine(state, `${m}: "I've never felt corruption like this. Whatever happens, do NOT let it take you."`, "mascot");
+      pushLine(state, `${m}: "...No. No, not this one — turn back, turn back right now, please!"`, "mascot");
+      pushLine(state, `${m}: "I have never felt corruption like this in my whole long life. Whatever happens up here — whatever it does — do NOT let it take you. Promise me. PROMISE me."`, "mascot");
     } else {
-      pushLine(state, "The corruption draws together into a towering shape...", "mascot");
+      pushLine(state, "The corruption draws itself together out of the dark, up and up into a single towering shape...", "mascot");
     }
     return startCombat(state, BOSS_ENEMY[nr.boss], {
       returnMode: "exploration",

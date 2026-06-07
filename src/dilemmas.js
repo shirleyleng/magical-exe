@@ -22,40 +22,40 @@ const DILEMMAS = [
   {
     id: "lost_child",
     setup: [
-      "On your way in, a small child sits crying on the curb — lost, clutching a coat too big for them. They can only half-remember an address.",
-      "A well-dressed stranger crouches beside you, smiling kindly. \"I can take them from here, if you're busy. I know the neighbourhood.\"",
+      "On your way in, a small child sits crying on the curb — lost, clutching a coat three sizes too big, the way you clutch a thing when it's the last warm thing you have. They can only half-remember an address, and keep getting the street name wrong.",
+      "A well-dressed stranger crouches down beside you, smiling a smile with very good teeth. \"I can take them from here, if you're busy. I know the neighbourhood like the back of my hand.\"",
     ],
     choices: [
       { label: "Walk them home yourself, however long it takes", hope: 5, virtue: 3,
-        outcome: "It eats the whole evening, street by street. Then a door opens and a parent's face just — breaks, with relief. Some things really are that simple." },
+        outcome: "It eats the whole evening, one wrong street at a time, the small hand sweaty in yours. Then a door opens and a parent's face just — comes apart, with relief, the way faces do when the worst thing didn't happen after all. Some things really are that simple. You forget that, sometimes." },
       { label: "Let the stranger take them — you're needed elsewhere", corruption: 6, hope: -3,
-        outcome: "The stranger takes the small hand and is gone before you think to ask a name. You tell yourself it was fine. You never do find out. Some nights you still wonder." },
+        outcome: "The stranger folds the small hand into his and is gone around the corner before it occurs to you to ask either of them a name. It was fine. You tell yourself it was fine, walking home. You never do find out. And some nights, years from now, you'll still be lying awake wondering." },
     ],
   },
   {
     id: "weird_noise",
     setup: [
-      "Past midnight, something thuds in the alley behind your building — wrong, and wet, and deliberate.",
-      "You are so tired. The blanket is warm. It's probably nothing.",
+      "Past midnight, something thuds in the alley behind your building — once, then again, wrong and wet and unmistakably deliberate. Not a cat. Not the wind.",
+      "You are so tired. Bone-tired, the kind sleep barely touches. The blanket is warm and the floor will be cold and it's probably, almost certainly, nothing at all.",
     ],
     choices: [
       { label: "Go down and look", hope: 4, virtue: 2,
-        outcome: "Someone is down there who needed finding. You stay until they can stand on their own. The night feels a little less heavy after." },
+        outcome: "Someone is down there who needed finding, and hadn't dared hope anyone would come. You stay — past cold, past tired — until they can stand on their own two feet again. The walk back up feels lighter than the walk down. The whole night does." },
       { label: "Pull the blanket up and pretend you didn't hear", hope: -4,
-        outcome: "In the morning there's tape across the mouth of the alley and two officers talking low. You don't go closer. You don't really want to know." },
+        outcome: "In the morning there's tape strung across the mouth of the alley, and two officers talking low, and the particular silence of neighbours not asking. You don't go closer. You keep your eyes on your shoes. You don't, you tell yourself firmly, really want to know." },
     ],
   },
   {
     id: "shuttered_pharmacy",
     setup: [
-      "An old man stands shaking outside a shuttered pharmacy — his medicine is locked inside and the owner is nowhere.",
-      "You could force the shutter with a thread of the dark. Quick. Clean. No one hurt. Probably.",
+      "An old man stands shaking outside a shuttered pharmacy, hands working at nothing — his medicine is locked behind the grille, the kind you don't skip, and the owner is nowhere and not answering.",
+      "You could force the shutter with one thin thread of the dark. Quick. Clean. Nobody hurt, nothing broken that matters. Probably. Almost certainly.",
     ],
     choices: [
       { label: "Track down the owner and do it right, slow as that is", hope: 4, virtue: 2,
-        outcome: "It costs you an hour you didn't have, knocking on doors. But the old man gets his medicine, and you got it the way you can live with." },
+        outcome: "It costs you an hour you absolutely did not have, knocking on the wrong doors until you find the right one. But the old man gets his medicine pressed into his shaking hands, and you got it for him the only way you'll be able to live with at three in the morning." },
       { label: "Force the shutter with a little forbidden power", corruption: 6, hope: 1,
-        outcome: "The lock gives with a sound like a held breath. He gets his medicine. The power leaves a residue in you that doesn't quite rinse off." },
+        outcome: "The lock gives with a soft sound, like a held breath finally let out. He gets his medicine; he even thanks you, which is somehow worse. The power you used leaves a faint residue behind your ribs that doesn't quite rinse off in the morning. You'll get used to that. That's the part that should worry you." },
     ],
   },
 ];

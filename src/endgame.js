@@ -48,10 +48,10 @@ export function handleFinaleResolve(state) {
 
   pushLine(state, "", "system");
   pushLine(state, "THE BRINK", "banner");
-  pushLine(state, "The Despair kneels before you, beaten and not gone, and for one held breath the whole grey world waits on what you do with it. You can feel two roads open under your feet.", "system");
-  pushLine(state, `One: open your hands and answer all that sorrow with everything the city has given back to you — every errand, every small kept promise, every face that started to believe again. Pour it in and trust it's enough.`, "system");
-  pushLine(state, `The other: close your fist around the Despair itself and TAKE it — all that vast power, yours, no one's leave to ask. Quicker. Surer. A different kind of forever.`, "system");
-  pushLine(state, `${m}, at your shoulder, says nothing. This one was always going to be yours alone.`, "mascot");
+  pushLine(state, "The Despair kneels before you, beaten and yet somehow not gone, vast and grey and waiting — and for one long held breath the whole world seems to wait with it, to hold still on the point of what you choose to do next. You can feel two roads open under your feet, as real as cold ground.", "system");
+  pushLine(state, `One: open your hands and answer all that sorrow with everything the city has poured back into you — every errand walked, every small promise kept, every face that learned how to believe again because of you. Give it all away at once, and trust, with no proof at all, that it's enough.`, "system");
+  pushLine(state, `The other: close your fist around the Despair itself and TAKE it — all that vast and ancient power, yours, with no one's leave to ask and no one left to stop you. Quicker. Surer. A colder, simpler kind of forever.`, "system");
+  pushLine(state, `${m}, pressed warm against your shoulder, says nothing at all. It just stays. This one was always going to be yours alone — and it isn't going to leave you to it.`, "mascot");
 
   state.ui.menu = {
     active: true,
@@ -111,8 +111,8 @@ function ascensionCoda(state, slotGain) {
   pushLine(state, `  · and ${r}, who fought at your shoulder to the last.`, "system");
   if (slotGain > 0) pushLine(state, `(You stand fully realized now — ${state.model.hub.slotsMax} activity slots.)`, "hint");
   pushLine(state, "", "system");
-  pushLine(state, "✦ Your watch over this city is done. ✦", "banner");
-  pushLine(state, "(A new game+ — prestige: carry your story onward into a harder world — arrives in a later update. For now: thank you for playing MAGICAL.EXE.)", "hint");
+  pushLine(state, "✦ Your watch over this city is done. Sleep, hero. You've more than earned it. ✦", "banner");
+  pushLine(state, "(There are always other cities, other mornings that need someone. When you're ready to lay this life down and begin again — stronger, into a harder world — type prestige. Until then: thank you, truly, for playing MAGICAL.EXE.)", "hint");
 }
 
 /* ---- the four endings ---- */
@@ -174,10 +174,10 @@ function eldritchMerge(state) {
   const baseArt = (model.mascot && ART[model.mascot.artKeyLarge]) || ART.blob_large;
   pushLine(state, corruptArt(baseArt), "mascot");
 
-  pushLine(state, "What stands up where you stood is the next thing the corruption will wear into the next grey city, and it remembers, faintly, that it used to want to help. That memory is the cruelest part of it.", "system");
+  pushLine(state, "What stands up where you stood is the next thing the corruption will wear into the next grey city, and somewhere deep inside the new shape, very quietly, it remembers that it used to want to help. That memory is the cruelest part of it. It always is.", "system");
   pushLine(state, "", "system");
-  pushLine(state, "✦ This is where your story ends — or where, in another life, you reach for something you could carry. ✦", "banner");
-  pushLine(state, "(Prestige — to begin again, changed — arrives in a later update.)", "hint");
+  pushLine(state, "✦ This is where your story ends — or where, in another life, you reach instead for something light enough to carry. ✦", "banner");
+  pushLine(state, "(That other life is yours to take. Type prestige to lay this one down and begin again — changed, and knowing now what you know.)", "hint");
   returnHome(state);
   return state;
 }

@@ -450,9 +450,9 @@ function storyLossIntervene(state) {
   const c = model.combat;
   const ch = model.character;
   const m = (model.mascot && model.mascot.name) || "Your mascot";
-  pushLine(state, `Your strength runs out before its patience does. ${ERef(c.enemy)} raises a hand to end you—`, "banner");
-  pushLine(state, `"NO!" ${m} streaks past your shoulder and throws itself into the blow meant for you.`, "mascot");
-  pushLine(state, `A flash. A cry, small and bright and then cut short. When the rain clears, ${m} is gone — and so is the towering shape, melting back into the grey as if bored of you.`, "banner");
+  pushLine(state, `Your strength runs out long before its patience does. You've nothing left — no Spirit, no second wind, no clever trick. ${ERef(c.enemy)} raises one slow hand to end you, almost gently—`, "banner");
+  pushLine(state, `"NO — NO, you don't!" ${m} streaks past your shoulder, a small comet of light, and throws its whole self into the blow meant for you.`, "mascot");
+  pushLine(state, `A flash. A cry — small and bright and yours, and then cut clean off. When the rain clears enough to see, ${m} is simply gone, and so is the towering shape, melting back into the grey as though you were never worth finishing. As though it had already taken the only thing that mattered.`, "banner");
   if (model.mascot) { model.mascot.injured = true; model.mascot.present = false; }
   model.world.flags.boss4Attempted = true;
   ch.stats.hp = Math.max(1, Math.round(ch.stats.maxHp * 0.25));
@@ -460,7 +460,7 @@ function storyLossIntervene(state) {
   model.mode = "hub";
   model.world.currentLocation = "homebase";
   model.world.currentRoom = null;
-  pushLine(state, "You wake at home. You don't remember the climb down. The house is very quiet.", "system");
+  pushLine(state, "You wake at home, on the floor, in your clothes. You don't remember the climb down the spire, or the road back, or any of it. The house is very quiet. The house is going to be very quiet for a while.", "system");
   state.ui.justLostStoryBoss = "boss4"; // progress.js: aftermath + alliance/Awakened hook + sparring unlock
   return state;
 }
@@ -578,7 +578,7 @@ function endCombat(state, outcome) {
   if (outcome === "mercy") {
     const gain = CONFIG.axes.alignment.mercyVirtueGain;
     adjustAlignment(ch, { virtue: gain });
-    pushLine(state, `You lower your hand. The ${c.enemy.name} shrinks back and slips away, unharmed. Something in you steadies. (+${gain} Virtue)`, "banner");
+    pushLine(state, `You lower your hand. You don't have to. The ${c.enemy.name} shrinks back, confused by the mercy, and slips away into the dark unharmed — and something in you settles and steadies, quiet as a closed door. (+${gain} Virtue)`, "banner");
     if (c.returnMode === "exploration" && c.returnRoom) model.world.cleared[c.returnRoom] = true;
     model.combat = null;
     model.mode = c.returnMode;
@@ -640,7 +640,7 @@ function endCombat(state, outcome) {
   }
 
   // defeat — gentle: wake at home, barely standing.
-  pushLine(state, "Darkness rushes in… and you wake at home, aching but alive.", "banner");
+  pushLine(state, "The dark rushes up to meet you… and then, somehow, lets you go. You wake at home, aching in places you didn't know you had, but breathing — alive to try again. You usually are. That's the whole trick of it.", "banner");
   ch.stats.hp = Math.max(1, Math.round(ch.stats.maxHp * 0.25));
   if (!c.enemy.isBoss) {
     requestNarration(state, {
@@ -663,13 +663,13 @@ function endRivalDuel(state, c, ch, outcome) {
   const model = state.model;
   const name = c.enemy.name;
   if (outcome === "victory" || outcome === "mercy") {
-    pushLine(state, `${name} drops to one knee, breathing hard — then laughs. "…Not bad. Not bad at all."`, "banner");
-    pushLine(state, `"Don't get comfortable. I'll be back for a rematch." ${name} melts into the dark.`, "mascot");
+    pushLine(state, `${name} drops to one knee, chest heaving — and then, of all things, laughs, bright and surprised. "…Huh. Not bad. Not bad AT ALL. Maybe the whispers had a point."`, "banner");
+    pushLine(state, `"Don't go getting comfortable, though. I'll be back, and next time I won't be sizing you up." ${name} melts backward into the dark, already grinning about the rematch.`, "mascot");
   } else if (outcome === "flee") {
-    pushLine(state, `You break away from the duel. ${name} doesn't give chase — "Running? We'll finish this another day."`, "system");
+    pushLine(state, `You break off and slip out of the duel. ${name} doesn't give chase — just calls after you, unbothered: "Running already? Fine. We'll finish this another day, you and me."`, "system");
   } else {
     // defeat — no harsh penalty; Sable pulls the final blow.
-    pushLine(state, `${name} knocks you flat and steps back instead of pressing the advantage. "…You're not ready yet. Train harder. I want you at your best."`, "banner");
+    pushLine(state, `${name} knocks you flat, blade a hair from your throat — then pulls it back and offers a hand up instead of pressing it home. "…Not yet. You're not ready yet, and I'm not interested in beating someone who isn't. Train harder. I want you at your absolute best when I take you."`, "banner");
     ch.stats.hp = Math.max(1, Math.round(ch.stats.maxHp * 0.5));
   }
   model.combat = null;
@@ -690,10 +690,10 @@ function advancePhase(state) {
   const nextId = c.phases[c.phaseIndex];
   const next = spawnEnemy(model, nextId);
 
-  pushLine(state, `${ERef(c.enemy)} comes apart in your hands — and does not die.`, "banner");
-  pushLine(state, "The grey doesn't lift. It pours inward instead, every shuttered window and bowed head and swallowed cry in the whole city running together into one vast, drowning weight that stands up where the Sovereign fell.", "system");
+  pushLine(state, `${ERef(c.enemy)} comes apart in your hands like wet paper — and does not die. You feel it the instant before you see it: this was never the thing you came to kill.`, "banner");
+  pushLine(state, "The grey doesn't lift. It pours inward instead — every shuttered window, every bowed head, every swallowed cry and unanswered knock and small daily surrender in the whole vast city, all of it running together at once into a single drowning weight that stands up, slow and terrible, where the Sovereign fell.", "system");
   const m = (model.mascot && model.mascot.name) || "Your mascot";
-  pushLine(state, `${m}: "That — that's all of it. Everything they stopped letting themselves feel. You can't punch THIS out of existence. But we don't run. We answer it."`, "mascot");
+  pushLine(state, `${m}, very small: "Oh. Oh, no. That — that's all of it. Everything they ever stopped letting themselves feel. You can't punch THIS out of the world, love. There isn't a fist big enough." Then, fiercer: "But we don't run from it. We never have. We answer it. Together. Now."`, "mascot");
 
   c.enemy = next;
   c.fx = {};
@@ -712,7 +712,7 @@ function advancePhase(state) {
    flag. Combat ends here; the choice + fuel-check gate live outside combat. */
 function triggerFinaleResolve(state) {
   const model = state.model;
-  pushLine(state, "The City's Despair folds to its knees under the last of your strength — and still it does not vanish. It only waits, vast and patient, for you to decide what comes next.", "banner");
+  pushLine(state, "The City's Despair folds to its knees under the very last of your strength — and still, even now, it does not vanish. It can't. It only sinks down and waits, vast and patient and ancient as winter, for you to decide what comes next. Everything you are has carried you to exactly this moment.", "banner");
   model.combat = null;
   model.mode = "hub"; // out of the tactical loop; the resolver narrates from here
   state.ui.finaleResolve = true; // update.js afterCombat → endgame.js handleFinaleResolve
@@ -736,8 +736,8 @@ function maybeFinaleAssist(state) {
   const rival = (state.model.rivals && state.model.rivals[0]) || { name: "Sable" };
   const heal = Math.max(1, Math.round(eff.maxHp * F.assistHealPct * healMultiplier(ch)));
   ch.stats.hp = Math.min(eff.maxHp, ch.stats.hp + heal);
-  pushLine(state, `"NOT today!" ${rival.name} hurls herself across ${eRef(c.enemy)}'s line of sight — it recoils, thrown off you for a breath.`, "system");
-  pushLine(state, `${m} presses to your chest, light spilling out warm and fierce. "Up. UP. The whole city's holding their breath for you — get UP." (+${heal} HP)`, "mascot");
+  pushLine(state, `"NOT — TODAY!" ${rival.name} throws herself bodily across ${eRef(c.enemy)}'s line of sight, blade up, buying you a breath with her own — and it recoils, thrown off you just long enough.`, "system");
+  pushLine(state, `${m} presses hard to your chest, light spilling out of it warm and fierce and furious. "Up. UP. I did not come all this way back to you just to watch this — the whole city's holding its breath for you right now, so you get UP." (+${heal} HP)`, "mascot");
   setFx(c, "stagger", 1, 1); // the enemy loses its coming turn
   return true;
 }

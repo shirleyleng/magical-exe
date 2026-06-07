@@ -24,11 +24,11 @@ const TIER_REVEAL = {
   soldier(state) {
     const m = mascotName(state);
     pushLine(state, ART.star_large, "mascot");
-    pushLine(state, "Light pours up through you — you rise to MAGICAL SOLDIER!", "banner");
-    pushLine(state, `${m}: "You did it! …There's something I should tell you now."`, "mascot");
+    pushLine(state, "Light pours up through you like sunrise through a cracked door — you rise to MAGICAL SOLDIER!", "banner");
+    pushLine(state, `${m} does a delighted little loop in the air. "You DID it! Okay — okay, I was going to wait, but you've earned the truth now."`, "mascot");
     pushLine(
       state,
-      `${m}: "We aren't alone. Across the world there's an alliance of magical people, sworn to drive back corruption and keep cities whole — but there are far too few of us for every city. That's why we can travel from one to the next."`,
+      `${m}: "We were never alone in this. All over the world there's an alliance — magical people like you, sworn to push back the corruption and keep cities whole. There just aren't enough of us; never have been. One soul to a city, sometimes less. That's why we go where we're needed, you and I."`,
       "mascot"
     );
   },
@@ -37,28 +37,28 @@ const TIER_REVEAL = {
     const path = state.model.character.path;
     const flavor =
       path === "virtuous"
-        ? "Clean light hardens around you like armor — every edge of you turned to shelter for others."
+        ? "Clean light hardens around you like armor poured warm and set cool — every sharp edge of you turned outward, into shelter for someone else."
         : path === "corrupt"
-        ? "The light comes edged and hungry, a darker steel — power that protects, and tempts."
-        : "Light folds into something tempered and sure — neither soft nor cruel, simply ready.";
+        ? "The light comes in edged and hungry, a darker steel that hums against your teeth — power that guards you and wants you, in equal, uneasy measure."
+        : "The light folds into something tempered and certain — neither soft nor cruel, just a blade that knows its own weight at last.";
     pushLine(state, ART.star_large, "mascot");
     pushLine(state, "You rise again — MAGICAL KNIGHT!", "banner");
     pushLine(state, flavor, "system");
-    pushLine(state, `${m}: "A Knight. I knew you'd reach this. The alliance will want to hear of it."`, "mascot");
+    pushLine(state, `${m}: "A Knight. I knew you had it in you — I've known since before you did. The alliance is going to want to hear about this one."`, "mascot");
   },
   awakened(state) {
     const m = mascotName(state);
     const path = state.model.character.path;
     const flavor =
       path === "virtuous"
-        ? "The light that fills you is wholly your own now — not borrowed, not feared. It knows your name."
+        ? "The light that fills you is wholly your own now — not borrowed from the alliance, not flinched away from. It rises when you call it, and it knows your name."
         : path === "corrupt"
-        ? "The dark and the light in you stop warring and simply answer to you. Whatever you've become, it's finally, fully yours."
-        : "Doubt and certainty settle into the same hand. You stop asking whether you're enough. You just are.";
+        ? "The dark and the light in you stop their long war and turn, together, to face the same way: yours. Whatever you've made of yourself, it's finally, wholly, unmistakably you."
+        : "Doubt and certainty come to rest in the same open hand. You stop asking whether you were ever enough for this. The question just — quiets. You are.";
     pushLine(state, ART.star_large, "mascot");
-    pushLine(state, "The weapon answers your grip — and something long asleep in you opens its eyes. You AWAKEN!", "banner");
+    pushLine(state, "The weapon answers your grip — and something that's been asleep in you since long before any of this opens its eyes. You AWAKEN!", "banner");
     pushLine(state, flavor, "system");
-    pushLine(state, `${m}: "There you are. The real you. …Now — let's go finish what we started."`, "mascot");
+    pushLine(state, `${m}, voice thick: "There you are. The real you. I never doubted it — well. Maybe once, in the dark. …Come on. Let's go finish what we started, you and me."`, "mascot");
   },
 };
 
@@ -69,9 +69,9 @@ function recoverWeaponAndMascot(state) {
   const ch = model.character;
   const m = mascotName(state);
   ch.magicalWeapon.found = true;
-  pushLine(state, "The doubt wearing your face shudders, thins, and finally lets go.", "banner");
-  pushLine(state, `Where it stood, the small light steadies into something solid: ${ch.magicalWeapon.object}. Your weapon. You'd know it anywhere.`, "system");
-  pushLine(state, `Curled around it, ${m} stirs — battered, faint, but breathing. Its eyes find yours. "…You came back for me. You wonderful idiot."`, "mascot");
+  pushLine(state, "The doubt wearing your own face shudders, thins, and — at last, like a held breath finally let go — releases its grip on you.", "banner");
+  pushLine(state, `Where it stood, a small light gathers and hardens into something solid, something real: ${ch.magicalWeapon.object}. Your weapon. After all these years you'd know it in the pitch dark, by weight alone.`, "system");
+  pushLine(state, `And curled around it, half-buried in its own faint glow, ${m} stirs — battered, dimmed almost to nothing, but breathing. Its eyes crack open and find yours, and fill. "…You came back. For me. You absolute, wonderful idiot. I knew you would. I told myself you would the whole time."`, "mascot");
   if (model.mascot) { model.mascot.present = true; model.mascot.injured = false; }
   model.world.flags.mascotGone = false; // training reopens (sparring stays — its own flag)
 }
@@ -82,21 +82,21 @@ function recoverWeaponAndMascot(state) {
 const BOSS_BEAT = {
   boss2(state) {
     const m = mascotName(state);
-    pushLine(state, `${m}: "These aren't wild spawns. Something is *commanding* the corruption — a big boss, hidden, pulling it toward your city on purpose."`, "mascot");
-    pushLine(state, `${m}: "Beat back its champions and we'll find it. …Though something about all this still doesn't sit right with me."`, "mascot");
+    pushLine(state, `${m} lands on your shoulder, fur prickling. "Okay. That wasn't a wild spawn — that thing had a *purpose*. Something's commanding the corruption. A big one, hidden somewhere, reeling it toward your city on a line like it's fishing."`, "mascot");
+    pushLine(state, `${m}: "Knock down its champions and it'll have to show its face eventually. …Though." A pause, uncharacteristically long. "Something about the shape of all this still doesn't sit right in me. Never mind. Later."`, "mascot");
   },
   boss3(state) {
     const m = mascotName(state);
-    pushLine(state, `${m}: "I've started to understand. The corruption grows thickest where people have given up — it *feeds* on hopelessness."`, "mascot");
-    pushLine(state, `${m}: "Every errand you run, every person you give hope back to — that may be the truer fight. Remember that."`, "mascot");
+    pushLine(state, `${m} is quiet for a moment, watching the grey thin from the air. "I think I've started to understand it. The corruption grows thickest exactly where people have stopped hoping. It doesn't just spread *near* despair. It *feeds* on it."`, "mascot");
+    pushLine(state, `${m}: "Which means every errand you run, every person you hand a little hope back to — that might be the truer fight. The one that actually wins. Hold onto that. Promise me you'll hold onto that."`, "mascot");
   },
   // T18: the Boss #4 rematch (now winnable as Awakened) — the rival pays her dues
   // and resumes challenging you, this time as an equal.
   boss4(state) {
     const rival = (state.model.rivals && state.model.rivals[0]) || { name: "Sable" };
-    pushLine(state, "The Grief Herald comes apart at last — not banished so much as *answered*. The long rain finally stops.", "banner");
-    pushLine(state, `${rival.name} is waiting when you return, and for once she doesn't bother hiding the grin. "You went back. You won. …I had a whole speech ready about not throwing your life away. Guess I'll keep it."`, "mascot");
-    pushLine(state, `"You're the real thing now. I'll keep coming for you — but as an equal. Someone has to keep an Awakened honest." She holds out a hand.`, "mascot");
+    pushLine(state, "The Grief Herald comes apart at last — not beaten so much as finally *answered*, the way grief lets go when someone at last says the right thing to it. The long rain over the spire stops. The sky, for once, holds its breath.", "banner");
+    pushLine(state, `${rival.name} is waiting when you come down, and for once she doesn't bother hiding the grin spreading across her face. "You went back up there. And you WON. …I had a whole speech ready, you know. Something cutting about not throwing your life away. Guess I'll just have to keep it."`, "mascot");
+    pushLine(state, `"You're the real thing now — no asterisk. I'll keep coming for you, same as always. But as an equal, from here on. Somebody's got to keep an Awakened honest." She holds out a hand, and means it.`, "mascot");
     rival.disposition = "respectful";
   },
 };
@@ -179,15 +179,15 @@ export function handleStoryLoss(state) {
 
   // The quiet aftermath — the hopelessness theme, made personal.
   pushLine(state, "", "system");
-  pushLine(state, `The house keeps ${m}'s shape in every corner: the worn perch, the half-taught lessons, the small bright voice that isn't there.`, "system");
-  pushLine(state, `You couldn't save the one who saved you. The doubt you've carried since the beginning finally says it plainly — am I good enough to be a magical girl at all? Can someone like me truly end the corruption?`, "system");
+  pushLine(state, `The house keeps ${m}'s shape in every corner — the worn dent on the perch, the lessons left half-taught, the small bright voice that should be filling the quiet and isn't. You keep turning to say something to it. There's no one to say it to.`, "system");
+  pushLine(state, `You couldn't save the one who saved you. The doubt you've carried since the very beginning finally says it plainly, in your own tired voice — was I ever enough for this? Can someone like me truly be the one to end the corruption?`, "system");
 
   // The rival pivots: the thread of hope, and the road to T18.
   pushLine(state, "", "system");
-  pushLine(state, `A knock. ${rival.name} lets herself in, takes one look at the empty room, and goes very still. "...So it took your mascot. I'm sorry. They don't come back from that on their own."`, "banner");
-  pushLine(state, `"Listen. Hitting that thing head-on was never the answer — ${m} knew it, that's why it stepped in. Stop fighting the way they tell you to and ASK the alliance for a better one. There's a war they're losing quietly."`, "mascot");
-  pushLine(state, `"And there's a tier past Knight. Awakened. You reach it by finding what you were before any of this — and if anything can wake ${m} again, it's that. Go to the alliance. Then come back to me."`, "mascot");
-  pushLine(state, `"I can't train you the way your mascot did. But I can make you bleed for it. Spar with me — type ‘spar’ — and don't you dare give up." For once, there's no smirk.`, "mascot");
+  pushLine(state, `A knock. ${rival.name} lets herself in without waiting, takes one look at the empty room and the way you're sitting in it, and goes very still. The usual edge drops clean off her. "...So it took your mascot. I'm sorry. Truly. They don't come back from that on their own — I won't lie to you about that part."`, "banner");
+  pushLine(state, `"So listen to me. Hitting that thing head-on was never going to work — ${m} knew it, that's the whole reason it stepped in front of you. Stop fighting the way they trained you to and ASK the alliance for a better way. There's a war they're losing very, very quietly, and nobody up top wants to say so out loud."`, "mascot");
+  pushLine(state, `"And there's a tier past Knight. Awakened. You reach it by going back to find what you were before any of this got its hands on you — and if anything in this world can wake ${m} again, it's that. Go to the alliance. Then come back to me."`, "mascot");
+  pushLine(state, `"I can't train you the way your mascot did — I don't have that kind of gentle in me. But I can make you bleed for every inch, and right now that might be exactly what you need. Spar with me. Type ‘spar.’ And don't you DARE give up on me." For once, there's no smirk anywhere on her face.`, "mascot");
   pushLine(state, "(Training is gone with your mascot. You can SPAR with " + rival.name + " now — a harder road, but the only one left. Type spar.)", "hint");
   return state;
 }

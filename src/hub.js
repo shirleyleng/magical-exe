@@ -134,7 +134,7 @@ export function openTrainMenu(state) {
     options.push({ label: `Learn ${name} — ${def.learn.blurb} [${cost} slot]`, value: `learn:${name}` });
   }
   options.push({ label: "Cancel", value: "__cancel__" });
-  pushLine(state, "What will you train today?", "system");
+  pushLine(state, "What'll you put the day's work into?", "system");
   state.ui.menu = { active: true, kind: "train", options, index: 0 };
   return state;
 }
@@ -176,16 +176,16 @@ function pickSparOutcome() {
 
 const SPAR_FLAVOR = {
   breakthrough: [
-    "For one clean breath it all clicks — blade, footing, breath as one. Maybe you can do this after all.",
-    "You read the strike before it lands and answer it. {rival} actually pauses. \"...There it is.\"",
+    "For one clean breath it all clicks into place — blade, footing, lungs, all of it one moving thing. So this is what it's supposed to feel like. Maybe you can do this after all.",
+    "You read the strike before it even leaves her shoulder, and you answer it. {rival} actually stops. A slow, real smile. \"...There. THERE it is. That's the one I've been waiting for.\"",
   ],
   solid: [
-    "Blow after blow, no mercy, no praise. You hold. It isn't hope exactly — but it's something to stand on.",
-    "{rival} drills you until your arms shake. \"Again.\" You're still standing. That's the lesson.",
+    "Blow after blow, no mercy and no praise, just the work. You hold. It isn't hope, exactly — but it's solid ground under your feet, and right now that's worth more.",
+    "{rival} drills you until your arms shake and your grip starts to go. \"Again.\" You're still standing when she finally calls it. That, you're starting to understand, was the whole lesson.",
   ],
   rough: [
-    "You can't land a thing. {rival} doesn't go easy, and the old doubt creeps back in — am I even meant for this?",
-    "You're flat on your back before you know it. \"Get up.\" You wonder, for a moment, why you bother.",
+    "You can't land a single thing on her. {rival} doesn't go easy — she never does — and in the gaps between breaths the old doubt slips back in through the cracks. Am I even meant for this?",
+    "You're flat on your back staring at the sky before you've registered the throw. \"Get up.\" Just that. And for one ugly second, on the cold ground, you genuinely wonder why you keep bothering to.",
   ],
 };
 
@@ -268,7 +268,7 @@ export function openSparMenu(state) {
     options.push({ label: `Learn ${name} — ${def.learn.blurb} [${cost} slot]`, value: `learn:${name}` });
   }
   options.push({ label: "Cancel", value: "__cancel__" });
-  pushLine(state, `${rivalName(state.model)} rolls her shoulders and raises her blade. "No mercy — that's how you get strong. A spar can break through, hold, or go badly. Choose."`, "system");
+  pushLine(state, `${rivalName(state.model)} rolls her shoulders till they crack and brings her blade up. "No mercy from me — that's the only way anyone gets strong, and you don't have time for the kind way. A spar can break something open, or just hold the line, or go badly. All three teach you something. Choose."`, "system");
   state.ui.menu = { active: true, kind: "spar", options, index: 0 };
   return state;
 }
@@ -515,21 +515,21 @@ export function visitAlliance(state) {
    shown as a number — only the flavor + the city's mood drift hint at it. */
 const ERRAND_FLAVOR = {
   kindness: [
-    "You sit a long while with someone who'd stopped expecting company. Nothing fixed — just less alone.",
-    "You carry an old neighbour's shopping up four flights and stay for the tea you didn't have time for.",
-    "You listen, really listen, to someone the whole city had learned to walk past.",
+    "You sit a long while with someone who'd quietly stopped expecting anyone to come. Nothing gets fixed. They're just, for an afternoon, a little less alone — and it turns out that was the whole thing they needed.",
+    "You carry an old neighbour's shopping up four narrow flights, and then you stay for the tea you didn't have time for, and then for the second cup you really didn't, because she's telling you about her husband and her eyes are bright.",
+    "You listen — really listen, no clock running in your head — to someone the whole rest of the city has quietly learned to walk a little faster past.",
   ],
   service: [
-    "Dawn to dark you give the day away — soup line, shelter, a stranger's leaking roof. You're tired in the good way.",
-    "A whole day of small mercies, one after another, until your hands ache and the street looks a little less grey.",
+    "Dawn to dark, you give the whole day away — the soup line, the shelter, a stranger's leaking roof in the rain. By dusk you're wrung out and aching and tired in the good way, the way that means it counted.",
+    "A whole day of small mercies, one stacked on the next on the next, until your hands ache and your back complains and the street, when you finally look up at it, seems just a shade less grey than it did this morning.",
   ],
   rescue: [
-    "You pull someone clear of a corrupted snarl in the middle of the market — a gasp, then cheers. They saw you be brave.",
-    "Out in the open, in front of everyone, you put yourself between the dark and someone who couldn't run. They won't forget it.",
+    "You pull someone clear of a corrupted snarl in the middle of the crowded market — a single held gasp from everyone watching, and then, breaking over you, the cheers. They all saw it. They saw you be brave for them.",
+    "Out in the open, in front of the whole street, you put yourself square between the dark and someone who couldn't run from it. It's the kind of thing a person carries the rest of their life. They won't forget it. Neither, you suspect, will you.",
   ],
   expedient: [
-    "You help — but you take the shortcut, the one that leaves a taste in your mouth. It's done. Mostly.",
-    "You fix it the fast way, the way that's easier than it is right. Best not to think too hard about it afterward.",
+    "You help — you do — but you take the shortcut, the one that gets it done and leaves a faint sour taste at the back of your mouth. It's handled. Mostly. You decide not to examine the 'mostly' too closely.",
+    "You fix it the fast way. The way that's so much easier than it is right. It works, and the person thanks you, and you smile back, and it's probably best not to turn the whole thing over in your head too much later tonight.",
   ],
 };
 const sample = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -548,7 +548,7 @@ export function openErrandMenu(state) {
     .filter((a) => !(a.public && lieLow)) // no public heroics while your cover is too hot
     .map((a) => ({ label: `${a.label} — ${a.blurb} [${a.slots} slot${a.slots > 1 ? "s" : ""}]`, value: a.id }));
   options.push({ label: "Cancel", value: "__cancel__" });
-  pushLine(state, "The city is full of small hurts. How will you spend yourself?", "system");
+  pushLine(state, "The city is full of small hurts, the kind no boss fight ever fixes. How do you want to spend yourself today?", "system");
   state.ui.menu = { active: true, kind: "errand", options, index: 0 };
   return state;
 }

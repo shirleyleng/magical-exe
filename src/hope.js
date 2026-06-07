@@ -28,11 +28,11 @@ export function hopeBand(h = 0) {
 }
 
 const MOOD_LINES = [
-  "The city feels grey and far away lately — everyone walking with their eyes down.",
-  "Here and there a light stays on a little longer. Small things, but you notice them.",
-  "People nod to each other on the street again. It isn't much. It isn't nothing.",
-  "There's a warmth in the city these days — you can feel folks letting themselves hope.",
-  "The whole city seems to lean toward the light now, like it remembers how to believe.",
+  "The city feels grey and far away lately — everyone moving with their eyes down and their collars up, as if bad weather were a thing you could outwalk.",
+  "Here and there a light stays on a little longer than it has to. A curtain twitches. Someone hums, badly, on a stairwell. Small things. But you've started noticing them.",
+  "People nod to each other on the street again — strangers, even. Hold a door. Say the spare kind word they used to swallow. It isn't much. It is very much not nothing.",
+  "There's a warmth moving through the city these days, low and steady as a pilot light. You can feel folks letting themselves want things again, out loud.",
+  "The whole city leans toward the light now, the way a room full of plants turns to a window — like it has remembered, all at once, how to believe in the morning.",
 ];
 
 /** Ambient city-mood line for the current hope band (the "felt" trend). */

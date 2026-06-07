@@ -158,8 +158,8 @@ function buildVoice(animals = []) {
   const vibes = animals.map((a) => ANIMAL_VIBE[norm(a)]).filter(Boolean);
   if (vibes.length >= 3) return `${vibes[0]}, ${vibes[1]}, and a little ${vibes[2]}`;
   if (vibes.length === 2) return `${vibes[0]} and ${vibes[1]}`;
-  if (vibes.length === 1) return `${vibes[0]} and warmly encouraging`;
-  return "gentle, encouraging, a little sleepy";
+  if (vibes.length === 1) return `${vibes[0]}, warm, and quietly in your corner`;
+  return "gentle, stubbornly encouraging, and a little sleepy";
 }
 
 /** Pick `n` distinct random names from the pool. */
