@@ -45,7 +45,35 @@ const TIER_REVEAL = {
     pushLine(state, flavor, "system");
     pushLine(state, `${m}: "A Knight. I knew you'd reach this. The alliance will want to hear of it."`, "mascot");
   },
+  awakened(state) {
+    const m = mascotName(state);
+    const path = state.model.character.path;
+    const flavor =
+      path === "pure"
+        ? "The light that fills you is wholly your own now — not borrowed, not feared. It knows your name."
+        : path === "corrupt"
+        ? "The dark and the light in you stop warring and simply answer to you. Whatever you've become, it's finally, fully yours."
+        : "Doubt and certainty settle into the same hand. You stop asking whether you're enough. You just are.";
+    pushLine(state, ART.star_large, "mascot");
+    pushLine(state, "The weapon answers your grip — and something long asleep in you opens its eyes. You AWAKEN!", "banner");
+    pushLine(state, flavor, "system");
+    pushLine(state, `${m}: "There you are. The real you. …Now — let's go finish what we started."`, "mascot");
+  },
 };
+
+/* T18: defeating the secret-place doubt recovers your magical weapon and your
+   mascot. Called before the tier gate so the Awakened reqWeaponFound passes. */
+function recoverWeaponAndMascot(state) {
+  const model = state.model;
+  const ch = model.character;
+  const m = mascotName(state);
+  ch.magicalWeapon.found = true;
+  pushLine(state, "The doubt wearing your face shudders, thins, and finally lets go.", "banner");
+  pushLine(state, `Where it stood, the small light steadies into something solid: ${ch.magicalWeapon.object}. Your weapon. You'd know it anywhere.`, "system");
+  pushLine(state, `Curled around it, ${m} stirs — battered, faint, but breathing. Its eyes find yours. "…You came back for me. You wonderful idiot."`, "mascot");
+  if (model.mascot) { model.mascot.present = true; model.mascot.injured = false; }
+  model.world.flags.mascotGone = false; // training reopens (sparring stays — its own flag)
+}
 
 /* Narrative beats that fire when a boss falls, regardless of whether a tier-up
    happens — this is how the player learns corruption's deeper nature (DESIGN §8).
@@ -81,6 +109,10 @@ export function handleBossDefeat(state) {
 
   // Arm the rival schedule off this boss (meets after #2, returns after #3).
   armRivalForBoss(state, bossId);
+
+  // T18: the secret-place doubt — recover the weapon + mascot so the Awakened
+  // gate (reqWeaponFound) can pass below.
+  if (bossId === "secretPlace") recoverWeaponAndMascot(state);
 
   // Which tier does this boss gate?
   const tierName = Object.keys(CONFIG.tiers).find((t) => CONFIG.tiers[t].reqBoss === bossId);
