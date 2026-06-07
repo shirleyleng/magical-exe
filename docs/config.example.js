@@ -28,6 +28,20 @@ export const CONFIG = {
     softCap: { power: null, spirit: null, defense: null, speed: null, dodge: 30, maxHp: null, maxStamina: 120 },
   },
 
+  // ---- sparring (T17: replaces training once the mascot is gone) ----
+  // A risk/reward grind with the rival. Reuses training.gainPerSession as the
+  // base, scaled by the rolled outcome's mult; a rough spar yields nothing and
+  // costs HP. Higher variance and lower expected value than the mascot's gentle
+  // coaching — the low point should feel like a hard road.
+  sparring: {
+    hpCostOnRough: 6,           // a bad spar leaves a mark (HP, floored at 1 in the hub)
+    outcomes: [                 // weighted; mult scales the base training gain
+      { key: "breakthrough", weight: 25, mult: 2 },
+      { key: "solid",        weight: 45, mult: 1 },
+      { key: "rough",        weight: 30, mult: 0 },
+    ],
+  },
+
   // ---- starting character stats ----
   startingStats: {
     hp: 30, maxHp: 30, power: 6, spirit: 6, defense: 4,

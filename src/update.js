@@ -21,7 +21,7 @@ import { THEMES, themeName } from "./theme.js";
 import {
   refreshSlotsMax, trainCommand, openTrainMenu, openShopMenu,
   sellCommand, useItem, doRest, handleHubMenu, slotsFree,
-  doLieLow, doMisdirect,
+  doLieLow, doMisdirect, sparCommand, openSparMenu,
 } from "./hub.js";
 import { enterDungeon, openExploreMenu, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import { unlockedDungeons, resolveDungeon, DUNGEONS } from "./dungeons.js";
@@ -331,7 +331,7 @@ function buildParseContext(s, raw) {
   return {
     mode,
     allowedActions: [
-      "train", "rest", "shop", "buy", "sell", "explore",
+      "train", "spar", "rest", "shop", "buy", "sell", "explore",
       "use", "attack", "look", "status", "inventory",
     ],
     presentEntities: [
@@ -575,6 +575,8 @@ function routeHub(s, cmd) {
   switch (verb) {
     case "train":
       return target ? trainCommand(s, target) : openTrainMenu(s);
+    case "spar":
+      return target ? sparCommand(s, target) : openSparMenu(s);
     case "rest":
       return tickRival(doRest(s));
     case "lielow":
@@ -663,6 +665,7 @@ function routeExplore(s, cmd) {
       return s;
 
     case "train":
+    case "spar":
     case "rest":
     case "shop":
     case "buy":

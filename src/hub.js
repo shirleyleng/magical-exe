@@ -138,8 +138,9 @@ export function openTrainMenu(state) {
   return state;
 }
 
-/** Learn an ability in training: spends slot(s); requires prereqs still met. */
-export function learnAbility(state, name) {
+/** Learn an ability in training (or sparring): spends slot(s); prereqs must hold.
+    `slotKey` records which activity it counted against (training | sparring). */
+export function learnAbility(state, name, slotKey = "training") {
   const model = state.model;
   const ch = model.character;
   const def = getAbility(name);
@@ -148,9 +149,124 @@ export function learnAbility(state, name) {
   if (!meetsLearnReq(ch, def)) { pushLine(state, `You're not ready to learn ${name} yet.`, "system"); return state; }
   const cost = def.learn.slotCost || 1;
   if (slotsFree(model) < cost) { pushLine(state, "Not enough activity slots left today. Type rest to begin a new day.", "system"); return state; }
-  model.hub.slotsUsedToday.training += cost;
+  model.hub.slotsUsedToday[slotKey] += cost;
   ch.abilities.push(name);
   pushLine(state, `You spend the day in focused practice. You've learned ${name} — ${def.learn.blurb}.`, "banner");
+  return state;
+}
+
+/* ---- sparring (T17) ----
+   Once the mascot is gone, training closes and the rival's spar takes its place:
+   a risk/reward grind (config.sparring) that mostly grinds you down, sometimes
+   breaks through, and occasionally just goes badly. The hopelessness theme made
+   mechanical — but the only road forward. */
+const sparringOpen = (state) => state.model.world.flags.mascotGone === true;
+
+function pickSparOutcome() {
+  const outs = CONFIG.sparring.outcomes;
+  const total = outs.reduce((a, o) => a + o.weight, 0);
+  let r = Math.random() * total;
+  for (const o of outs) { if ((r -= o.weight) < 0) return o; }
+  return outs[outs.length - 1];
+}
+
+const SPAR_FLAVOR = {
+  breakthrough: [
+    "For one clean breath it all clicks — blade, footing, breath as one. Maybe you can do this after all.",
+    "You read the strike before it lands and answer it. {rival} actually pauses. \"...There it is.\"",
+  ],
+  solid: [
+    "Blow after blow, no mercy, no praise. You hold. It isn't hope exactly — but it's something to stand on.",
+    "{rival} drills you until your arms shake. \"Again.\" You're still standing. That's the lesson.",
+  ],
+  rough: [
+    "You can't land a thing. {rival} doesn't go easy, and the old doubt creeps back in — am I even meant for this?",
+    "You're flat on your back before you know it. \"Get up.\" You wonder, for a moment, why you bother.",
+  ],
+};
+
+const pickLine = (arr, rival) => arr[Math.floor(Math.random() * arr.length)].replace(/\{rival\}/g, rival);
+
+/** Spar a stat with the rival: a weighted risk/reward roll on the training gain. */
+export function doSpar(state, statKey) {
+  const model = state.model;
+  if (!sparringOpen(state)) {
+    pushLine(state, "Your mascot still guides your training — there's no need to spar yet.", "system");
+    return state;
+  }
+  if (slotsFree(model) <= 0) {
+    pushLine(state, "You're out of activity slots for today. Type rest to begin a new day.", "system");
+    return state;
+  }
+  const rival = rivalName(model);
+  const stats = model.character.stats;
+  const out = pickSparOutcome();
+  model.hub.slotsUsedToday.sparring += 1;
+
+  if (out.key === "rough") {
+    const hurt = CONFIG.sparring.hpCostOnRough;
+    stats.hp = Math.max(1, stats.hp - hurt);
+    pushLine(state, pickLine(SPAR_FLAVOR.rough, rival), "system");
+    pushLine(state, `A rough session — no gain, and it cost you. (-${hurt} HP)`, "hint");
+  } else {
+    const base = CONFIG.training.gainPerSession[statKey] || 0;
+    const cap = CONFIG.training.softCap[statKey];
+    const gain = Math.round(base * out.mult);
+    let value = stats[statKey] + gain;
+    if (cap != null && value > cap) value = cap;
+    stats[statKey] = value;
+    if (statKey === "maxHp") stats.hp = stats.maxHp;
+    if (statKey === "maxStamina") stats.stamina = stats.maxStamina;
+    refreshSlotsMax(model); // maxStamina growth can unlock a slot
+    pushLine(state, pickLine(SPAR_FLAVOR[out.key], rival), "system");
+    pushLine(state, `${out.key === "breakthrough" ? "A breakthrough! " : ""}Your ${statLabel(statKey)} is now ${stats[statKey]}. (+${gain})`, "system");
+  }
+  pushLine(state, `Slots: ${slotsUsed(model)}/${model.hub.slotsMax} used today.`, "hint");
+  return state;
+}
+
+/** `spar <stat>` from the command parser. */
+export function sparCommand(state, target) {
+  if (!sparringOpen(state)) {
+    pushLine(state, "Your mascot still guides your training — there's no need to spar yet.", "system");
+    return state;
+  }
+  const key = resolveStat(target);
+  if (!key) {
+    pushLine(state, "Spar to sharpen what? Try: power, spirit, defense, speed, dodge, hp, stamina.", "system");
+    return state;
+  }
+  return doSpar(state, key);
+}
+
+/** `spar` with no argument -> a selection menu. */
+export function openSparMenu(state) {
+  if (!sparringOpen(state)) {
+    pushLine(state, "Your mascot still guides your training — there's no need to spar yet.", "system");
+    return state;
+  }
+  if (slotsFree(state.model) <= 0) {
+    pushLine(state, "You're out of activity slots for today. Type rest to begin a new day.", "system");
+    return state;
+  }
+  const g = CONFIG.training.gainPerSession;
+  const options = [
+    { label: `Power     (~+${g.power}, risky)`, value: "power" },
+    { label: `Spirit    (~+${g.spirit}, risky)`, value: "spirit" },
+    { label: `Defense   (~+${g.defense}, risky)`, value: "defense" },
+    { label: `Speed     (~+${g.speed}, risky)`, value: "speed" },
+    { label: `Dodge     (~+${g.dodge}, risky)`, value: "dodge" },
+    { label: `Max HP    (~+${g.maxHp}, risky)`, value: "maxHp" },
+    { label: `Max Stam. (~+${g.maxStamina}, risky)`, value: "maxStamina" },
+  ];
+  // With the mascot gone, sparring is also the only way left to learn abilities.
+  for (const { name, def } of learnableAbilities(state.model.character)) {
+    const cost = def.learn.slotCost || 1;
+    options.push({ label: `Learn ${name} — ${def.learn.blurb} [${cost} slot]`, value: `learn:${name}` });
+  }
+  options.push({ label: "Cancel", value: "__cancel__" });
+  pushLine(state, `${rivalName(state.model)} rolls her shoulders and raises her blade. "No mercy — that's how you get strong. A spar can break through, hold, or go badly. Choose."`, "system");
+  state.ui.menu = { active: true, kind: "spar", options, index: 0 };
   return state;
 }
 
@@ -339,6 +455,11 @@ export function handleHubMenu(state, kind, opt) {
   if (kind === "train") {
     if (opt.value.startsWith("learn:")) return learnAbility(state, opt.value.slice(6));
     return trainDirect(state, opt.value);
+  }
+
+  if (kind === "spar") {
+    if (opt.value.startsWith("learn:")) return learnAbility(state, opt.value.slice(6), "sparring");
+    return doSpar(state, opt.value);
   }
 
   if (kind === "shop") {
