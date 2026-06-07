@@ -246,11 +246,27 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   doesn't auto-re-challenge on a schedule yet); secret-place boss grants Fame like any boss even
   though it's a private place (minor).
 
-### T19 — Final boss (3 phases) + Awakened -> Ascended + endings
-- BUILD: Phase 1 big boss; Phase 2 twist (manifested city despair); Phase 3 ascension trigger
-  gated partly on `hopeTally` (errands/relationships feed back), rival fights beside you.
-  Virtue vs Corruption fork -> different ascension + endings.
-- DONE: all three phases play; ascension fires when hope tally + beats are met; both endings reachable.
+### T19 — Hope layer + Final boss (3 phases) + Awakened -> Ascended + endings
+- BUILD (hope layer, front half): the hidden Hope tally + its sources, so the finale has
+  something to gate on. **DONE (✅ 2026-06-07):** `src/hope.js` (`adjustHope` — only mutator,
+  floors at 0, never shown as a number; `hopeBand`/`hopeMoodLine` coarse ambient feedback).
+  **Pull:** `errand` hub activity (`config.errands` trade-off archetypes — quiet kindness/day of
+  service/public rescue/cut-a-corner; bigger = better hope/slot) in hub.js, routes deltas to
+  alignment/visibility/hope SILENTLY; public rescue hidden under `mustLieLow`. **Push:**
+  `src/dilemmas.js` one-shot moral events at rest (`config.dilemmas`; lost child / weird noise /
+  shuttered pharmacy) with ambiguous outcomes + an inaction/expedient branch that LEAKS hope.
+  **Passive:** `config.errands.passiveHopePerBoss` on each boss win. **Feedback:** `doRest` reads
+  the city's mood only when the hope band shifts. Verified per chunk + a 6-day integration (hope
+  73 / virtue 37, all dilemmas fired, no hope number ever printed); console-clean.
+- BUILD (finale, back half — NOT STARTED): Phase 1 big boss; Phase 2 twist (manifested city
+  despair); Phase 3 ascension trigger gated on path + `hopeTally` (Fame lowers the threshold,
+  DESIGN §9.5), rival fights beside you. Virtue vs Corruption fork -> different ascension + endings.
+- DONE (finale): all three phases play; ascension fires when path + hope/Fame gate is met; the
+  Virtuous/Dark/Despair endings are reachable.
+- OPEN DESIGN CALLS (workshop before building the finale): 3-phase combat structure (phase
+  transitions in endCombat vs chained bosses; `finalPhase2` is the ascended-gate bossId);
+  auto-ascend vs player-confirmed choice; how distinct the ending screens are; rival as a real
+  combat ally vs narrative; final THRESHOLD/Fame-modifier numbers.
 
 ---
 

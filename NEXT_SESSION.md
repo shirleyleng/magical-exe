@@ -23,6 +23,20 @@ The finale. A 3-phase fight + the Awakened→Ascended tier + a Purity/Corruption
 - **Purity/Corruption fork:** Pure = ascension through connection/hope; Corrupt = a darker
   ascension that seizes the despair's power → a different ending.
 
+## ✅ Hope-source LAYER is BUILT (front half of T19, 2026-06-07)
+
+The hidden Hope tally + all its sources are coded, verified, committed (config.js untracked):
+- `src/hope.js` — `adjustHope` (only mutator, floors at 0, never shown as a number) +
+  `hopeBand`/`hopeMoodLine` coarse ambient feedback.
+- **Pull:** `errand` hub verb/menu (`config.errands` trade-off archetypes; bigger = better
+  hope/slot; public rescue hidden under `mustLieLow`) in hub.js — deltas applied SILENTLY.
+- **Push:** `src/dilemmas.js` one-shot rest events (`config.dilemmas`) with ambiguous outcomes +
+  a hope-leaking inaction branch; latched in `flags.dilemmasSeen`.
+- **Passive:** `config.errands.passiveHopePerBoss` on boss wins.
+- **Feedback:** `doRest` reads the city's mood only when the hope band shifts (`ch.hopeBandSeen`).
+- Verified: per-chunk + a 6-day integration (hope 73 / virtue 37, all dilemmas fired, no number
+  ever printed). What remains of T19 is the **finale that consumes the tally** (below).
+
 ## ✅ Hope tally + endings design is LOCKED — see DESIGN.md §9.5
 
 Workshopped 2026-06-07. Full spec in **DESIGN.md §9.5 "Hope tally & the ending fork"**. Summary:
