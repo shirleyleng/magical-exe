@@ -64,6 +64,15 @@ export function update(state, event) {
         if (opt.value === "__cancel__") { pushLine(s, "(cancelled)", "hint"); return s; }
         return requestLoad(s, opt.value);
       }
+      if (m.kind === "settings") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") return s;
+        if (opt.value === "theme") return openThemeMenu(s);
+        if (opt.value === "about") return showAbout(s);
+        return s;
+      }
       if (m.kind === "theme") {
         const opt = m.options[m.index];
         pushLine(s, opt.label, "echo");
@@ -169,6 +178,32 @@ function openLoadMenu(s) {
   options.push({ label: "Cancel", value: "__cancel__" });
   pushLine(s, "Your saved games:", "system");
   s.ui.menu = { active: true, kind: "load", options, index: 0 };
+  return s;
+}
+
+/** Settings home — a discoverable menu of player preferences (currently theme + about). */
+function openSettingsMenu(s) {
+  const current = document.documentElement.dataset.theme || "lipgloss";
+  const options = [
+    { label: `Theme — ${themeName(current)}`, value: "theme" },
+    { label: "About & credits", value: "about" },
+    { label: "Close", value: "__cancel__" },
+  ];
+  pushLine(s, "Settings:", "system");
+  s.ui.menu = { active: true, kind: "settings", options, index: 0 };
+  return s;
+}
+
+/** About / credits — aesthetic homages only (no vendored code); see themes.css + DESIGN.md. */
+function showAbout(s) {
+  const lines = [
+    "MAGICAL.EXE — a cozy terminal magical-girl game.",
+    "Aesthetic homage only — no vendored code:",
+    "  · Lip Gloss / Charm — https://charm.sh",
+    "  · Cotton Candy / Compute Cuter — sailorhg, https://computecuter.com",
+    "  · Rosé Pine — https://rosepinetheme.com",
+  ];
+  lines.forEach((l) => pushLine(s, l, "system"));
   return s;
 }
 
@@ -429,6 +464,9 @@ function route(s, cmd) {
 
     case "theme":
       return openThemeMenu(s);
+
+    case "settings":
+      return openSettingsMenu(s);
   }
 
   if (s.model.mode === "combat") return routeCombat(s, cmd);
