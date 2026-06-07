@@ -37,39 +37,38 @@ The hidden Hope tally + all its sources are coded, verified, committed (config.j
 - Verified: per-chunk + a 6-day integration (hope 73 / virtue 37, all dilemmas fired, no number
   ever printed). What remains of T19 is the **finale that consumes the tally** (below).
 
-## ✅ Hope tally + endings design is LOCKED — see DESIGN.md §9.5
+## ✅ The FINALE is fully designed too — see DESIGN.md §9.5 "The finale"
 
-Workshopped 2026-06-07. Full spec in **DESIGN.md §9.5 "Hope tally & the ending fork"**. Summary:
-- **Hope is hidden.** Sources: (1) a repeatable opt-in **`errand` hub activity** with archetypes
-  that TRADE axes (quiet kindness = hope+purity; public rescue = hope+fame+unmask via the stubbed
-  `gainSaveCivilian`; expedient/dark help = small hope + corruption); bigger errands give a BETTER
-  hope/slot rate (commitment pays). (2) **One-shot dilemma events** that fire at `rest` (reuse the
-  T15 event-tick) with sincere/expedient/**ignore** branches — ignoring costs hope. (3) **Passive**
-  hope per boss + per kindly rescue.
-- **Feedback:** per-choice ambiguous (no numbers), but the cumulative trend is FELT via city-mood
-  flavor + mascot reads + Fame as a loose proxy; the ending names it in retrospect. Heavy themes
-  stay in lingering ambiguity, not on-screen horror (cozy register).
-- **Endings (path-first, Fame-modified):** pure+hope≥THRESHOLD → Pure Ascension; corrupt path →
-  Dark Ascension (banked hope can't override what you became); else → Despair ending. Fame LOWERS
-  the hope threshold needed (`reqMinHopeTally`=50, floor ~30). The coupled slider keeps hope-earning
-  and corruption near-mutually-exclusive on its own.
-- **`hopeTally` still has no code SOURCE today** — building it is the front half of T19 (or T18.5),
-  and must land BEFORE the finale + ending screens that consume it.
+Workshopped 2026-06-07; the open calls are all decided. Build plan (suggested chunks):
 
-## Likely open design calls still to workshop (don't code until decided)
+1. **Final location + the two boss forms.** A final dungeon unlocked after the Awakened Boss #4
+   rematch (`unlockReqBoss: "boss4"`), entered when the player chooses (state at entry = ending).
+   Two enemies: P1 "big boss" + P2 the despair manifestation. Mascot soft-warns without revealing
+   the hidden meter.
+2. **Phase transitions in combat.** ONE continuous fight: a `phases` list on the combat state; on
+   P1 victory, `endCombat` swaps to P2 (narrate the twist) instead of resolving; on P2 victory it
+   triggers the ascension resolution (set a ui flag, e.g. `ui.finaleResolve`). Both phases are
+   NORMAL winnable fights — no damage-wall. Losing a phase = gentle wake-at-home, re-enterable.
+3. **Dedicated finale resolver** (new module, e.g. `src/endgame.js` — NOT `handleBossDefeat`).
+   Presents the brink CHOICE menu ("answer with the hope you've gathered" / "seize the despair's
+   power"), then the fuel-check gate → one of four endings (2×2: reach × enough-fuel). WITH TEETH:
+   an off-path reach you lack fuel for fails. `effHopeThreshold = clamp(50 − fame·0.2, 30, 50)`;
+   seize needs high Corruption / `path==="corrupt"`.
+4. **Endings + the mascot-art horror.** Four ending screens (Virtuous Ascension w/ guardian-deity
+   mascot · Dark Ascension · Quiet Tragedy (replayable) · Eldritch Merge). The Eldritch Merge art =
+   a deterministic corruption of the player's own mascot ASCII (`mascot.js` ART → glitched/broken).
+   Set `transformationTier = "ascended"` on the two ascension endings (+ slot). Point to prestige
+   (T20) after a win.
+5. **Climax flavor:** rival + relationships as narrative + light scripted assists (once-a-phase
+   Sable assist, mascot heal) — NOT a full ally-combat system. The ascension narration enumerates
+   what "feeds back" (Fame, errands/hope, mascot bond, Sable).
 
-1. How are the 3 phases structured in the engine? One `startCombat` with phase transitions inside
-   `endCombat` (re-spawn next phase instead of ending), or three chained boss encounters? The
-   `bossId` for the ascension gate is `finalPhase2` — decide what fires that and what `finalPhase3`
-   /the final win looks like.
-2. Phase 3 ascension: automatic once the gate (path + hope/Fame) is met at the right moment, or a
-   *choice* the player confirms (answer despair with hope vs seize its power)?
-3. The endings — how different (flavor text only, or different final mechanics/credits)? Does
-   reaching Ascended unlock anything post-game (prestige is T20)?
-4. Does the rival literally join the fight (an ally in combat — new system) or is it narrative
-   ("Sable fights beside you" as flavor + maybe a stat/heal assist)?
-5. Errand content: how many archetypes ship (3 vs +restoration/cleanse 4th), and how many authored
-   one-shot dilemma events for the first pass?
+Small flavor still to write at build time: the mascot's fate in the Dark Ascension (bound/dimmed
+familiar? horrified?); the exact `corrThreshold` for "seize" success.
+
+Reusable hooks already in place: `config.tiers.ascended` ({reqBoss:"finalPhase2", reqMinHopeTally:50}),
+`character.hopeTally` (now sourced), the T17 phase/clamp combat patterns, the menu system (add a
+finale-choice kind), `src/hope.js` for the threshold read.
 
 ## Working notes / conventions
 

@@ -247,21 +247,52 @@ believe again"), and Fame as a loose visible proxy. The ending names the tally i
 Heavy subject matter stays in *lingering ambiguity* ("you never do find out…"), not on-screen horror,
 to fit the cozy register.
 
-**Ending gate (path-first, Fame-modified):**
-1. `path === virtuous && hope ≥ THRESHOLD` → **Virtuous Ascension** (answer despair with accumulated hope).
-2. `path === corrupt` → **Dark Ascension** (seize the despair's power). *Banked hope can't save you —
-   what you* became *decides; this is why dark "help" leaking a little hope is harmless.*
-3. else (balanced, or virtuous-but-short-on-hope) → **Despair ending** (bittersweet).
-- **Fame modifies THRESHOLD:** high Fame lowers the hope you personally need (the city's belief
-  carries you); a hidden hero needs more — and fame costs Unmasking risk (a real be-seen-vs-stay-safe
-  tension). Anchor: `reqMinHopeTally` = 50 (already in `config.tiers.ascended`), Fame floor ~30.
-- The **coupled Virtue/Corruption slider does the heavy lifting**: earning hope (via virtue-flavored
-  help) drains corruption and vice-versa, so "high hope/low corruption" and "high corruption/low
-  hope" are the natural attractors — the dual gate rides the existing physics.
+### The finale (3 phases) + the four endings (workshopped 2026-06-07)
 
-**Build note:** this hope layer (errand activity + dilemma events + passive sources + ambient
-feedback) must land BEFORE the 3-phase finale + ending screens that consume the tally — treat it as
-the front half of T19 (or a "T18.5").
+**Reaching it:** a final location unlocks after the Awakened Boss #4 rematch. You enter when YOU
+choose — your hope/path *at that moment* is your ending (no forced grind). The mascot soft-warns
+without revealing the number ("the city has to believe in you — do you feel it believing?").
+
+**Structure — ONE continuous combat, phases swap inside `endCombat`** (no return-to-hub between
+phases, so the twist lands mid-fight):
+- **Phase 1:** the "big boss," the apparent source — a real, winnable Awakened-tier fight.
+- **Phase 2 (twist):** you kill it and it *reforms as the manifested despair of the whole city* —
+  another big but **normal winnable** fight. (No damage-wall: the "you can't out-muscle despair"
+  theme rides the fiction + the gate, not a repeated scripted wall.)
+- **Phase 3 = ascension resolution** (not a tactical fight): the brink choice + the fuel-check gate.
+
+**The brink — a dramatized choice, but the gate decides whether you have the FUEL to hold it:**
+the player picks how to meet the despair; what you built decides if it works. Telegraphed in tone,
+but it has TEETH — a deliberate off-path reach can fail a good run (no take-back).
+
+|                      | enough fuel                                   | not enough fuel                                  |
+|----------------------|-----------------------------------------------|--------------------------------------------------|
+| **Reach for hope**   | **Virtuous Ascension** — you + mascot ascend; the mascot becomes its own guardian-animal deity | **Quiet Tragedy** — despair endures; you + mascot survive but hollow, the city stays grey; bittersweet, replayable toward a better end |
+| **Seize the despair**| **Dark Ascension** — you keep *yourself* but become a dark deity (monstrous, but by choice)     | **Eldritch Merge** — you + mascot are consumed into the next corrupted being (loss of self) |
+
+- "enough fuel" for **hope** = `hopeTally ≥ THRESHOLD`; for **seize** = high Corruption / `path === corrupt`.
+- Horror is reserved for **hubris** (grasping power you can't hold), never for trying-and-missing —
+  so a gentle non-optimizer who reaches for hope and falls short gets the *quiet tragedy*, not the merge.
+- **Eldritch Merge art** = a deterministic corruption of the player's own mascot ASCII (mascot.js
+  ART) — glitched glyphs, broken symmetry — the curated-art payoff: your mascot becomes the horror.
+- **Fame modifies THRESHOLD:** high Fame lowers the hope you personally need (the city's belief
+  carries you); a hidden hero needs more — and Fame costs Unmasking risk. Anchor: `reqMinHopeTally`
+  = 50 (`config.tiers.ascended`), Fame floor ~30, e.g. `clamp(50 − fame·0.2, 30, 50)`.
+- The **coupled Virtue/Corruption slider does the heavy lifting**: earning hope (virtue-flavored
+  help) drains corruption and vice-versa, so high-hope and high-corruption are near-mutually-exclusive
+  — the fuel checks line up with who you became without needing a hard path gate.
+
+**Rival + relationships at the climax:** narrative + light **scripted assists** (once a phase Sable
+draws the boss's focus → a free turn / guaranteed hit; the mascot a heal) — NOT a full ally-combat
+system. The ascension narration enumerates what "feeds back": Fame (the city believes), errands
+(hope returns), the mascot bond, Sable fighting beside you. Hope is the literal fuel.
+
+**Losing a finale phase** is gentle (wake at home, re-enterable) — not a hard fail.
+
+**Build note:** the hope layer (errands + dilemmas + passive + ambient feedback) is DONE (front half
+of T19). What remains is this finale + the four ending screens that consume the tally. A dedicated
+resolver (not the generic `handleBossDefeat`) should own the brink choice + gate, since it's richer
+than a tier threshold.
 
 ---
 
