@@ -368,7 +368,7 @@ function showAbout(s) {
   const build = buildStamp();
   const lines = [
     `MAGICAL.EXE  ${versionLabel()}${build ? `  ·  build ${build}` : "  ·  dev build"}`,
-    "A cozy terminal magical-girl game — made with love by Red Mint Studio.",
+    "A cozy terminal magical-coming-of-age game — made with love by Red Mint Studio.",
     `Source: ${REPO_URL}`,
     "Enjoying it? Support development → https://ko-fi.com/shirleyleng ♥",
     "",

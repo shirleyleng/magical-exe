@@ -76,7 +76,7 @@ const SYS_PARSE =
   `Only use ids that appear in allowedActions / presentEntities.`;
 
 const SYS_NARRATE =
-  `You are the narrator of a cozy-but-earnest magical-girl text game — think a warm, literary\n` +
+  `You are the narrator of a cozy-but-earnest magical text game — think a warm, literary\n` +
   `storyteller who finds the small human detail inside a fight or a quiet moment. Write 1-3\n` +
   `sentences of vivid prose describing ONLY the OUTCOME you are given. Do NOT invent new events,\n` +
   `items, or results beyond what is provided. Match the player's pronouns and the scene's mood.\n` +
@@ -86,7 +86,7 @@ const SYS_NARRATE =
   `Output plain prose only — no markdown, headings, titles, or quotation marks around it.`;
 
 const SYS_JUDGE =
-  `You are the physics/plausibility judge for a magical-girl text game's combat. The player\n` +
+  `You are the physics/plausibility judge for a magical text game's combat. The player\n` +
   `proposes a creative action. Decide if it is PLAUSIBLE given the environment tags and the\n` +
   `player's current abilities. Approve grounded, clever uses of the environment. Reject\n` +
   `anything that requires powers the player does not have or that breaks the world's rules.\n\n` +
@@ -118,7 +118,7 @@ const SYS_JUDGE =
   `  -> {"approved":false,"reason":"There's no shortcut here.","effect":"none","target":"enemy","turns":0,"magnitude":"minor","corruptionCost":0}`;
 
 const SYS_CITY =
-  `Write 2-4 cozy, atmospheric sentences introducing a player's hometown for a magical-girl\n` +
+  `Write 2-4 cozy, atmospheric sentences introducing a player's hometown for a magical\n` +
   `game — the ordinary, beloved place their story is about to upend. You may riff on the city's\n` +
   `name and general vibe, but DO NOT assert specific factual claims (exact landmarks, population,\n` +
   `real streets) as if verified — keep it impressionistic, dusk-lit, true in feeling rather than\n` +

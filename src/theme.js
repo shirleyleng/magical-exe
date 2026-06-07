@@ -9,7 +9,7 @@
 // ones that set --terminal-veil in themes.css (lighten rather than darken the terminal).
 export const THEMES = [
   { id: "lipgloss",     name: "Lip Gloss",      note: "Charm homage · deep purple", mode: "dark" },
-  { id: "moonlit",      name: "Moonlit",        note: "magical-girl night",         mode: "dark" },
+  { id: "moonlit",      name: "Moonlit",        note: "magical night",              mode: "dark" },
   { id: "phosphor",     name: "Phosphor",       note: "retro green CRT",            mode: "dark" },
   { id: "rosepine",     name: "Rosé Pine",      note: "rosepinetheme.com",          mode: "dark" },
   { id: "cottoncandy",  name: "Cotton Candy",   note: "Compute Cuter · kawaii pastel", mode: "light" },
