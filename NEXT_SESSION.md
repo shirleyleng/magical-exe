@@ -1,67 +1,71 @@
-# NEXT SESSION — T18: Secret-place dungeon + magical weapon + Knight→Awakened
+# NEXT SESSION — T19: Final boss (3 phases) + Awakened→Ascended + endings
 
 > Kickoff notes for the next session. Read `MEMORY.md` + `memory/v1-slice-status.md` first
-> for full status. Delete/replace this file when T18 is underway.
+> for full status. Delete/replace this file when T19 is underway.
 
 ## Where things stand (as of 2026-06-07)
 
-Done & verified: T1–T16 (slice + AI layer + Purity/Corruption + Fame/Unmasking + bosses #2/#3
-+ Soldier→Knight + rival arc) and now **T17** (Boss #4 scripted story-loss + mascot injury/
-disappearance + Sparring). Everything committed; `config.js` stays uncommitted (sparring block
-added there + synced to `docs/config.example.js`).
+Done & verified: T1–T16 (slice + AI + both axes + bosses #2/#3 + Soldier→Knight + rival arc),
+**T17** (Boss #4 scripted story-loss + mascot injury + Sparring), and now **T18** (alliance visit
++ secret-place dungeon + the Hollow Doubt → magical weapon + mascot recovery + **Awakened** tier +
+`true strike` ability + winnable Boss #4 rematch + rival-as-equal beat). Everything committed;
+`config.js` stays uncommitted (synced to `docs/config.example.js`).
 
-T17 left these explicit hooks for T18:
-- `model.world.flags.boss4Attempted` is set but **unused** until now — it marks that the Spire
-  loss has happened.
-- `model.world.flags.mascotGone` is true; `model.mascot.present=false` / `injured=true`.
-- `model.character.magicalWeapon = { fromToy, object, found:false }` (set at creation) — T18
-  flips `found:true`.
-- The Spire (`spire` dungeon, boss `boss4` = Grief Herald) is **already coded to become a normal
-  winnable fight the moment `magicalWeapon.found` is true** (explore.js gates `storyLoss` on
-  `!found`). So once the weapon is found + Awakened activates, returning to the Spire apex is a
-  real fight — no combat changes needed for the rematch itself.
-- `config.tiers.awakened = { reqBoss:"secretPlace", reqWeaponFound:true }` already exists, and
-  `progress.js handleBossDefeat` already checks `reqs.reqWeaponFound && !ch.magicalWeapon.found`.
+## What's next: T19 — Final boss + Ascension + endings (DESIGN §8, TASKS T19)
 
-## What's next: T18 — Secret-place dungeon + weapon + Awakened (DESIGN §8, TASKS T18)
+The finale. A 3-phase fight + the Awakened→Ascended tier + a Purity/Corruption fork on the ending.
 
-- **Misted secret-place dungeon** themed on hopelessness + childhood memories of the mascot's
-  training, with hints of the toy. The secret place + toy were chosen at character creation
-  (`character.secretPlace`, `character.magicalWeapon.fromToy/object`) — weave those in.
-- **Find the magical weapon:** the mascot is sleeping with it. Recovering the weapon should set
-  `magicalWeapon.found = true` and **recover the mascot** (`mascot.present=true`, `injured=false`,
-  clear `flags.mascotGone` so training reopens / spar becomes optional).
-- **Activate Awakened tier:** gate `secretPlace` as a "boss" id that, once cleared with the weapon
-  found, advances the tier via the existing `handleBossDefeat` path (TIER_REVEAL.awakened — needs
-  writing in progress.js, mirror knight). Awakened grants +1 slot (already in `hub.slotUnlocks`).
-- **Return + defeat Boss #4:** with the weapon found the Spire is winnable; beating boss4 should
-  fire its own beat (rival congratulates + resumes challenging with respect — Sable arc advance).
+- **Phase 1:** fight the "big boss" as the apparent source of the corruption.
+- **Phase 2 (twist):** defeating P1 doesn't stop it — the boss becomes the **manifested despair of
+  the whole city** (every person you couldn't help feeds it). Hopelessness made literal.
+- **Phase 3 (ascension trigger):** you don't out-muscle despair — you **answer it with accumulated
+  hope.** Gate ascension partly on a hidden **hope tally**; the rival fights beside you.
+- **Purity/Corruption fork:** Pure = ascension through connection/hope; Corrupt = a darker
+  ascension that seizes the despair's power → a different ending.
+
+## ⚠️ Critical pre-req to design first: the hope tally has no SOURCE yet
+
+`character.hopeTally` exists (`startingMeters`, currently 0) and `config.tiers.ascended =
+{ reqBoss:"finalPhase2", reqMinHopeTally:50 }` is already wired into `progress.js handleBossDefeat`
+(`reqs.reqMinHopeTally && ch.hopeTally < reqs.reqMinHopeTally`). BUT **nothing increments
+hopeTally** today — Fame is the only meter that climbs. DESIGN §8 says *errands that bring people
+hope are the true fight*. So T19 (or a T18.5) needs a **hope source**: an errand/help activity in
+the hub that raises hopeTally (and probably ties into the existing `gainSaveCivilian` Fame hook
+that was deferred in T15). Without it, ascension can't be gated on hope as designed.
 
 ## Likely open design calls to workshop first (don't code until decided)
 
-1. How is the secret place reached/unlocked — a new entry in the explore chooser gated on
-   `boss4Attempted` (+ alliance visit?), or a special prompt after the T17 aftermath?
-2. Is `secretPlace` a real dungeon with a boss room (a memory/doubt "boss" themed on
-   hopelessness), or a no-combat exploratory dungeon where the climax is *finding* the weapon
-   (the "boss" being the act of recovery)? `config.tiers.awakened.reqBoss="secretPlace"` implies
-   something pushes a bossId — decide what.
-3. Does recovering the mascot make Sparring go away (back to training) or keep both available?
-4. Knight/Awakened ability kit — still all-novice-gated (`config.abilities`). Add an Awakened
-   ability or the magical-weapon attack now, or defer again?
+1. How are the 3 phases structured in the engine? One `startCombat` with phase transitions inside
+   `endCombat` (re-spawn next phase instead of ending), or three chained boss encounters? The
+   `bossId` for the ascension gate is `finalPhase2` — decide what fires that and what `finalPhase3`
+   /the final win looks like.
+2. Where is the hope tally earned — a new `errand`/`help` hub activity (costs a slot, +hopeTally,
+   maybe +Fame), and/or retroactively from existing errands (misdirection is currently the only
+   errand and it's about hiding, not hope)? How much hope per action vs `reqMinHopeTally`?
+3. Phase 3 ascension: is it automatic once hope ≥ threshold at the right moment, or a *choice* the
+   player makes (answer despair with hope vs seize its power) that also sets the Pure/Corrupt fork?
+4. The two endings — how different (just flavor text, or different final mechanics/credits)? Does
+   reaching Ascended unlock anything post-game (prestige is T20)?
+5. Does the rival literally join the fight (an ally in combat — new system) or is it narrative
+   ("Sable fights beside you" as flavor + maybe a stat/heal assist)?
 
 ## Working notes / conventions
 
 - All balance in `config.js` (gitignored, holds live keys); keep `docs/config.example.js` in sync.
   **Don't commit `config.js`.**
-- Verify with the preview (`.claude/launch.json`, port 4321). **GOTCHA (confirmed T17):** dynamic
-  `import()` in `preview_eval` caches ES modules for the page session — you MUST full-reload the
-  page (`location.reload()` in its own eval) after each src edit before re-importing, or you test
-  stale code. Drive deterministic logic via `update(state,event)` with `st.freshModel()` +
-  `st.createState(m)`; suppress random room encounters with `m.world.cleared = { <roomId>: true }`.
+- Verify with the preview (`.claude/launch.json`, port 4321). **GOTCHA:** dynamic `import()` in
+  `preview_eval` caches ES modules per page session — full-reload (`location.reload()` in its own
+  eval) after each src edit before re-importing, or you test stale code. Drive logic via
+  `update(state,event)` with `st.freshModel()` + `st.createState(m)`; suppress random room
+  encounters with `m.world.cleared = { <roomId>: true }`.
 - **Other gotchas:** (1) async victory narration sets `ui.busy` (input lock) — pace scripted drives.
-  (2) The shell eats backticks in `git commit -m` — use a heredoc, no backticks. (3) Don't bulk
-  string-replace template fragments (clobbered eRef/ERef in combat.js once).
-- Mutator pattern: `alignment.js`/`visibility.js` own their axes. Boss reactions flow through
-  `progress.js handleBossDefeat` (`ui.justDefeatedBoss`); the T17 scripted loss flows through
-  `progress.js handleStoryLoss` (`ui.justLostStoryBoss`); both resolved by `update.js afterCombat`.
+  (2) Shell eats backticks in `git commit -m` — use a heredoc. (3) Don't bulk string-replace
+  template fragments (clobbered eRef/ERef in combat.js once).
+- Story reactions flow through `update.js afterCombat`: `ui.justDefeatedBoss`→`handleBossDefeat`
+  (tier-up via `TIER_REVEAL`, beats via `BOSS_BEAT`, latched in `flags.storyBeats`),
+  `ui.justLostStoryBoss`→`handleStoryLoss`. Tier gates live in `config.tiers` + handleBossDefeat.
+  `BOSS_ENEMY` maps bossId→enemy; dungeons gate via `unlockReqBoss`/`unlockReqTier`/`unlockReqFlag`.
+- **Outstanding polish (not blocking T19):** STATUS-panel labels are still abbreviated (PWR/SPR/
+  DEF/SPD/STA) — a background task chip is open to spell them out + re-align columns. Mobile design
+  pass still flagged in the backlog.
 - Commit per logical chunk.

@@ -220,11 +220,31 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 - ⬜ DEFERRED: `boss4Attempted` flag is set but unused until T18; the spar menu only lists
   learnable abilities the player already qualifies for (tier+threshold) — no knight-tier kit yet.
 
-### T18 — Secret-place dungeon + magical weapon + Knight -> Awakened
+### T18 — Secret-place dungeon + magical weapon + Knight -> Awakened (DONE)
 - BUILD: misted secret-place dungeon themed on hopelessness/childhood memories with toy hints;
   find the magical weapon (mascot sleeping with it); activate Awakened tier (recovers mascot);
   return and defeat Boss #4; rival congratulates + resumes challenging with respect.
 - DONE: weapon found, Awakened unlocks, mascot back, Boss #4 now winnable, rival arc advances.
+- ✅ DONE (2026-06-07): chunked. (A) New **`alliance`** hub verb (free; distant flavor pre-loss,
+  reveals the Awakened road + unlocks the secret place after `boss4Attempted`, personalized with
+  `character.secretPlace` + `magicalWeapon.fromToy`). New **`secret`** dungeon ("the Misted Place")
+  via new `unlockReqFlag` support, ending at boss `secretPlace` = **the Hollow Doubt** (`doubt_echo`,
+  beatable at Knight). Added `in`/`out`/`across` directions (also fixes the clocktower `across`
+  exit). (B) Defeating the doubt runs `progress.js recoverWeaponAndMascot` (sets
+  `magicalWeapon.found`, restores `mascot.present`/`injured`, clears `flags.mascotGone`) BEFORE the
+  tier gate, so `tiers.awakened.reqWeaponFound` passes → `TIER_REVEAL.awakened` (path-flavored) +
+  the milestone slot. Mascot back reopens training; **sparring persists** (decoupled onto its own
+  `flags.sparringUnlocked`, set in `handleStoryLoss`). (C) `config.abilities` **"true strike"**
+  (Awakened-`reqTier`, neutral mult-2.0 hit that staggers) — never appears before the weapon since
+  it's tier-gated. `BOSS_BEAT.boss4` fires the rival's congratulation on the now-winnable Spire
+  rematch (explore.js already drops `storyLoss` once `magicalWeapon.found`); she resumes as an
+  equal. Also: `train`/`spar <ability>` now learn by name, not just via the menu. Verified per
+  chunk + a full `update()` integration (post-T17 state → alliance → secret place → doubt win →
+  Awakened + mascot back → learn true strike → Spire rematch win → rival beat) + an Awakened HUD
+  screenshot; all console-clean. `config.js` NOT committed; `docs/config.example.js` synced.
+- ⬜ DEFERRED: rival's recurring-challenge *cadence* (disposition flips to respectful but Sable
+  doesn't auto-re-challenge on a schedule yet); secret-place boss grants Fame like any boss even
+  though it's a private place (minor).
 
 ### T19 — Final boss (3 phases) + Awakened -> Ascended + endings
 - BUILD: Phase 1 big boss; Phase 2 twist (manifested city despair); Phase 3 ascension trigger
