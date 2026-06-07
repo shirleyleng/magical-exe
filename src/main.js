@@ -9,22 +9,33 @@
 
 import { createState } from "./state.js";
 import { update } from "./update.js";
-import { render, initDom } from "./render.js";
+import { render, initDom, setRenderSpeed, finishTyping } from "./render.js";
 import { initMascotAnim } from "./mascotAnim.js";
 import { saveModel, loadActive, loadSlot } from "./persist.js";
 import { callAI, setCaptchaProvider } from "./ai.js";
 import { getCaptchaToken } from "./captcha.js";
-import { applyTheme, getStoredTheme, setStoredTheme } from "./theme.js";
+import { applyTheme, getStoredTheme, setStoredTheme, setStoredTextSpeed } from "./theme.js";
 import { versionLabel } from "./version.js";
 import { CONFIG } from "../config.js";
 
 let state;
+let inputEl = null;       // the command field (set in boot); used to restore focus
+let menuWasActive = false; // tracks selection-menu transitions for focus restore
 
 function dispatch(event) {
   state = update(state, event);
   saveModel(state.model); // autosave to the active slot
   render(state);
   if (state.ui.effect) applyEffect();
+  restoreFocusIfMenuClosed();
+}
+
+/* When a selection menu closes, the text input reappears — put the caret back in it so the
+   player can keep typing without clicking (the menu hides the field while it's open). */
+function restoreFocusIfMenuClosed() {
+  const menuActive = !!(state.ui.menu && state.ui.menu.active);
+  if (menuWasActive && !menuActive && inputEl) inputEl.focus();
+  menuWasActive = menuActive;
 }
 
 /** Run a deferred side-effect requested by update (e.g. swapping saves, AI calls). */
@@ -56,6 +67,14 @@ async function applyEffect() {
     state.ui.effect = null;
     applyTheme(effect.id);
     if (!effect.preview) setStoredTheme(effect.id); // preview = apply only; commit = persist
+    render(state);
+    return;
+  }
+
+  if (effect.type === "textspeed") {
+    state.ui.effect = null;
+    setStoredTextSpeed(effect.id);
+    setRenderSpeed(effect.id); // live, no reload
     render(state);
     return;
   }
@@ -105,6 +124,7 @@ function boot() {
   // ---- input wiring ----
   const form = document.getElementById("input-form");
   const input = document.getElementById("input");
+  inputEl = input; // module ref for focus restore after a menu closes
 
   // Terminal-style command history. Up = older entries, Down = newer,
   // Down past the newest clears the line. Kept here (not in game state)
@@ -120,6 +140,7 @@ function boot() {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    finishTyping(); // acting completes any still-typing text from the previous turn
     if (state.ui.busy) return; // an AI call is in flight — ignore input until it resolves
     const text = input.value;
     input.value = "";
@@ -175,6 +196,7 @@ function boot() {
   // Keep focus on the input when clicking empty space (not while selecting,
   // and not while a menu is taking over the input line).
   document.addEventListener("click", () => {
+    finishTyping(); // a tap anywhere skips the typewriter to the end
     if (state.ui.menu && state.ui.menu.active) return;
     if (window.getSelection().toString() === "") input.focus();
   });

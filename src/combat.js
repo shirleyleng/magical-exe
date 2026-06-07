@@ -86,6 +86,15 @@ function clampHpToWarp(ch) {
   if (ch.stats.hp > effMax) ch.stats.hp = effMax;
 }
 
+/** Full HP restore at the end of a battle (win / mercy / flee) — wounds don't carry between
+   fights. Prints a gentle note only when there was actually something to mend. */
+function restoreAfterBattle(state, ch) {
+  const max = effectiveStats(ch).maxHp;
+  const mended = ch.stats.hp < max;
+  ch.stats.hp = max;
+  if (mended) pushLine(state, "You breathe out, and the aches of the fight close over. (HP fully restored)", "hint");
+}
+
 /* ---- status effects (T13) ----
    Effects live in combat.fx, keyed by effect kind: { value, turns }. `value` is
    the precomputed magnitude (a fraction or a flat number); `turns` is how many
@@ -254,12 +263,10 @@ export function playerAbility(state, name) {
     pushLine(state, `You don't know "${name}". You know: ${ch.abilities.join(", ")}.`, "system");
     return state; // not a turn-consuming action
   }
-  if (stats.spirit < ab.spirit) {
-    pushLine(state, `Not enough Spirit for ${name} (needs ${ab.spirit}).`, "system");
-    return state;
-  }
-  stats.spirit -= ab.spirit;
   const eff = effectiveStats(ch);   // warp: Power up / HP down · grace: Defense up
+  // Spirit is the magical-strength stat: it costs nothing to cast, but it SCALES an ability's
+  // damage and healing (a high-Spirit mage hits and mends harder). `mult` multiplies it.
+  const magic = Math.max(1, eff.spirit);
   const e = c.enemy;
 
   // Soft-fizzle: an opposed-alignment move can falter when you've drifted the other way. Chance
@@ -268,29 +275,29 @@ export function playerAbility(state, name) {
     const why = ab.align === "virtuous"
       ? "the light gutters out — your heart is too shadowed"
       : "the dark power slips your grasp — too much light in you";
-    pushLine(state, `Your ${name} falters; ${why}. (-${ab.spirit} Spirit)`, "system");
+    pushLine(state, `Your ${name} falters; ${why}.`, "system");
     return afterPlayerAction(state);
   }
 
   if (ab.kind === "heal") {
-    const heal = Math.max(1, Math.round(eff.maxHp * (ab.healPct || 0.3) * healMultiplier(ch)));
+    const heal = Math.max(1, Math.round((eff.maxHp * (ab.healPct || 0.3) + magic) * healMultiplier(ch)));
     stats.hp = Math.min(eff.maxHp, stats.hp + heal);
-    pushLine(state, `You ${ab.verb}; ${heal} HP returns. (-${ab.spirit} Spirit)`, "system");
+    pushLine(state, `You ${ab.verb}; ${heal} HP returns.`, "system");
 
   } else if (ab.kind === "lifesteal") {
     if (rolls(dodgeChance(e.dodge))) {
       pushLine(state, `You reach for ${eRef(e)}, but it slips away!`, "system");
     } else {
-      const dmg = damageAfterDefense(Math.round(eff.power * (ab.mult || 1)), exposedDefense(c, e));
+      const dmg = damageAfterDefense(Math.round(magic * (ab.mult || 1)), exposedDefense(c, e));
       e.hp = Math.max(0, e.hp - dmg);
       const heal = Math.max(1, Math.round(dmg * (ab.lifestealPct || 0.5)));
       stats.hp = Math.min(eff.maxHp, stats.hp + heal);
-      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}, drawing ${heal} back into yourself. (-${ab.spirit} Spirit)`, "system");
+      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}, drawing ${heal} back into yourself.`, "system");
     }
 
   } else if (ab.kind === "buff") {
     if (ab.applyFx) installEffect(c, ab.applyFx.kind, ab.applyFx.magnitude, ab.applyFx.turns);
-    pushLine(state, `You ${ab.verb}. (-${ab.spirit} Spirit)`, "system");
+    pushLine(state, `You ${ab.verb}.`, "system");
 
   } else if (ab.kind === "purify") {
     if (hasFx(c, "burn")) delete c.fx.burn; // cleanse a lingering burn on yourself
@@ -302,24 +309,24 @@ export function playerAbility(state, name) {
       if (before - ch.corruption > 0) parts.push(`-${before - ch.corruption} Corruption`);
     }
     if (ab.healPct) {
-      const heal = Math.max(1, Math.round(eff.maxHp * ab.healPct * healMultiplier(ch)));
+      const heal = Math.max(1, Math.round((eff.maxHp * ab.healPct + magic * 0.5) * healMultiplier(ch)));
       stats.hp = Math.min(eff.maxHp, stats.hp + heal);
       parts.push(`+${heal} HP`);
     }
-    pushLine(state, `You ${ab.verb}; the shadow in you thins.${parts.length ? ` (${parts.join(", ")})` : ""} (-${ab.spirit} Spirit)`, "system");
+    pushLine(state, `You ${ab.verb}; the shadow in you thins.${parts.length ? ` (${parts.join(", ")})` : ""}`, "system");
 
   } else { // damage (with optional applyFx, e.g. radiance's dazzle)
     if (rolls(dodgeChance(e.dodge))) {
       pushLine(state, `You ${ab.verb} ${eRef(e)}, but it evades!`, "system");
     } else {
-      const dmg = damageAfterDefense(Math.round(eff.power * (ab.mult || 1)), exposedDefense(c, e));
+      const dmg = damageAfterDefense(Math.round(magic * (ab.mult || 1)), exposedDefense(c, e));
       e.hp = Math.max(0, e.hp - dmg);
       let extra = "";
       if (ab.applyFx && e.hp > 0) {
         installEffect(c, ab.applyFx.kind, ab.applyFx.magnitude, ab.applyFx.turns);
         extra = " The light leaves it reeling.";
       }
-      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}!${extra} (-${ab.spirit} Spirit)`, "system");
+      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}!${extra}`, "system");
     }
   }
 
@@ -357,7 +364,7 @@ export function combatLook(state) {
   const c = state.model.combat;
   const stats = state.model.character.stats;
   enemyStatusLine(state);
-  pushLine(state, `You: ${stats.hp}/${stats.maxHp} HP · Spirit ${stats.spirit}.`, "hint");
+  pushLine(state, `You: ${stats.hp}/${stats.maxHp} HP.`, "hint");
   const fx = activeFxSummary(c);
   if (fx) pushLine(state, fx, "hint");
   return state;
@@ -533,7 +540,7 @@ function endEnemyTurn(state) {
   c.playerGuard = false;
   c.round += 1;
   if (stats.hp <= 0) return endCombat(state, "defeat");
-  pushLine(state, `You: ${stats.hp}/${stats.maxHp} HP · Spirit ${stats.spirit}. Your move.`, "hint");
+  pushLine(state, `You: ${stats.hp}/${stats.maxHp} HP. Your move.`, "hint");
   return state;
 }
 
@@ -580,6 +587,7 @@ function endCombat(state, outcome) {
     const gain = CONFIG.axes.alignment.mercyVirtueGain;
     adjustAlignment(ch, { virtue: gain });
     pushLine(state, `You lower your hand. You don't have to. The ${c.enemy.name} shrinks back, confused by the mercy, and slips away into the dark unharmed — and something in you settles and steadies, quiet as a closed door. (+${gain} Virtue)`, "banner");
+    restoreAfterBattle(state, ch);
     if (c.returnMode === "exploration" && c.returnRoom) model.world.cleared[c.returnRoom] = true;
     model.combat = null;
     model.mode = c.returnMode;
@@ -629,6 +637,7 @@ function endCombat(state, outcome) {
       model.world.flags.bossesDefeated.push(c.bossId);
       state.ui.justDefeatedBoss = c.bossId; // T9 reacts to this (tier-up, reveal)
     }
+    restoreAfterBattle(state, ch); // wounds don't carry between fights
     model.combat = null;
     model.mode = c.returnMode;
     pushLine(state, c.returnMode === "exploration" ? "The way is clear. (look around)" : "(Back at the hub.)", "hint");
@@ -636,6 +645,7 @@ function endCombat(state, outcome) {
   }
 
   if (outcome === "flee") {
+    restoreAfterBattle(state, ch);
     model.combat = null;
     model.mode = c.returnMode;
     return state;
@@ -667,8 +677,10 @@ function endRivalDuel(state, c, ch, outcome) {
   if (outcome === "victory" || outcome === "mercy") {
     pushLine(state, `${name} drops to one knee, chest heaving — and then, of all things, laughs, bright and surprised. "…Huh. Not bad. Not bad AT ALL. Maybe the whispers had a point."`, "banner");
     pushLine(state, `"Don't go getting comfortable, though. I'll be back, and next time I won't be sizing you up." ${name} melts backward into the dark, already grinning about the rematch.`, "mascot");
+    restoreAfterBattle(state, ch);
   } else if (outcome === "flee") {
     pushLine(state, `You break off and slip out of the duel. ${name} doesn't give chase — just calls after you, unbothered: "Running already? Fine. We'll finish this another day, you and me."`, "system");
+    restoreAfterBattle(state, ch);
   } else {
     // defeat — no harsh penalty; Sable pulls the final blow.
     pushLine(state, `${name} knocks you flat, blade a hair from your throat — then pulls it back and offers a hand up instead of pressing it home. "…Not yet. You're not ready yet, and I'm not interested in beating someone who isn't. Train harder. I want you at your absolute best when I take you."`, "banner");

@@ -43,3 +43,41 @@ export function themeName(id) {
   const t = THEMES.find((t) => t.id === id);
   return t ? t.name : id;
 }
+
+/* ---- text speed (typewriter reveal of new output) ----
+   Another UI preference (not part of the save). `cps` = characters revealed per second;
+   "instant" disables the typewriter entirely. render.js reads these. */
+export const TEXT_SPEEDS = [
+  { id: "slow",    name: "Slow",    note: "savour every line", cps: 35 },
+  { id: "medium",  name: "Medium",  note: "a steady patter",   cps: 110 },
+  { id: "fast",    name: "Fast",    note: "brisk",             cps: 320 },
+  { id: "instant", name: "Instant", note: "no animation",      cps: Infinity },
+];
+
+const SPEED_KEY = "magicalexe.textspeed";
+const SPEED_DEFAULT = "medium";
+const SPEED_IDS = new Set(TEXT_SPEEDS.map((s) => s.id));
+
+export function getStoredTextSpeed() {
+  try {
+    const v = localStorage.getItem(SPEED_KEY);
+    return SPEED_IDS.has(v) ? v : SPEED_DEFAULT;
+  } catch {
+    return SPEED_DEFAULT;
+  }
+}
+
+export function setStoredTextSpeed(id) {
+  if (!SPEED_IDS.has(id)) return;
+  try { localStorage.setItem(SPEED_KEY, id); } catch { /* private mode — session only */ }
+}
+
+export function textSpeedName(id) {
+  const s = TEXT_SPEEDS.find((s) => s.id === id);
+  return s ? s.name : id;
+}
+
+export function textSpeedCps(id) {
+  const s = TEXT_SPEEDS.find((s) => s.id === id);
+  return s ? s.cps : Infinity;
+}

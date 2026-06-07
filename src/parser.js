@@ -39,6 +39,8 @@ const VERBS = {
   guard: "guard", defend: "guard", block: "guard",
   burst: "burst", unleash: "burst", surge: "burst",
   spare: "spare", mercy: "spare",
+  abilities: "abilities", ability: "abilities", spells: "abilities", spell: "abilities",
+  skills: "abilities", spellbook: "abilities",
   // social
   talk: "talk", speak: "talk", ask: "talk",
   // hub
@@ -93,6 +95,15 @@ export function parse(raw) {
   if (first === "look" && tokens[1] === "at" && tokens.length > 2) {
     return { matched: true, verb: "examine", target: tokens.slice(2).join(" "), targetRaw: tokensRaw.slice(2).join(" "), modifier: null, raw };
   }
+  // "pick up <item>" -> take (drop the "up" so it isn't read as part of the item name)
+  if (first === "pick" && tokens[1] === "up") {
+    return {
+      matched: true, verb: "take",
+      target: tokens.slice(2).join(" ") || null,
+      targetRaw: tokensRaw.slice(2).join(" ") || null,
+      modifier: null, raw,
+    };
+  }
 
   const verb = VERBS[first];
   if (!verb) return NO_MATCH(raw);
@@ -107,8 +118,8 @@ export const HELP = [
   "COMMANDS",
   "  Move:    n s e w up down   (or: go north)",
   "  Look:    look (l) · examine <thing> (x)",
-  "  Items:   take <item> · drop <item> · use <item> · inventory (i)",
-  "  Combat:  attack · guard · burst · use <ability> · spare",
+  "  Items:   take <item> (pick up) · drop <item> · use <item> · inventory (i)",
+  "  Combat:  attack · guard · burst · use <ability> · abilities (list/cast) · spare",
   "  Hub:     train <stat> · spar <stat> · errand · rest · shop · buy <item> · sell <item> · explore · alliance",
   "  Lay low: lie low · misdirection   (cool your Unmasking when the heat rises)",
   "  Meta+:   prestige   (begin a new, stronger turning) · settings (theme · difficulty)",

@@ -17,9 +17,19 @@ import { CONFIG } from "../config.js";
 import { slotsUsed } from "./hub.js";
 import { effectiveStats, isWarped, isGraced } from "./alignment.js";
 import { unmaskingTier } from "./visibility.js";
+import { getStoredTextSpeed, textSpeedCps } from "./theme.js";
 
 let els = null;
 let renderedCount = 0;
+
+/* ---- typewriter (text speed) ----
+   New non-echo output lines reveal character-by-character at `currentCps` chars/second
+   ("instant" => Infinity => no animation). A single rAF loop drains a queue; a generation
+   counter guarantees only one loop runs even across rapid turns. */
+let currentCps = Infinity;
+let typeQueue = [];
+let typing = false;
+let typeGen = 0;
 
 export function initDom() {
   els = {
@@ -34,6 +44,64 @@ export function initDom() {
   };
   els.output.innerHTML = "";
   renderedCount = 0;
+  currentCps = textSpeedCps(getStoredTextSpeed());
+  typeQueue = [];
+  typing = false;
+  typeGen++;
+}
+
+/** Live-update the reveal speed (settings change). Switching to instant flushes anything mid-type. */
+export function setRenderSpeed(id) {
+  currentCps = textSpeedCps(id);
+  if (!Number.isFinite(currentCps)) finishTyping();
+}
+
+/** Reveal everything queued immediately (skip the animation). */
+export function finishTyping() {
+  typeGen++;                 // invalidate any running loop
+  typing = false;
+  for (const job of typeQueue) job.el.textContent = job.text;
+  typeQueue = [];
+  if (els && els.output) els.output.scrollTop = els.output.scrollHeight;
+}
+
+/* Drive the reveal with setTimeout (not rAF): it keeps ticking even in a backgrounded/
+   unfocused tab, so output never gets stuck hidden — and a generation counter ensures a
+   single live loop. A fractional accumulator lets "slow" actually be slow. */
+const TYPE_TICK_MS = 1000 / 60;
+function startTyping() {
+  if (typing) return;
+  typing = true;
+  const myGen = ++typeGen;
+  let acc = 0;
+  let last = performance.now();
+  const tick = () => {
+    if (myGen !== typeGen) return;            // superseded by a flush or a newer loop
+    if (!typeQueue.length) { typing = false; return; }
+    const now = performance.now();
+    acc += currentCps * ((now - last) / 1000); // real elapsed → robust to timer throttling
+    last = now;
+    let take = Math.floor(acc);
+    if (take >= 1) {
+      acc -= take;
+      while (take > 0 && typeQueue.length) {
+        const job = typeQueue[0];
+        const n = Math.min(job.text.length - job.shown, take);
+        job.shown += n; take -= n;
+        job.el.textContent = job.text.slice(0, job.shown);
+        if (job.shown >= job.text.length) typeQueue.shift();
+      }
+      els.output.scrollTop = els.output.scrollHeight;
+    }
+    if (typeQueue.length) setTimeout(tick, TYPE_TICK_MS);
+    else typing = false;
+  };
+  setTimeout(tick, TYPE_TICK_MS);
+}
+
+/** Honour the OS "reduce motion" setting — no typewriter, text appears at once. */
+function prefersReducedMotion() {
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
 
 export function render(state) {
@@ -144,14 +212,24 @@ function renderExample(model, ui) {
 function renderLog(log) {
   if (log.length < renderedCount) {
     // log shrank (reset/load) -> repaint from scratch
+    finishTyping(); // any in-flight reveal belongs to a now-discarded log
     els.output.innerHTML = "";
     renderedCount = 0;
   }
   for (let i = renderedCount; i < log.length; i++) {
-    els.output.appendChild(lineEl(log[i]));
+    const entry = log[i];
+    const el = lineEl(entry);
+    els.output.appendChild(el);
+    // Typewriter: reveal new prose char-by-char. Echo lines (the player's own command)
+    // appear instantly, as does everything when speed is "instant" or reduce-motion is on.
+    if (Number.isFinite(currentCps) && !prefersReducedMotion() && entry.kind !== "echo" && entry.text) {
+      el.textContent = "";
+      typeQueue.push({ el, text: entry.text, shown: 0 });
+    }
   }
   renderedCount = log.length;
   els.output.scrollTop = els.output.scrollHeight;
+  if (typeQueue.length) startTyping();
 }
 
 function lineEl({ text, kind }) {

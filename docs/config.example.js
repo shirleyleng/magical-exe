@@ -97,6 +97,18 @@ export const CONFIG = {
     ],
   },
 
+  // ---- crafting ----
+  // Moonstone shards forge a PERMANENT stat boost at the shop (free, no slot). Gather enough
+  // shards (combat loot / purchase) and the shopkeep works one into your bones. softCaps from
+  // `training` still apply (e.g. dodge, max stamina).
+  crafting: {
+    moonstone: {
+      material: "moonstone shard",
+      shardsPerBoost: 3,
+      boost: { power: 2, spirit: 2, defense: 2, speed: 2, dodge: 2, maxHp: 6, maxStamina: 4 },
+    },
+  },
+
   // ---- exploration ----
   exploration: {
     staminaPerMove: 2, // Stamina spent per room move; hitting 0 forces a retreat to the hub
@@ -108,7 +120,6 @@ export const CONFIG = {
     dodgeChanceCap: 0.5,
     defenseMitigationPerPoint: 0.8, // flat damage reduced per defense point
     guardMitigation: 0.5,         // guard halves incoming damage that turn
-    spiritCostDefault: 3,         // default ability Spirit cost
     storyLoss: {
       // Boss #4 scripted unwinnable fight: telegraphed, ends in narrative loss.
       enabled: true,
@@ -135,7 +146,7 @@ export const CONFIG = {
       burstDamageMult: 1.6,        // burst attack damage = this * effective Power
       burstCorruptionGain: 8,      // a burst deepens your corruption by this much
       // high corruption warps stats (multipliers; the HIGHEST threshold reached wins).
-      // spiritMult is reserved for a later pass (Spirit is a consumable pool — not wired yet).
+      // spiritMult is reserved (it would warp Spirit, the magical-strength stat) — not wired yet.
       warpThresholds: [
         { at: 40, powerMult: 1.10, hpMult: 0.95, spiritMult: 0.95 },
         { at: 70, powerMult: 1.25, hpMult: 0.85, spiritMult: 0.85 },
@@ -184,37 +195,39 @@ export const CONFIG = {
   // kind: damage | heal | lifesteal. nudge: slider movement when used (coupled, like any gain).
   // learn: prereqs to learn it in training (omit `learn` => innate from the start). reqTier =
   //   transformation tier reached; reqCorruption = raw corruption >=; reqGapVirtue = virtue-corruption >=.
+  // NOTE: abilities cost NO resource to cast — Spirit is the character's magical strength, and it
+  //   SCALES an ability's damage and healing (combat.js). `mult` multiplies effective Spirit.
   abilities: {
-    "light bolt": { align: "neutral", spirit: 3, kind: "damage", mult: 1.6,
+    "light bolt": { align: "neutral", kind: "damage", mult: 1.6,
                     verb: "hurl a bolt of light at" },
-    "mend":       { align: "virtuous", spirit: 4, kind: "heal", healPct: 0.30,
+    "mend":       { align: "virtuous", kind: "heal", healPct: 0.30,
                     verb: "fold a soft, mending light around yourself",
                     nudge: { virtue: 4 },
                     learn: { reqTier: "novice", reqGapVirtue: 15, slotCost: 1, blurb: "a healing light (Virtue)" } },
-    "drain":      { align: "corrupt", spirit: 3, kind: "lifesteal", mult: 1.2, lifestealPct: 0.5,
+    "drain":      { align: "corrupt", kind: "lifesteal", mult: 1.2, lifestealPct: 0.5,
                     verb: "siphon the living warmth out of",
                     nudge: { corruption: 4 },
                     learn: { reqTier: "novice", reqCorruption: 40, slotCost: 1, blurb: "a life-siphon (Corrupt)" } },
     // Virtue kit: corruption tempts with raw burst damage; virtue rewards control + safety + sustain.
     // applyFx installs a status effect (same magnitudes as combat.judge); reuses the T13 fx engine.
-    "radiance":   { align: "virtuous", spirit: 5, kind: "damage", mult: 1.3,
+    "radiance":   { align: "virtuous", kind: "damage", mult: 1.3,
                     verb: "call down a lance of radiance on",
                     applyFx: { kind: "blind", magnitude: "moderate", turns: 1 }, // dazzles -> it misses
                     nudge: { virtue: 4 },
                     learn: { reqTier: "novice", reqGapVirtue: 15, slotCost: 1, blurb: "a dazzling light strike (Virtue)" } },
-    "ward":       { align: "virtuous", spirit: 4, kind: "buff",
+    "ward":       { align: "virtuous", kind: "buff",
                     verb: "wreathe yourself in warding light",
                     applyFx: { kind: "defend", magnitude: "moderate", turns: 2 }, // incoming damage cut
                     nudge: { virtue: 3 },
                     learn: { reqTier: "novice", reqGapVirtue: 30, slotCost: 1, blurb: "a protective ward (Virtue)" } },
-    "purify":     { align: "virtuous", spirit: 4, kind: "purify",
+    "purify":     { align: "virtuous", kind: "purify",
                     verb: "breathe out a cleansing light",
                     shedCorruption: 10, healPct: 0.10, // climb back from the brink (fizzle-exempt)
                     learn: { reqTier: "novice", reqCorruption: 10, slotCost: 1, blurb: "cleanse + shed Corruption (Virtue)" } },
     // T18: the Awakened signature — your recovered magical weapon. Neutral (no
     // fizzle), heavy hit that staggers the foe (skips its next turn). Learnable
     // only once Awakened (reqTier), so it never appears before the weapon is found.
-    "true strike": { align: "neutral", spirit: 6, kind: "damage", mult: 2.0,
+    "true strike": { align: "neutral", kind: "damage", mult: 2.0,
                      verb: "bring your awakened weapon down on",
                      applyFx: { kind: "stagger", magnitude: "minor", turns: 1 },
                      learn: { reqTier: "awakened", slotCost: 1, blurb: "a staggering strike with your true weapon (Awakened)" } },

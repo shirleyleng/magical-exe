@@ -17,7 +17,8 @@ import { freshModel, pushLine } from "./state.js";
 import { parse, HELP } from "./parser.js";
 import { beginCreation, handleCreationInput, handleMenuSelect } from "./creation.js";
 import { aiAvailable, parseAIJson } from "./ai.js";
-import { THEMES, themeName } from "./theme.js";
+import { THEMES, themeName, TEXT_SPEEDS, textSpeedName, getStoredTextSpeed } from "./theme.js";
+import { getAbility } from "./abilities.js";
 import { versionLabel, buildStamp, REPO_URL } from "./version.js";
 import {
   refreshSlotsMax, trainCommand, openTrainMenu, openShopMenu,
@@ -92,7 +93,29 @@ export function update(state, event) {
         if (opt.value === "__cancel__") return s;
         if (opt.value === "theme") return openThemeMenu(s);
         if (opt.value === "difficulty") return openDifficultyMenu(s);
+        if (opt.value === "textspeed") return openTextSpeedMenu(s);
         if (opt.value === "about") return showAbout(s);
+        return s;
+      }
+      if (m.kind === "textspeed") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") return s;
+        s.ui.effect = { type: "textspeed", id: opt.value }; // main.js persists + applies live
+        pushLine(s, `Text speed set to ${textSpeedName(opt.value)}.`, "system");
+        return s;
+      }
+      if (m.kind === "abilities") {
+        const opt = m.options[m.index];
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") return s;
+        pushLine(s, opt.label, "echo");
+        if (s.model.mode === "combat" && s.model.combat) {
+          const out = combatUse(s, opt.value);      // routes to the ability; casting can end the fight
+          return afterCombat(out);
+        }
+        pushLine(s, `${opt.value} — ${abilityDetail(opt.value)} You can channel it in a fight (use ${opt.value}).`, "hint");
         return s;
       }
       if (m.kind === "theme") {
@@ -252,11 +275,26 @@ function openSettingsMenu(s) {
   const options = [
     { label: `Theme — ${themeName(current)}`, value: "theme" },
     { label: `Difficulty — ${difficultyLabel(s.model.difficulty)}`, value: "difficulty" },
+    { label: `Text speed — ${textSpeedName(getStoredTextSpeed())}`, value: "textspeed" },
     { label: "About & credits", value: "about" },
     { label: "Close", value: "__cancel__" },
   ];
   pushLine(s, "Settings:", "system");
   s.ui.menu = { active: true, kind: "settings", options, index: 0 };
+  return s;
+}
+
+/** Text-speed picker — how fast new output types onto the screen. */
+function openTextSpeedMenu(s) {
+  const cur = getStoredTextSpeed();
+  const options = TEXT_SPEEDS.map((sp) => ({
+    label: `${sp.name}${sp.id === cur ? " (current)" : ""} — ${sp.note}`,
+    value: sp.id,
+  }));
+  options.push({ label: "Cancel", value: "__cancel__" });
+  const curIdx = TEXT_SPEEDS.findIndex((sp) => sp.id === cur);
+  pushLine(s, "How fast should the text appear?", "system");
+  s.ui.menu = { active: true, kind: "textspeed", options, index: curIdx < 0 ? 0 : curIdx };
   return s;
 }
 
@@ -272,6 +310,46 @@ function openDifficultyMenu(s) {
   ];
   pushLine(s, "How hard a road?", "system");
   s.ui.menu = { active: true, kind: "difficulty", options, index: cur === "easy" ? 0 : 1 };
+  return s;
+}
+
+/* ---- abilities (T-tweaks) ----
+   A list of the channelled abilities you've learned, available anywhere. In a fight,
+   picking one casts it; out of combat it's a read-only reference. (Spirit is your
+   magical strength — abilities cost nothing to cast; Spirit scales their power.) */
+const FX_NOTE = {
+  blind: "dazzles the foe", defend: "shields you", stagger: "staggers the foe",
+  slow: "saps the foe's force", expose: "leaves the foe open", burn: "sets the foe alight",
+};
+function abilityDetail(name) {
+  const def = getAbility(name);
+  if (!def) return "";
+  const tag = def.align && def.align !== "neutral" ? `${def.align} · ` : "";
+  let what;
+  switch (def.kind) {
+    case "heal":      what = "restores HP (scales with Spirit)"; break;
+    case "lifesteal": what = "magic damage that heals you (scales with Spirit)"; break;
+    case "buff":      what = "a protective boon"; break;
+    case "purify":    what = "sheds Corruption + heals"; break;
+    default:          what = "magic damage (scales with Spirit)";
+  }
+  const fx = def.applyFx && FX_NOTE[def.applyFx.kind] ? `, ${FX_NOTE[def.applyFx.kind]}` : "";
+  return `${tag}${what}${fx}.`;
+}
+
+/** Open the abilities list. In combat the selection casts; otherwise it just informs. */
+function openAbilitiesMenu(s) {
+  const ch = s.model.character;
+  const known = (ch.abilities || []).filter((n) => getAbility(n)); // skip basics like "guard"
+  if (!known.length) {
+    pushLine(s, "You haven't learned any channelled abilities yet — for now it's attack and guard.", "system");
+    return s;
+  }
+  const inFight = s.model.mode === "combat" && !!s.model.combat;
+  const options = known.map((name) => ({ label: name, value: name, detail: abilityDetail(name) }));
+  options.push({ label: inFight ? "Cancel" : "Close", value: "__cancel__" });
+  pushLine(s, inFight ? "Channel which ability?" : "Abilities you've learned (use <name> in a fight to cast):", "system");
+  s.ui.menu = { active: true, kind: "abilities", options, index: 0 };
   return s;
 }
 
@@ -596,6 +674,9 @@ function route(s, cmd) {
 
     case "settings":
       return openSettingsMenu(s);
+
+    case "abilities":
+      return openAbilitiesMenu(s);
   }
 
   if (s.model.mode === "combat") return routeCombat(s, cmd);

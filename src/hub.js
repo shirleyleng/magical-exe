@@ -297,6 +297,15 @@ export function openShopMenu(state) {
     value: it.id,
     detail: `${itemEffectText(it)}  ·  buy ${coin()}${it.price}  ·  sell ${coin()}${it.sell}`,
   }));
+  // Forge with moonstone shards once you've gathered enough.
+  const mc = moonCraft();
+  if (mc && countItem(state.model.character, mc.material) >= mc.shardsPerBoost) {
+    options.push({
+      label: "Forge with moonstone shards…",
+      value: "__craft__",
+      detail: `Spend ${mc.shardsPerBoost} ${mc.material}s for a permanent stat boost.`,
+    });
+  }
   options.push({ label: "Sell something…", value: "__sell__" });
   options.push({ label: "Leave", value: "__leave__" });
   pushLine(state, `The shop is warm and cluttered. You have ${coin()}${coins}.`, "system");
@@ -361,6 +370,72 @@ export function sellCommand(state, target) {
   return sellIndex(state, String(i));
 }
 
+/* ---- moonstone crafting (forge a permanent stat boost at the shop) ----
+   Free (no slot), like the rest of the shop. Spend `shardsPerBoost` moonstone shards to
+   permanently raise a chosen stat by config.crafting.moonstone.boost[stat]. softCaps apply. */
+const moonCraft = () => CONFIG.crafting && CONFIG.crafting.moonstone;
+function countItem(ch, name) {
+  return ch.inventory.filter((n) => n.toLowerCase() === name.toLowerCase()).length;
+}
+
+/** Shop sub-menu: pick which stat to forge with your shards. */
+export function openCraftMenu(state) {
+  const mc = moonCraft();
+  const ch = state.model.character;
+  if (!mc) { pushLine(state, "There's nothing to forge here.", "system"); return openShopMenu(state); }
+  const have = countItem(ch, mc.material);
+  if (have < mc.shardsPerBoost) {
+    pushLine(state, `You need ${mc.shardsPerBoost} ${mc.material}s to forge anything (you have ${have}).`, "system");
+    return openShopMenu(state);
+  }
+  const b = mc.boost;
+  const options = [
+    { label: `Power     (+${b.power})`, value: "power" },
+    { label: `Spirit    (+${b.spirit})`, value: "spirit" },
+    { label: `Defense   (+${b.defense})`, value: "defense" },
+    { label: `Speed     (+${b.speed})`, value: "speed" },
+    { label: `Dodge     (+${b.dodge})`, value: "dodge" },
+    { label: `Max HP    (+${b.maxHp})`, value: "maxHp" },
+    { label: `Max Stam. (+${b.maxStamina})`, value: "maxStamina" },
+    { label: "Back", value: "__back__" },
+  ];
+  pushLine(state, `The shopkeep turns a moonstone shard to the light. "Three of these, and I can work the magic of one into your very bones — permanent, mind. What'll it be?" (you have ${have})`, "system");
+  state.ui.menu = { active: true, kind: "craft", options, index: 0 };
+  return state;
+}
+
+/** Consume the shards and apply the permanent boost. */
+export function doCraft(state, statKey) {
+  const mc = moonCraft();
+  const ch = state.model.character;
+  const stats = ch.stats;
+  if (!mc) return state;
+  const need = mc.shardsPerBoost;
+  if (countItem(ch, mc.material) < need) {
+    pushLine(state, `You don't have enough ${mc.material}s.`, "system");
+    return openShopMenu(state);
+  }
+  const gain = (mc.boost && mc.boost[statKey]) || 0;
+  if (!gain) { pushLine(state, "That can't be forged.", "system"); return openCraftMenu(state); }
+
+  // Remove `need` shards from the satchel.
+  let removed = 0;
+  for (let i = ch.inventory.length - 1; i >= 0 && removed < need; i--) {
+    if (ch.inventory[i].toLowerCase() === mc.material.toLowerCase()) { ch.inventory.splice(i, 1); removed++; }
+  }
+
+  const cap = CONFIG.training.softCap[statKey];
+  let value = stats[statKey] + gain;
+  if (cap != null && value > cap) value = cap;
+  stats[statKey] = value;
+  if (statKey === "maxHp") stats.hp = stats.maxHp;
+  if (statKey === "maxStamina") stats.stamina = stats.maxStamina;
+  refreshSlotsMax(state.model); // maxStamina growth can unlock a slot
+
+  pushLine(state, `The shopkeep works the shards into a slow bright heat and presses it home. Your ${statLabel(statKey)} is now ${stats[statKey]}. (-${need} ${mc.material}s)`, "banner");
+  return countItem(ch, mc.material) >= need ? openCraftMenu(state) : openShopMenu(state);
+}
+
 /* ---- use a consumable (works in hub and, later, combat) ---- */
 export function useItem(state, target) {
   if (!target) { pushLine(state, "Use what?", "system"); return state; }
@@ -384,6 +459,10 @@ export function useItem(state, target) {
     stats.stamina = Math.min(stats.maxStamina, stats.stamina + it.amount);
     ch.inventory.splice(i, 1);
     pushLine(state, `You drink the ${name}. Stamina is now ${stats.stamina}/${stats.maxStamina}.`, "system");
+    return state;
+  }
+  if (it && it.type === "material") {
+    pushLine(state, `The ${name} hums faintly in your palm. It's not for using on its own — take a few to the shop to forge them into something permanent.`, "system");
     return state;
   }
   pushLine(state, `You can't use the ${name} right now.`, "system");
@@ -687,12 +766,18 @@ export function handleHubMenu(state, kind, opt) {
   if (kind === "shop") {
     if (opt.value === "__leave__") { pushLine(state, "You step back out into the day.", "system"); return state; }
     if (opt.value === "__sell__") return openSellMenu(state);
+    if (opt.value === "__craft__") return openCraftMenu(state);
     return buyItem(state, opt.value);
   }
 
   if (kind === "shopSell") {
     if (opt.value === "__back__") return openShopMenu(state);
     return sellIndex(state, opt.value);
+  }
+
+  if (kind === "craft") {
+    if (opt.value === "__back__") return openShopMenu(state);
+    return doCraft(state, opt.value);
   }
 
   return state;
