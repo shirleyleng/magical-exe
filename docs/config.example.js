@@ -257,7 +257,7 @@ export const CONFIG = {
     fameThresholdRelief: 0.2, // each point of Fame lowers the hope threshold by this
     seizeCorrThreshold: 50,   // raw Corruption that counts as "enough" to seize (path==="corrupt" also qualifies)
     assistHpPct: 0.4,         // once per phase, when your HP dips below this, Sable + the mascot step in
-    assistHealPct: 0.25,      // the mascot's clutch heal (fraction of max HP)
+    assistHealPct: 0.18,      // the mascot's clutch heal (fraction of max HP) — tuned down from 0.25 so the finale rewards using your kit (sim: button-masher ~51% vs tactician ~100%)
   },
 
   // ---- rival arc (T16) ----
