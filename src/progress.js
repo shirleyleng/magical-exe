@@ -16,9 +16,11 @@ import { refreshSlotsMax } from "./hub.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
+const mascotName = (state) => (state.model.mascot && state.model.mascot.name) || "Your mascot";
+
 const TIER_REVEAL = {
   soldier(state) {
-    const m = (state.model.mascot && state.model.mascot.name) || "Your mascot";
+    const m = mascotName(state);
     pushLine(state, ART.star_large, "mascot");
     pushLine(state, "Light pours up through you — you rise to MAGICAL SOLDIER!", "banner");
     pushLine(state, `${m}: "You did it! …There's something I should tell you now."`, "mascot");
@@ -28,15 +30,53 @@ const TIER_REVEAL = {
       "mascot"
     );
   },
+  knight(state) {
+    const m = mascotName(state);
+    const path = state.model.character.path;
+    const flavor =
+      path === "pure"
+        ? "Clean light hardens around you like armor — every edge of you turned to shelter for others."
+        : path === "corrupt"
+        ? "The light comes edged and hungry, a darker steel — power that protects, and tempts."
+        : "Light folds into something tempered and sure — neither soft nor cruel, simply ready.";
+    pushLine(state, ART.star_large, "mascot");
+    pushLine(state, "You rise again — MAGICAL KNIGHT!", "banner");
+    pushLine(state, flavor, "system");
+    pushLine(state, `${m}: "A Knight. I knew you'd reach this. The alliance will want to hear of it."`, "mascot");
+  },
 };
 
-/** React to a boss defeat: maybe advance a tier and play its reveal. */
+/* Narrative beats that fire when a boss falls, regardless of whether a tier-up
+   happens — this is how the player learns corruption's deeper nature (DESIGN §8).
+   Each fires at most once (latched in world.flags.storyBeats). */
+const BOSS_BEAT = {
+  boss2(state) {
+    const m = mascotName(state);
+    pushLine(state, `${m}: "These aren't wild spawns. Something is *commanding* the corruption — a big boss, hidden, pulling it toward your city on purpose."`, "mascot");
+    pushLine(state, `${m}: "Beat back its champions and we'll find it. …Though something about all this still doesn't sit right with me."`, "mascot");
+  },
+  boss3(state) {
+    const m = mascotName(state);
+    pushLine(state, `${m}: "I've started to understand. The corruption grows thickest where people have given up — it *feeds* on hopelessness."`, "mascot");
+    pushLine(state, `${m}: "Every errand you run, every person you give hope back to — that may be the truer fight. Remember that."`, "mascot");
+  },
+};
+
+/** React to a boss defeat: fire its story beat, then maybe advance a tier. */
 export function handleBossDefeat(state) {
   const bossId = state.ui.justDefeatedBoss;
   if (!bossId) return state;
   state.ui.justDefeatedBoss = null;
 
   const ch = state.model.character;
+  const flags = state.model.world.flags;
+
+  // Story beat (corruption's deeper nature), latched so it never repeats.
+  if (!flags.storyBeats) flags.storyBeats = [];
+  if (BOSS_BEAT[bossId] && !flags.storyBeats.includes(bossId)) {
+    flags.storyBeats.push(bossId);
+    BOSS_BEAT[bossId](state);
+  }
 
   // Which tier does this boss gate?
   const tierName = Object.keys(CONFIG.tiers).find((t) => CONFIG.tiers[t].reqBoss === bossId);
