@@ -22,13 +22,21 @@ which is also what the deploy builds from).
 
 ## Optional polish remaining (nothing is blocking)
 
-**Spawned as task chips (start any from the chip, or just ask):**
-1. **Story/prose polish** across all narrative files + fix the **"Generic Company Name"** placeholder
-   leaking into the AI city description (`creation.js` occupation → `ai.js` city prompt / fallback).
-2. **Shop menu item descriptions** that update as you scroll (build from item `type`/`amount`).
-3. **Day-passing flavour text** after a rest (`hub.js` doRest/beginDay; a small rotating pool in config).
-4. **Mascot ASCII animation** (idle blink/bob/sparkle; respect `prefers-reduced-motion`; keep the
-   gone/dimmed states somber). In `backlog.md` too.
+**Spawned as task chips (refined 2026-06-07 with the user — start any from the chip, or just ask):**
+1. **Story & prose — FULL creative pass** across all narrative files (creation/city, tier+story beats,
+   dilemmas, finale endings, room/combat flavor, rival, AI prompts). Distinctive literary voice; keep
+   the COZY register but lean into emotional depth + warmth/humor; distinct per-character voices
+   (mascot warm/funny, Sable sharp-softening, city melancholy→hopeful). Mechanics untouched. Fix the
+   **"Generic Company Name"** placeholder first (`creation.js` occupation → `ai.js` city prompt +
+   `cityPlaceholder` fallback + PROMPTS.md). Read DESIGN.md/PROMPTS.md for canon.
+2. **Shop menu detail line** — show the highlighted item's effect (built from `type`/`amount`) PLUS
+   buy price + sell value, updating live as you scroll. Item facts stay in config.
+3. **Day-passing flavour at rest** — context-varied pool (early/late by day or tier; mascot
+   present-vs-gone; a day/seasonal cadence), no immediate repeats; in `hub.js` doRest/beginDay;
+   distinct from the hope mood line; additive only (don't disturb rest mechanics).
+4. **Mascot ASCII animation** — JS frame-cycler: idle blink/bob/sparkle PLUS event reactions (combat
+   hit, tier-up, speaking). Monospace-grid-safe, no layout shift, no timer leaks; respect
+   `prefers-reduced-motion`; keep the gone/dimmed states somber. In `backlog.md` too.
 
 **Also flagged (in `backlog.md`):**
 - **Mobile-friendly redesign** (layout is desktop-first; narrow widths stack + scroll).
