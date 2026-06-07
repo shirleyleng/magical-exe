@@ -87,6 +87,7 @@ export function freshModel(opts = {}) {
         bossesDefeated: [], storyBeats: [],
         boss4Attempted: false, mascotGone: false, sparringUnlocked: false,
         allianceVisited: false, secretPlaceUnlocked: false,
+        dilemmasSeen: [],
       },
     },
     combat: null,      // active fight state, or null (set by combat.js)
@@ -128,6 +129,8 @@ export function createState(model) {
     // Backfill T18 (alliance / secret-place) flags.
     if (f.allianceVisited === undefined) f.allianceVisited = false;
     if (f.secretPlaceUnlocked === undefined) f.secretPlaceUnlocked = false;
+    // Backfill T19 (dilemma events) tracking.
+    if (f.dilemmasSeen === undefined) f.dilemmasSeen = [];
   }
   // Backfill T17 mascot presence fields for saves made before the mascot could leave.
   if (m.mascot) {

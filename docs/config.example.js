@@ -60,6 +60,14 @@ export const CONFIG = {
     ],
   },
 
+  // ---- dilemmas (T19 push events) ----
+  // Moral events that surface at rest (one-shot, latched in flags.dilemmasSeen).
+  // Branches are authored in src/dilemmas.js; outcomes are ambiguous (no numbers).
+  dilemmas: {
+    chancePerRest: 0.35, // probability a dilemma fires on a given rest (when one is available)
+    minDay: 2,           // don't pester the player on day 1
+  },
+
   // ---- starting character stats ----
   startingStats: {
     hp: 30, maxHp: 30, power: 6, spirit: 6, defense: 4,

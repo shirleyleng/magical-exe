@@ -27,6 +27,7 @@ import {
 import { enterDungeon, openExploreMenu, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import { unlockedDungeons, resolveDungeon, DUNGEONS } from "./dungeons.js";
 import { tickRival } from "./rival.js";
+import { maybeDilemma, resolveDilemma } from "./dilemmas.js";
 import {
   startCombat, playerAttack, playerGuard, playerBurst, playerSpare, combatUse, combatLook, playerFlee,
   applyJudgedAction,
@@ -108,6 +109,13 @@ export function update(state, event) {
         s.ui.menu = null;
         if (opt.value === "__cancel__") { pushLine(s, "(never mind)", "hint"); return s; }
         return enterDungeon(s, opt.value);
+      }
+      if (m.kind === "dilemma") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        const dilemmaId = m.dilemmaId;
+        s.ui.menu = null;
+        return resolveDilemma(s, dilemmaId, opt.value);
       }
       return handleHubMenu(s, m.kind, m.options[m.index]);
     }
@@ -583,7 +591,7 @@ function routeHub(s, cmd) {
     case "errand":
       return target ? errandCommand(s, target) : openErrandMenu(s);
     case "rest":
-      return tickRival(doRest(s));
+      return maybeDilemma(tickRival(doRest(s)));
     case "lielow":
       return tickRival(doLieLow(s));
     case "misdirect":
