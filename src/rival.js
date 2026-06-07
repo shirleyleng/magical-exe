@@ -44,7 +44,7 @@ export function tickRival(state) {
     flags.rivalChallengeDay = null;
     rival.disposition = "challenger";
     rival.scheduleState = "met";
-    pushLine(state, `A figure is waiting at your door, arms crossed, leaning like she's been there a while and isn't bothered about it. "So. You're the one the whole city's been whispering about. Smaller than I pictured."`, "banner");
+    pushLine(state, `A figure is waiting at your door, arms crossed, leaning like they've been there a while and aren't bothered about it. "So. You're the one the whole city's been whispering about. Smaller than I pictured."`, "banner");
     pushLine(state, `"${rival.name}. Alliance, same as you — but I don't take new talent on faith, and I don't clap for potential. Potential gets people killed. Show me what you can actually do."`, "mascot");
     pushLine(state, "(A duel! Win or lose, it's only a measure — fight as you would any foe.)", "hint");
     return startCombat(state, "rival_sable", { returnMode: "hub", fromSlot: false });
@@ -56,10 +56,10 @@ export function tickRival(state) {
     flags.rivalReturnDay = null;
     rival.disposition = "respectful";
     rival.scheduleState = "returned";
-    pushLine(state, `${rival.name} is leaning against your gate again — but the smirk's gone, and she's not quite meeting your eye.`, "banner");
+    pushLine(state, `${rival.name} is leaning against your gate again — but the smirk's gone, and they're not quite meeting your eye.`, "banner");
     pushLine(state, `"You've gotten strong. Properly strong — strong enough that I'll trust you with something I shouldn't. Not everything about the corruption is the way your mascot tells it. They're not lying to you. They just don't have the whole shape of it either."`, "mascot");
     pushLine(state, `"I'm still alliance, before you ask. But I've seen things the people higher up don't put in the briefings. Keep winning. And for both our sakes — keep your eyes open while you do it."`, "mascot");
-    pushLine(state, `"…And I'll keep coming for you. Somebody's got to keep you sharp, and clearly it's going to have to be me." She almost smiles. It's a near thing.`, "mascot");
+    pushLine(state, `"…And I'll keep coming for you. Somebody's got to keep you sharp, and clearly it's going to have to be me." They almost smile. It's a near thing.`, "mascot");
     return state;
   }
 

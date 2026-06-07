@@ -177,14 +177,14 @@ function pickSparOutcome() {
 const SPAR_FLAVOR = {
   breakthrough: [
     "For one clean breath it all clicks into place — blade, footing, lungs, all of it one moving thing. So this is what it's supposed to feel like. Maybe you can do this after all.",
-    "You read the strike before it even leaves her shoulder, and you answer it. {rival} actually stops. A slow, real smile. \"...There. THERE it is. That's the one I've been waiting for.\"",
+    "You read the strike before it even leaves their shoulder, and you answer it. {rival} actually stops. A slow, real smile. \"...There. THERE it is. That's the one I've been waiting for.\"",
   ],
   solid: [
     "Blow after blow, no mercy and no praise, just the work. You hold. It isn't hope, exactly — but it's solid ground under your feet, and right now that's worth more.",
-    "{rival} drills you until your arms shake and your grip starts to go. \"Again.\" You're still standing when she finally calls it. That, you're starting to understand, was the whole lesson.",
+    "{rival} drills you until your arms shake and your grip starts to go. \"Again.\" You're still standing when they finally call it. That, you're starting to understand, was the whole lesson.",
   ],
   rough: [
-    "You can't land a single thing on her. {rival} doesn't go easy — she never does — and in the gaps between breaths the old doubt slips back in through the cracks. Am I even meant for this?",
+    "You can't land a single thing on them. {rival} doesn't go easy — they never do — and in the gaps between breaths the old doubt slips back in through the cracks. Am I even meant for this?",
     "You're flat on your back staring at the sky before you've registered the throw. \"Get up.\" Just that. And for one ugly second, on the cold ground, you genuinely wonder why you keep bothering to.",
   ],
 };
@@ -268,7 +268,7 @@ export function openSparMenu(state) {
     options.push({ label: `Learn ${name} — ${def.learn.blurb} [${cost} slot]`, value: `learn:${name}` });
   }
   options.push({ label: "Cancel", value: "__cancel__" });
-  pushLine(state, `${rivalName(state.model)} rolls her shoulders till they crack and brings her blade up. "No mercy from me — that's the only way anyone gets strong, and you don't have time for the kind way. A spar can break something open, or just hold the line, or go badly. All three teach you something. Choose."`, "system");
+  pushLine(state, `${rivalName(state.model)} rolls their shoulders till they crack and brings their blade up. "No mercy from me — that's the only way anyone gets strong, and you don't have time for the kind way. A spar can break something open, or just hold the line, or go badly. All three teach you something. Choose."`, "system");
   state.ui.menu = { active: true, kind: "spar", options, index: 0 };
   return state;
 }

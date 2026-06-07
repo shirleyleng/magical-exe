@@ -10,7 +10,28 @@ import { SCHEMA_VERSION } from "./state.js";
 
 const PREFIX = "magicalexe:slot:";
 const ACTIVE = "magicalexe:active";
+const RECAP = "magicalexe:recap:";
 const slotKey = (name) => PREFIX + name;
+const recapKey = (name) => RECAP + name;
+
+/* The scrollback (state.log) is deliberately NOT part of the save. To give a returning
+   player their bearings, we separately persist a short tail of recent lines per slot and
+   replay it on load. Stored as a plain string[] (already formatted for display). */
+export function saveRecap(name, lines) {
+  try {
+    if (!name || !Array.isArray(lines) || !lines.length) return;
+    localStorage.setItem(recapKey(name), JSON.stringify(lines.slice(-8)));
+  } catch { /* private mode / quota — skip silently */ }
+}
+
+export function loadRecap(name) {
+  try {
+    const raw = name && localStorage.getItem(recapKey(name));
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch { return []; }
+}
 
 /** Save the model to its own named slot and mark it active. Never throws. */
 export function saveModel(model) {
@@ -86,6 +107,7 @@ export function hasSlot(name) {
 export function deleteSlot(name) {
   try {
     localStorage.removeItem(slotKey(name));
+    localStorage.removeItem(recapKey(name));
     if (getActiveName() === name) localStorage.removeItem(ACTIVE);
     return true;
   } catch (e) {

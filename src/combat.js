@@ -750,7 +750,7 @@ function maybeFinaleAssist(state) {
   const rival = (state.model.rivals && state.model.rivals[0]) || { name: "Sable" };
   const heal = Math.max(1, Math.round(eff.maxHp * F.assistHealPct * healMultiplier(ch)));
   ch.stats.hp = Math.min(eff.maxHp, ch.stats.hp + heal);
-  pushLine(state, `"NOT — TODAY!" ${rival.name} throws herself bodily across ${eRef(c.enemy)}'s line of sight, blade up, buying you a breath with her own — and it recoils, thrown off you just long enough.`, "system");
+  pushLine(state, `"NOT — TODAY!" ${rival.name} throws themselves bodily across ${eRef(c.enemy)}'s line of sight, blade up, buying you a breath with their own — and it recoils, thrown off you just long enough.`, "system");
   pushLine(state, `${m} presses hard to your chest, light spilling out of it warm and fierce and furious. "Up. UP. I did not come all this way back to you just to watch this — the whole city's holding its breath for you right now, so you get UP." (+${heal} HP)`, "mascot");
   setFx(c, "stagger", 1, 1); // the enemy loses its coming turn
   return true;

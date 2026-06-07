@@ -11,7 +11,7 @@ import { createState } from "./state.js";
 import { update } from "./update.js";
 import { render, initDom, setRenderSpeed, finishTyping } from "./render.js";
 import { initMascotAnim } from "./mascotAnim.js";
-import { saveModel, loadActive, loadSlot } from "./persist.js";
+import { saveModel, loadActive, loadSlot, saveRecap, loadRecap } from "./persist.js";
 import { callAI, setCaptchaProvider } from "./ai.js";
 import { getCaptchaToken } from "./captcha.js";
 import { applyTheme, getStoredTheme, setStoredTheme, setStoredTextSpeed } from "./theme.js";
@@ -21,10 +21,30 @@ import { CONFIG } from "../config.js";
 let state;
 let inputEl = null;       // the command field (set in boot); used to restore focus
 let menuWasActive = false; // tracks selection-menu transitions for focus restore
+let recapBaseline = 0;     // log length right after boot/load — recap captures only lines past it
+
+const RECAP_LINES = 5;
+/* Build the "last time" recap from THIS session's fresh lines (those added since the
+   boot/load banner), so a reload shows what the player was actually doing — not the
+   previous reload's own recap. Echo lines keep their ">" so they read as commands. */
+function buildRecap(log) {
+  const lines = [];
+  for (const l of log.slice(recapBaseline)) {
+    if (l.kind === "recap") continue;
+    const t = (l.text || "").trim();
+    if (!t) continue;
+    lines.push(l.kind === "echo" ? `> ${t}` : t);
+  }
+  return lines.slice(-RECAP_LINES);
+}
 
 function dispatch(event) {
   state = update(state, event);
   saveModel(state.model); // autosave to the active slot
+  // Persist a short recap of recent play (not on the boot/load banners themselves).
+  if (event.type !== "boot" && event.type !== "loaded") {
+    saveRecap(state.model.saveSlotName, buildRecap(state.log));
+  }
   render(state);
   if (state.ui.effect) applyEffect();
   restoreFocusIfMenuClosed();
@@ -48,7 +68,8 @@ async function applyEffect() {
     if (model) {
       state = createState(model); // fresh session for the loaded run
       render(state);
-      dispatch({ type: "loaded", name: effect.name });
+      dispatch({ type: "loaded", name: effect.name, recap: loadRecap(effect.name) });
+      recapBaseline = state.log.length;
     } else {
       state.ui.effect = null;
       render(state);
@@ -119,7 +140,9 @@ function boot() {
   state = createState(loaded);
   render(state); // paint panels before the boot banner
 
-  dispatch({ type: "boot", loaded: !!loaded });
+  const bootRecap = loaded ? loadRecap(state.model.saveSlotName) : [];
+  dispatch({ type: "boot", loaded: !!loaded, recap: bootRecap });
+  recapBaseline = state.log.length; // recap from here on reflects only this session's play
 
   // ---- input wiring ----
   const form = document.getElementById("input-form");

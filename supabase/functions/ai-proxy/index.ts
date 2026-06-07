@@ -31,10 +31,14 @@ const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
 const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
-// Origins allowed to call the function. Add your deployed domain in T21.
+// Origins allowed to call the function. Includes local dev + the deployed site; add any
+// new domains here and re-run `supabase functions deploy ai-proxy`. A request from an
+// origin NOT in this set gets the localhost fallback CORS header, which the browser then
+// blocks — so a missing entry here silently breaks all AI calls from that origin.
 const ALLOWED_ORIGINS = new Set([
   "http://localhost:4321",
   "http://127.0.0.1:4321",
+  "https://magical-exe.redmint.studio",
 ]);
 
 function corsHeaders(origin: string | null): Record<string, string> {

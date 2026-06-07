@@ -92,13 +92,13 @@ const BOSS_BEAT = {
     pushLine(state, `${m} is quiet for a moment, watching the grey thin from the air. "I think I've started to understand it. The corruption grows thickest exactly where people have stopped hoping. It doesn't just spread *near* despair. It *feeds* on it."`, "mascot");
     pushLine(state, `${m}: "Which means every errand you run, every person you hand a little hope back to — that might be the truer fight. The one that actually wins. Hold onto that. Promise me you'll hold onto that."`, "mascot");
   },
-  // T18: the Boss #4 rematch (now winnable as Awakened) — the rival pays her dues
+  // T18: the Boss #4 rematch (now winnable as Awakened) — the rival pays their dues
   // and resumes challenging you, this time as an equal.
   boss4(state) {
     const rival = (state.model.rivals && state.model.rivals[0]) || { name: "Sable" };
     pushLine(state, "The Grief Herald comes apart at last — not beaten so much as finally *answered*, the way grief lets go when someone at last says the right thing to it. The long rain over the spire stops. The sky, for once, holds its breath.", "banner");
-    pushLine(state, `${rival.name} is waiting when you come down, and for once she doesn't bother hiding the grin spreading across her face. "You went back up there. And you WON. …I had a whole speech ready, you know. Something cutting about not throwing your life away. Guess I'll just have to keep it."`, "mascot");
-    pushLine(state, `"You're the real thing now — no asterisk. I'll keep coming for you, same as always. But as an equal, from here on. Somebody's got to keep an Awakened honest." She holds out a hand, and means it.`, "mascot");
+    pushLine(state, `${rival.name} is waiting when you come down, and for once they don't bother hiding the grin spreading across their face. "You went back up there. And you WON. …I had a whole speech ready, you know. Something cutting about not throwing your life away. Guess I'll just have to keep it."`, "mascot");
+    pushLine(state, `"You're the real thing now — no asterisk. I'll keep coming for you, same as always. But as an equal, from here on. Somebody's got to keep an Awakened honest." They hold out a hand, and mean it.`, "mascot");
     rival.disposition = "respectful";
   },
 };
@@ -165,7 +165,7 @@ export function handleBossDefeat(state) {
 /* ---- T17: the Knight->Awakened low point ----
    Reacts to the scripted Boss #4 story-loss (state.ui.justLostStoryBoss, set in
    combat.js). The mascot is already injured + gone by now; here we play the quiet
-   aftermath and the rival's pivot — she names the alliance, reveals the Awakened
+   aftermath and the rival's pivot — they name the alliance, reveal the Awakened
    tier exists and that it's the only road back for your mascot, and unlocks
    Sparring to replace the training the mascot used to give you. Sets up T18. */
 export function handleStoryLoss(state) {
@@ -187,10 +187,10 @@ export function handleStoryLoss(state) {
 
   // The rival pivots: the thread of hope, and the road to T18.
   pushLine(state, "", "system");
-  pushLine(state, `A knock. ${rival.name} lets herself in without waiting, takes one look at the empty room and the way you're sitting in it, and goes very still. The usual edge drops clean off her. "...So it took your mascot. I'm sorry. Truly. They don't come back from that on their own — I won't lie to you about that part."`, "banner");
+  pushLine(state, `A knock. ${rival.name} lets themselves in without waiting, takes one look at the empty room and the way you're sitting in it, and goes very still. The usual edge drops clean off them. "...So it took your mascot. I'm sorry. Truly. They don't come back from that on their own — I won't lie to you about that part."`, "banner");
   pushLine(state, `"So listen to me. Hitting that thing head-on was never going to work — ${m} knew it, that's the whole reason it stepped in front of you. Stop fighting the way they trained you to and ASK the alliance for a better way. There's a war they're losing very, very quietly, and nobody up top wants to say so out loud."`, "mascot");
   pushLine(state, `"And there's a tier past Knight. Awakened. You reach it by going back to find what you were before any of this got its hands on you — and if anything in this world can wake ${m} again, it's that. Go to the alliance. Then come back to me."`, "mascot");
-  pushLine(state, `"I can't train you the way your mascot did — I don't have that kind of gentle in me. But I can make you bleed for every inch, and right now that might be exactly what you need. Spar with me. Type ‘spar.’ And don't you DARE give up on me." For once, there's no smirk anywhere on her face.`, "mascot");
+  pushLine(state, `"I can't train you the way your mascot did — I don't have that kind of gentle in me. But I can make you bleed for every inch, and right now that might be exactly what you need. Spar with me. Type ‘spar.’ And don't you DARE give up on me." For once, there's no smirk anywhere on their face.`, "mascot");
   pushLine(state, "(Training is gone with your mascot. You can SPAR with " + rival.name + " now — a harder road, but the only one left. Type spar.)", "hint");
   return state;
 }

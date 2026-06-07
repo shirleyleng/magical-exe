@@ -157,7 +157,7 @@ export function moveDir(state, dir) {
       pushLine(state, `${m} presses close against your cheek, trembling — not with fear, exactly. Something more like awe. "This is it. The real one. Everything that's been steering all of this, all this time… it's right down there, waiting for you."`, "mascot");
       pushLine(state, `${m}: "Listen to me. Really listen, because it matters now more than anything I've ever told you: you can't out-hit this. Not at the end. The city has to believe in you — and you have to believe right back at it, hard as you can. …Do you feel it? Out there, under everything? Do you feel them starting to believe?"`, "mascot");
       const rival = (model.rivals && model.rivals[0]) || { name: "Sable" };
-      pushLine(state, `${rival.name} draws her blade and sets her shoulder firm against yours, close as a promise. "I'm right here. Where I've always ended up. Don't you dare try to do this alone."`, "mascot");
+      pushLine(state, `${rival.name} draws their blade and sets their shoulder firm against yours, close as a promise. "I'm right here. Where I've always ended up. Don't you dare try to do this alone."`, "mascot");
       return startCombat(state, CONFIG.finale.phases[0], {
         returnMode: "exploration",
         returnRoom: dest,

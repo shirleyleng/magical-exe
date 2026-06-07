@@ -205,9 +205,19 @@ function onBoot(s, event) {
   refreshSlotsMax(s.model); // keep slot count correct on load
   const place = s.model.character.city || "your city";
   pushLine(s, `Welcome back to ${place}. (save loaded — Day ${s.model.day})`, "system");
+  printRecap(s, event.recap);
   pushLine(s, "Type /help to see your commands.", "hint");
   pushLine(s, "");
   return s;
+}
+
+/* A short "last time" recap of the most recent lines, replayed on load so a returning
+   player has their bearings (the scrollback itself isn't part of the save). */
+function printRecap(s, recap) {
+  if (!Array.isArray(recap) || !recap.length) return;
+  pushLine(s, "— when we last left off —", "recap");
+  for (const line of recap) pushLine(s, line, "recap");
+  pushLine(s, "");
 }
 
 function onInput(s, event) {
@@ -442,6 +452,7 @@ function onLoaded(s, event) {
   refreshSlotsMax(s.model);
   const c = s.model.character;
   pushLine(s, `Loaded "${event.name}" — ${c.name}, Day ${s.model.day}, ${c.transformationTier}.`, "system");
+  printRecap(s, event.recap);
   pushLine(s, "Type /help for commands.", "hint");
   pushLine(s, "");
   return s;
