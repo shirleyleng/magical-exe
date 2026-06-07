@@ -248,6 +248,11 @@ function renderMascot(model) {
     pre.classList.add("mascot-art--gone");
     pre.textContent = ART.gone_small || "   .  ·  .\n   ·     ·\n  (   …   )\n   `-----'";
     caption.textContent = `${model.mascot.name} — missing`;
+  } else if (model.mascot && model.mascot.name && model.mascot.dimmed) {
+    // T19: Dark Ascension — present but bound, its light guttered down.
+    pre.classList.add("mascot-art--dimmed");
+    pre.textContent = ART[model.mascot.artKeySmall] || ART.blob_small;
+    caption.textContent = `${model.mascot.name} — bound`;
   } else if (model.mascot && model.mascot.name) {
     pre.textContent = ART[model.mascot.artKeySmall] || ART.blob_small;
     caption.textContent = model.mascot.name;

@@ -376,6 +376,14 @@ body {
   text-shadow: none;
 }
 
+/* T19: Dark Ascension — the mascot stays, but bound, its light guttered to an ember. */
+.mascot-art--dimmed {
+  color: var(--muted, #8a8597);
+  opacity: 0.7;
+  text-shadow: 0 0 6px rgba(120, 90, 150, 0.25);
+  filter: grayscale(0.6);
+}
+
 /* ---- Responsive: stack everything in one column on narrow screens ---- */
 @media (max-width: 720px) {
   body {
