@@ -408,11 +408,87 @@ function beginDay(state) {
   stats.stamina = stats.maxStamina;
 }
 
+/* ---- day-passing flavour at rest ----
+   A small bit of personal/domestic texture each time a day rolls over: the
+   quiet life around the heroics. Context-varied — by story phase (tier), by
+   whether the mascot is here, and by a slow seasonal cadence — and it never
+   repeats the line it showed last (model.hub.lastRestFlavor). This is purely
+   additive ambience; it is DELIBERATELY distinct from readCityMood (which
+   reports the hidden Hope tally), so the two never say the same kind of thing.
+   Tokens: {mascot} -> the mascot's name, {season} -> the current season. */
+const SEASONS = [
+  "the first soft weeks of spring",
+  "the long gold of summer",
+  "a cooling, rust-coloured autumn",
+  "the close, candle-lit quiet of winter",
+];
+const seasonOf = (day) => SEASONS[Math.floor(((day || 1) - 1) / 7) % SEASONS.length];
+
+const REST_FLAVOR = {
+  // mascot present — early story (novice / soldier): the strangeness still fresh
+  early: [
+    "You eat dinner standing at the counter, still half in your other life. The double of it all hasn't worn off yet — ordinary by daylight, something else entirely once the dark comes down.",
+    "Sleep comes slow. You keep turning the day over: the impossible parts of it sitting right beside the bus fare and the unwashed dishes, stubbornly refusing to feel impossible.",
+    "{mascot} curls into the crook of your neck as you drift off, impossibly warm for something so small, and for a moment the whole strange shape of your new life feels like the most natural thing in the world.",
+    "You catch yourself grinning at nothing on the way to bed — at the secret of it, the sheer unlikely fact of you. There'll be more to do tomorrow. Tonight, that's plenty.",
+  ],
+  // mascot present — mid story (knight): the double life is just life now
+  mid: [
+    "The double life doesn't feel like a costume anymore. It's just your life. You can barely remember being startled by any of it.",
+    "You're tired in the way sleep only half-mends. There's more weight on you now — people who'd notice if you stopped. You're a little surprised to find you don't mind carrying it.",
+    "{mascot} talks you down from the day's worries with the patience of something far older than it looks, until the knot behind your ribs loosens just enough to let you sleep.",
+  ],
+  // mascot present — late story (awakened / ascended): the weight of what's coming
+  late: [
+    "The hush before what's coming has a particular weight to it. You lie awake a while, listening to the city breathe through the walls, and promise it — silently, fiercely — that you won't let it down.",
+    "You've come a long way from the person who heard a cry for help and simply turned toward it. On nights like this you can almost feel that person watching, and you hope, more than anything, they'd be proud.",
+    "{mascot} doesn't say much tonight. It just stays close, the way you stay close to someone on the eve of something enormous. You're grateful for it past the reach of words.",
+  ],
+  // mascot gone (the knight->awakened low point): the empty house
+  gone: [
+    "The house is too quiet to sleep in. You leave a light on out of a habit that no longer has a reason, and lie awake listening for a small bright voice that doesn't come.",
+    "You set out two cups before you remember, and then you put the second one quietly back. The day ends the way they all have lately — heavily, and alone.",
+    "You work until your hands ache and fall asleep where you sit, because the bed is where you'd have to be still, and being still is where the missing gets loudest.",
+    "Somewhere out there, you tell yourself, your mascot is sleeping too. You have to believe that. You hold onto it like a railing in the dark, and at last — at long last — you drift off.",
+  ],
+  // tier-agnostic seasonal cadence: the world keeps turning around you
+  seasonal: [
+    "Outside, the city has slipped into {season}; you notice it the way you notice most things now — late, and all at once, from a window on your way to bed.",
+    "It's {season} already, apparently. The days keep turning whether or not you're ready for them, and there's a strange small comfort in that — the world quietly keeping its appointments.",
+    "{season}. You'd lost track. The corner shops have changed their windows and the light comes in a different colour now, and life — stubborn, ordinary, lovely — simply carries on around you.",
+  ],
+};
+
+/** Pick a flavour line for this rest, context-chosen and never an immediate repeat. */
+function restFlavorLine(model) {
+  const flags = model.world.flags || {};
+  const tier = model.character.transformationTier;
+  let pool;
+  if (flags.mascotGone) {
+    pool = REST_FLAVOR.gone;
+  } else {
+    const phase =
+      tier === "knight" ? REST_FLAVOR.mid
+      : tier === "awakened" || tier === "ascended" ? REST_FLAVOR.late
+      : REST_FLAVOR.early;
+    const seasonal = REST_FLAVOR.seasonal.map((l) => l.replace(/\{season\}/g, seasonOf(model.day)));
+    pool = [...phase, ...seasonal];
+  }
+  if (!pool.length) return null;
+  const last = model.hub.lastRestFlavor;
+  const choices = pool.length > 1 ? pool.filter((l) => l !== last) : pool;
+  const line = choices[Math.floor(Math.random() * choices.length)];
+  model.hub.lastRestFlavor = line;
+  return line.replace(/\{mascot\}/g, (model.mascot && model.mascot.name) || "your companion");
+}
+
 /* ---- rest ---- */
 export function doRest(state) {
   const model = state.model;
   beginDay(state);
   pushLine(state, `You rest. Day ${model.day} dawns; your ${model.hub.slotsMax} slots are fresh and you feel restored.`, "system");
+  const flavor = restFlavorLine(model); // additive day-passing texture (distinct from city mood)
+  if (flavor) pushLine(state, flavor, "system");
   // The public eye cools a little overnight (T15) — but never fully forgets.
   const cooled = coolUnmasking(model.character);
   if (cooled > 0) pushLine(state, `The talk dies down a little. (-${cooled} Unmasking)`, "hint");
