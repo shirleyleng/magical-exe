@@ -67,7 +67,41 @@ export const ART = {
   \\( ^o^ )/
    /  |  \\
   ☆ · ✦ · ☆`,
+
+  // T19 — Virtuous Ascension: the mascot becomes its own guardian-animal deity.
+  // A crowned, radiant elevation of the celebration pose.
+  deity_large: ` ☆  ·  ✦  ·  ☆
+  .  \\( ^o^ )/  .
+ ✦ ──( ♡♡♡ )── ✦
+  '  /  |||  \\  '
+ ☆  ·  ✦  ·  ☆`,
 };
+
+/* ---- T19 — Eldritch Merge: corrupt the player's OWN mascot art ----
+   A DETERMINISTIC corruption (no randomness — same mascot always corrupts the same
+   way, so the horror is recognizably *yours*): glyphs are mapped to broken/eldritch
+   ones and the symmetry is eaten by position. Used only on the merge ending. */
+const GLITCH = {
+  o: "x", O: "X", w: "#", v: "#", "^": "#", "-": "~", "=": "≠",
+  ".": ",", "*": "×", "✦": "✗", "☆": "▓", "♡": "†", "\\": "/", "/": "\\",
+};
+export function corruptArt(art) {
+  let i = 0;
+  return String(art)
+    .split("\n")
+    .map((line) =>
+      [...line]
+        .map((ch) => {
+          i++;
+          if (ch === " " || ch === "\t") return i % 7 === 0 ? "." : ch; // pock the negative space
+          const g = GLITCH[ch];
+          if (g === undefined) return i % 5 === 0 ? "▒" : ch;
+          return i % 3 === 0 ? "▓" : g; // sometimes obliterate the feature entirely
+        })
+        .join("")
+    )
+    .join("\n");
+}
 
 /* ---- Mystical / cosmos name pool. 'Sable' excluded: reserved rival name. ---- */
 export const MASCOT_NAMES = [

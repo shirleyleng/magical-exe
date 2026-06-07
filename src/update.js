@@ -33,13 +33,16 @@ import {
   applyJudgedAction,
 } from "./combat.js";
 import { handleBossDefeat, handleStoryLoss } from "./progress.js";
+import { handleFinaleResolve, resolveBrink } from "./endgame.js";
 import { listSlots, deleteSlot, hasSlot } from "./persist.js";
 
 /* Resolve story reactions a combat turn may have triggered: a boss falling
-   (tier-up + reveal) or the scripted Boss #4 story-loss (mascot gone + hooks). */
+   (tier-up + reveal), the scripted Boss #4 story-loss (mascot gone + hooks), or
+   the T19 finale reaching its brink (the ascension resolver). */
 function afterCombat(out) {
   if (out.ui.justDefeatedBoss) return handleBossDefeat(out);
   if (out.ui.justLostStoryBoss) return handleStoryLoss(out);
+  if (out.ui.finaleResolve) return handleFinaleResolve(out);
   return out;
 }
 
@@ -117,6 +120,12 @@ export function update(state, event) {
         s.ui.menu = null;
         return resolveDilemma(s, dilemmaId, opt.value);
       }
+      if (m.kind === "brink") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        return resolveBrink(s, opt.value); // T19 finale: fuel-check gate → one of four endings
+      }
       return handleHubMenu(s, m.kind, m.options[m.index]);
     }
     case "loaded":
@@ -125,7 +134,8 @@ export function update(state, event) {
       return onAIResult(s, event);
     case "menuCancel": {
       const m = s.ui.menu;
-      if (m && m.active && m.kind !== "creation") {
+      // creation + the finale brink are not escapable (the brink has no take-back).
+      if (m && m.active && m.kind !== "creation" && m.kind !== "brink") {
         if (m.kind === "theme") s.ui.effect = { type: "theme", id: m.original, preview: true }; // undo preview
         s.ui.menu = null;
         pushLine(s, "(cancelled)", "hint");
