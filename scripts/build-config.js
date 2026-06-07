@@ -51,6 +51,10 @@ function main() {
   }
   let text = fs.readFileSync(SRC, "utf8");
 
+  // Per-deploy build stamp (computed, not from env): a UTC date shown in the About screen.
+  const stamp = new Date().toISOString().slice(0, 10);
+  text = text.split("__BUILD_STAMP__").join(stamp);
+
   const missing = [];
   for (const { env, placeholder } of SUBS) {
     const val = process.env[env];

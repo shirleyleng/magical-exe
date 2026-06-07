@@ -37,6 +37,20 @@ writes `config.js` into the root, and the site boots normally. The script exits
 non-zero (failing the build loudly) if any of the three env vars are missing,
 rather than shipping a broken placeholder config.
 
+## Caching & 404s (in-repo, automatic)
+
+- **`_headers`** sets `Cache-Control: no-cache` on the code + config (`index.html`,
+  `config.js`, `src/*`, `styles.css`, `themes.css`) so a deploy is never masked by a
+  stale browser cache of an ES module. `no-cache` = revalidate via ETag (cheap 304s
+  when unchanged), not "never store". `/music/*` caches hard (a week).
+- **`404.html`** is a themed not-found page. With a real 404 page present, missing
+  assets should fail visibly instead of silently returning `index.html`. **Make sure
+  the Cloudflare Pages project does NOT have a single-page-app catch-all** (i.e. no
+  `_redirects` line like `/* /index.html 200`, and SPA mode off) — MAGICAL.EXE has no
+  client-side routing, so every real path is a file and misses should 404. (The old
+  catch-all is what turned the missing `config.js` into a blank screen instead of an
+  obvious error.)
+
 ## Server side (one-time, already done — for reference)
 
 The Supabase Edge Function holds the real secrets:

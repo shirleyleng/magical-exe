@@ -3,6 +3,11 @@
 // Balance comes from playtesting these numbers, not from theory. Tune freely.
 
 export const CONFIG = {
+  // ---- meta ----
+  // buildStamp is replaced with the deploy date by scripts/build-config.js at build
+  // time; left as the placeholder (or "dev") it reads as a local build (version.js).
+  meta: { buildStamp: "__BUILD_STAMP__" },
+
   // ---- difficulty ----
   // Applied as multipliers. Easy = forgiving; Normal = standard.
   difficulty: {

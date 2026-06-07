@@ -18,6 +18,7 @@ import { parse, HELP } from "./parser.js";
 import { beginCreation, handleCreationInput, handleMenuSelect } from "./creation.js";
 import { aiAvailable, parseAIJson } from "./ai.js";
 import { THEMES, themeName } from "./theme.js";
+import { versionLabel, buildStamp, REPO_URL } from "./version.js";
 import {
   refreshSlotsMax, trainCommand, openTrainMenu, openShopMenu,
   sellCommand, useItem, doRest, handleHubMenu, slotsFree,
@@ -276,14 +277,20 @@ function openDifficultyMenu(s) {
 
 /** About / credits — aesthetic homages only (no vendored code); see themes.css + DESIGN.md. */
 function showAbout(s) {
+  const build = buildStamp();
   const lines = [
-    "MAGICAL.EXE — a cozy terminal magical-girl game.",
-    "Made with love by Red Mint Studio.",
+    `MAGICAL.EXE  ${versionLabel()}${build ? `  ·  build ${build}` : "  ·  dev build"}`,
+    "A cozy terminal magical-girl game — made with love by Red Mint Studio.",
+    `Source: ${REPO_URL}`,
     "Enjoying it? Support development → https://ko-fi.com/shirleyleng ♥",
+    "",
     "Aesthetic homage only — no vendored code:",
     "  · Lip Gloss / Charm — https://charm.sh",
     "  · Cotton Candy / Compute Cuter — sailorhg, https://computecuter.com",
     "  · Rosé Pine — https://rosepinetheme.com",
+    "",
+    "Font: JetBrains Mono. Narration by Claude (Anthropic); the game engine is",
+    "fully deterministic and client-side — the AI only narrates and parses.",
   ];
   lines.forEach((l) => pushLine(s, l, "system"));
   return s;

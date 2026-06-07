@@ -1,0 +1,22 @@
+# Cloudflare Pages headers (https://developers.cloudflare.com/pages/configuration/headers/)
+#
+# Code + config use ES modules with stable (unhashed) filenames, so a stale browser
+# cache after a deploy would silently run OLD code. "no-cache" doesn't mean "don't
+# store" — it means "revalidate before use": the browser sends an If-None-Match and
+# Cloudflare answers 304 (cheap) when unchanged, or 200 with fresh bytes when it isn't.
+# Net effect: players always get the latest deploy without re-downloading unchanged files.
+
+/index.html
+  Cache-Control: no-cache
+/config.js
+  Cache-Control: no-cache
+/src/*
+  Cache-Control: no-cache
+/styles.css
+  Cache-Control: no-cache
+/themes.css
+  Cache-Control: no-cache
+
+# Long-lived, rarely-changing assets can cache hard.
+/music/*
+  Cache-Control: public, max-age=604800

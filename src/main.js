@@ -14,6 +14,7 @@ import { saveModel, loadActive, loadSlot } from "./persist.js";
 import { callAI, setCaptchaProvider } from "./ai.js";
 import { getCaptchaToken } from "./captcha.js";
 import { applyTheme, getStoredTheme, setStoredTheme } from "./theme.js";
+import { versionLabel } from "./version.js";
 import { CONFIG } from "../config.js";
 
 let state;
@@ -87,6 +88,10 @@ function boot() {
   initDom();
   setCaptchaProvider(makeCaptchaProvider());
   applyTheme(getStoredTheme()); // restore the saved palette before first paint
+
+  // Stamp the real version into the titlebar (replaces the hardcoded "v0.1").
+  const hint = document.querySelector(".titlebar__hint");
+  if (hint) hint.textContent = `${versionLabel()} · terminal shell`;
 
   const loaded = loadActive();
   state = createState(loaded);
