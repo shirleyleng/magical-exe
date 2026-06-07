@@ -39,7 +39,8 @@ Two modes the game switches between:
 
 - **HP** — health; 0 = defeat.
 - **Power** — physical/offensive magic damage.
-- **Spirit** — resource spent on abilities; also magical potency.
+- **Spirit** — magical strength: it scales your abilities' damage and healing. (Abilities cost
+  nothing to cast — Spirit is a stat, not a spent pool.)
 - **Defense** — mitigates incoming damage.
 - **Speed** — turn order in combat.
 - **Dodge** — evasion roll chance.
@@ -89,8 +90,8 @@ Combines three roles:
 
 ### Tactical core (deterministic, instant — the spine)
 - Turn order by **Speed**. **Dodge** = evasion roll. **Defense** mitigates.
-- Actions: attack, guard, use ability (spends **Spirit**), use item, spend **Corruption** for
-  burst/forbidden moves.
+- Actions: attack, guard, use ability (power/heal scales with **Spirit**, no cost), use item,
+  spend **Corruption** for burst/forbidden moves.
 - This is the WitchSpring-style tactical meat. Fully deterministic, no AI.
 
 ### Creative freeform actions (Claude-mediated, bounded)
