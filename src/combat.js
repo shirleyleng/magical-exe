@@ -20,9 +20,11 @@ import { adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
 import { getAbility } from "./abilities.js";
 
 /* A named rival takes no article ("Sable hits you", not "the Sable hits you");
-   ordinary monsters do ("the dust sprite"). */
-const eRef = (e) => (e && e.isRival ? e.name : `the ${e.name}`);
-const ERef = (e) => (e && e.isRival ? e.name : `The ${e.name}`);
+   a boss whose name already begins with "the" (e.g. "the Grey Sovereign") keeps its
+   own article, just cased to fit the sentence; ordinary monsters get one ("the dust sprite"). */
+const builtInArticle = (e) => !!e && (e.isRival || /^the\s/i.test(e.name));
+const eRef = (e) => (!e ? "it" : !builtInArticle(e) ? `the ${e.name}` : e.isRival ? e.name : e.name.replace(/^The\s/, "the "));
+const ERef = (e) => (!e ? "It" : !builtInArticle(e) ? `The ${e.name}` : e.isRival ? e.name : e.name.replace(/^the\s/, "The "));
 
 const coin = () => CONFIG.economy.currencySymbol;
 
@@ -145,11 +147,22 @@ export function startCombat(state, enemyId, opts = {}) {
     couldSpare: false,          // latches once the foe is beaten enough to spare (T14)
     corruptActs: 0,             // corrupt-flavored moves this fight → extra Unmasking on a public win (T15)
     storyLoss: !!opts.storyLoss, // T17: a scripted, unwinnable fight (Boss #4) ending in the mascot's sacrifice
+    // T19 finale: ONE continuous fight across `phases` (enemy ids). On a phase win
+    // endCombat swaps to the next form instead of resolving; the last phase hands off
+    // to the ascension resolver (endgame.js). assist fires once per phase (DESIGN §9.5).
+    finale: !!opts.finale,
+    phases: opts.phases || null,
+    phaseIndex: 0,
+    phaseAssistUsed: false,
   };
   model.mode = "combat";
   clampHpToWarp(model.character); // corruption gained since last fight may cap HP lower
 
-  pushLine(state, enemy.isRival ? `${enemy.name} steps into your path, weapon already drawn!` : `A ${enemy.name} rises before you!`, "banner");
+  pushLine(state, enemy.isRival
+    ? `${enemy.name} steps into your path, weapon already drawn!`
+    : builtInArticle(enemy)
+    ? `${ERef(enemy)} rises before you!`
+    : `A ${enemy.name} rises before you!`, "banner");
   enemyStatusLine(state);
 
   // Speed decides who strikes first.
@@ -472,6 +485,10 @@ function enemyTurn(state) {
   const e = c.enemy;
   const stats = state.model.character.stats;
 
+  // T19 finale: a clutch assist when you're on the brink (heals + staggers the boss),
+  // once per phase. Sets a stagger the check below then spends, robbing the enemy's turn.
+  maybeFinaleAssist(state);
+
   // Burn: flat damage-over-time, ticks before the enemy can act.
   const burn = takeFx(c, "burn");
   if (burn > 0) {
@@ -570,6 +587,14 @@ function endCombat(state, outcome) {
   }
 
   if (outcome === "victory") {
+    // T19 finale: this is ONE continuous fight. A phase win swaps to the next form
+    // (the twist) instead of resolving; the final phase hands off to the brink
+    // resolver (endgame.js), NOT the normal boss-defeat path (no loot/tier/flags).
+    if (c.finale) {
+      if (c.phases && c.phaseIndex < c.phases.length - 1) return advancePhase(state);
+      return triggerFinaleResolve(state);
+    }
+
     pushLine(state, `The ${c.enemy.name} dissolves into motes of light. Victory!`, "banner");
     // A killing blow on a foe you could have spared stains you (coupled corruption gain).
     if (!c.enemy.isBoss && c.couldSpare) {
@@ -652,4 +677,67 @@ function endRivalDuel(state, c, ch, outcome) {
   model.world.currentLocation = "homebase";
   model.world.currentRoom = null;
   return state;
+}
+
+/* ---- T19 finale: phase transitions + the brink hand-off ----
+   The fight is continuous. Beating one form (the apparent source) reveals the next
+   (the city's despair pouring together). We swap the enemy in place — same combat
+   object, fresh round/fx — and narrate the twist; the player keeps initiative. */
+function advancePhase(state) {
+  const model = state.model;
+  const c = model.combat;
+  c.phaseIndex += 1;
+  const nextId = c.phases[c.phaseIndex];
+  const next = spawnEnemy(model, nextId);
+
+  pushLine(state, `${ERef(c.enemy)} comes apart in your hands — and does not die.`, "banner");
+  pushLine(state, "The grey doesn't lift. It pours inward instead, every shuttered window and bowed head and swallowed cry in the whole city running together into one vast, drowning weight that stands up where the Sovereign fell.", "system");
+  const m = (model.mascot && model.mascot.name) || "Your mascot";
+  pushLine(state, `${m}: "That — that's all of it. Everything they stopped letting themselves feel. You can't punch THIS out of existence. But we don't run. We answer it."`, "mascot");
+
+  c.enemy = next;
+  c.fx = {};
+  c.playerGuard = false;
+  c.round = 1;
+  c.couldSpare = false;
+  c.phaseAssistUsed = false;
+  pushLine(state, `${ERef(next)} rises before you!`, "banner");
+  enemyStatusLine(state);
+  pushLine(state, "Your move. (attack · guard · burst · use <ability> · use <item>)", "hint");
+  return state;
+}
+
+/* The last phase is down. Despair can't be ended by a final blow — so instead of a
+   normal victory we hand off to the dedicated brink resolver (endgame.js) via a ui
+   flag. Combat ends here; the choice + fuel-check gate live outside combat. */
+function triggerFinaleResolve(state) {
+  const model = state.model;
+  pushLine(state, "The City's Despair folds to its knees under the last of your strength — and still it does not vanish. It only waits, vast and patient, for you to decide what comes next.", "banner");
+  model.combat = null;
+  model.mode = "hub"; // out of the tactical loop; the resolver narrates from here
+  state.ui.finaleResolve = true; // update.js afterCombat → endgame.js handleFinaleResolve
+  return state;
+}
+
+/* Once per finale phase, when you're driven to the brink (HP below a threshold), the
+   people you've gathered step in — Sable draws the boss's focus (it staggers, losing
+   its turn) and the mascot pours a clutch heal into you. Light scripted assist, not
+   a full ally-combat system (DESIGN §9.5). Fires from enemyTurn before the enemy acts. */
+function maybeFinaleAssist(state) {
+  const c = state.model.combat;
+  if (!c || !c.finale || c.phaseAssistUsed) return false;
+  const ch = state.model.character;
+  const eff = effectiveStats(ch);
+  const F = CONFIG.finale;
+  if (ch.stats.hp > Math.round(eff.maxHp * F.assistHpPct)) return false;
+
+  c.phaseAssistUsed = true;
+  const m = (state.model.mascot && state.model.mascot.name) || "Your mascot";
+  const rival = (state.model.rivals && state.model.rivals[0]) || { name: "Sable" };
+  const heal = Math.max(1, Math.round(eff.maxHp * F.assistHealPct * healMultiplier(ch)));
+  ch.stats.hp = Math.min(eff.maxHp, ch.stats.hp + heal);
+  pushLine(state, `"NOT today!" ${rival.name} hurls herself across ${eRef(c.enemy)}'s line of sight — it recoils, thrown off you for a breath.`, "system");
+  pushLine(state, `${m} presses to your chest, light spilling out warm and fierce. "Up. UP. The whole city's holding their breath for you — get UP." (+${heal} HP)`, "mascot");
+  setFx(c, "stagger", 1, 1); // the enemy loses its coming turn
+  return true;
 }

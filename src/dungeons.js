@@ -223,6 +223,45 @@ export const DUNGEONS = {
       },
     },
   },
+
+  // ---- T19: the finale — the Heart of the Grey. Unlocks once the Awakened Boss #4
+  //      rematch is won (unlockReqBoss "boss4"). You enter when YOU choose: your
+  //      hope/path at that moment is your ending. Its heart holds the apparent
+  //      source of the corruption — and then the twist (combat.js phases).
+  source: {
+    id: "source",
+    name: "the Heart of the Grey",
+    entrance: "source_descent",
+    unlockReqBoss: "boss4",
+    env: ["ash", "grey light", "stillness", "vast hollow", "thick corruption", "open ground"],
+    rooms: {
+      source_descent: {
+        name: "The Long Descent",
+        desc: "The alliance pointed you here, and the city held its breath as you went. The way down is wide and silent, ash falling like grey snow. Something enormous waits at the bottom — you can feel it the way you feel weather coming. The path leads down.",
+        exits: { down: "source_approach" },
+        items: [],
+        encounter: null,
+        tags: ["ash", "wide stair", "grey light", "descent"],
+      },
+      source_approach: {
+        name: "The Threshold of the Grey",
+        desc: "A vast hollow opens out, big enough to lose a sky in. Sable falls into step beside you without a word; somewhere above, the city is still trying to believe. Ahead, the grey gathers itself into a shape that has been steering all of this from the shadows. One way on — forward.",
+        exits: { down: "source_descent", in: "source_heart" },
+        items: [],
+        encounter: null,
+        tags: ["vast hollow", "ash", "open ground", "no cover"],
+      },
+      source_heart: {
+        name: "The Beating Heart of the Grey",
+        desc: "The center of everything. The corruption stops pretending to be many small things and becomes one towering, deliberate presence — and it knows your name. This is what you came for. This is where it ends, one way or another.",
+        exits: { out: "source_approach" },
+        items: [],
+        encounter: null,
+        boss: "finale",
+        tags: ["heart of the grey", "thick corruption", "open ground", "no cover"],
+      },
+    },
+  },
 };
 
 export function getRoom(dungeonId, roomId) {
@@ -237,6 +276,9 @@ export const BOSS_ENEMY = {
   boss3: "hour_warden",
   boss4: "grief_herald",
   secretPlace: "doubt_echo",
+  // T19 finale: the first phase. The full phase list lives in CONFIG.finale.phases;
+  // this entry is just so the cleared-marker / lookup stays consistent.
+  finale: "grey_sovereign",
 };
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];

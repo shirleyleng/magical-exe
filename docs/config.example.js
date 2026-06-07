@@ -225,6 +225,23 @@ export const CONFIG = {
     ascended: { reqBoss: "finalPhase2", reqMinHopeTally: 50 }, // hope fuels ascension
   },
 
+  // ---- the finale (T19, DESIGN §9.5) ----
+  // One continuous fight (two winnable phases) then the brink: a dramatized choice
+  // ("answer with hope" / "seize the despair") plus a fuel-check gate WITH TEETH.
+  // The 2×2 of {reach × enough-fuel} decides the ending. Hope is the hidden tally;
+  // its threshold is LOWERED by Fame (the city's belief carries you). Seizing needs
+  // raw Corruption (or a corrupt path). Horror is reserved for hubris — grasping
+  // power you can't hold — never for trying for hope and falling short.
+  finale: {
+    phases: ["grey_sovereign", "city_despair"], // P1 apparent source → P2 manifested despair
+    hopeThresholdBase: 50,    // hope needed to hold an ascension at zero Fame
+    hopeThresholdFloor: 30,   // ...but never more forgiving than this
+    fameThresholdRelief: 0.2, // each point of Fame lowers the hope threshold by this
+    seizeCorrThreshold: 50,   // raw Corruption that counts as "enough" to seize (path==="corrupt" also qualifies)
+    assistHpPct: 0.4,         // once per phase, when your HP dips below this, Sable + the mascot step in
+    assistHealPct: 0.25,      // the mascot's clutch heal (fraction of max HP)
+  },
+
   // ---- rival arc (T16) ----
   // Sable's schedule ticks off the day cycle (at rest / lie low). Days are counted
   // from the day the gating boss falls.

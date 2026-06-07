@@ -88,6 +88,7 @@ export function freshModel(opts = {}) {
         boss4Attempted: false, mascotGone: false, sparringUnlocked: false,
         allianceVisited: false, secretPlaceUnlocked: false,
         dilemmasSeen: [],
+        ascended: false, // T19: set once the finale resolves into an ascension win
       },
     },
     combat: null,      // active fight state, or null (set by combat.js)
@@ -131,11 +132,14 @@ export function createState(model) {
     if (f.secretPlaceUnlocked === undefined) f.secretPlaceUnlocked = false;
     // Backfill T19 (dilemma events) tracking.
     if (f.dilemmasSeen === undefined) f.dilemmasSeen = [];
+    // Backfill T19 finale flag.
+    if (f.ascended === undefined) f.ascended = false;
   }
   // Backfill T17 mascot presence fields for saves made before the mascot could leave.
   if (m.mascot) {
     if (m.mascot.present === undefined) m.mascot.present = true;
     if (m.mascot.injured === undefined) m.mascot.injured = false;
+    if (m.mascot.dimmed === undefined) m.mascot.dimmed = false; // T19: bound/dimmed in the Dark Ascension
   }
   return {
     model: m,

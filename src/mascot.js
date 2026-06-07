@@ -150,5 +150,6 @@ export function fuseMascot(animals = [], name = "Pip") {
     voice: buildVoice(animals),
     injured: false,
     present: true,
+    dimmed: false, // T19: bound + light-guttered in the Dark Ascension ending
   };
 }

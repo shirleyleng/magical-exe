@@ -145,6 +145,27 @@ export function moveDir(state, dir) {
 
   const nr = currentRoom(model);
   if (nr && nr.boss) {
+    // T19 finale: ONE continuous fight, two winnable phases (combat.js), then the
+    // brink resolver (endgame.js). The mascot soft-warns — about belief, never the
+    // hidden number. You enter when you choose; your hope/path here is your ending.
+    if (nr.boss === "finale") {
+      if (model.world.flags.ascended) {
+        pushLine(state, "The Heart of the Grey is quiet now — just an empty hollow, and far above it, a city learning to be a city again.", "system");
+        return state;
+      }
+      const m = (model.mascot && model.mascot.name) || "Your mascot";
+      pushLine(state, `${m} presses close to your cheek, trembling — not with fear, exactly. "This is it. The real one. Whatever's been steering all of it… it's right there."`, "mascot");
+      pushLine(state, `${m}: "Listen to me. You can't out-hit this — not at the end. The city has to believe in you, and you have to believe back. …Do you feel it? Do you feel them believing?"`, "mascot");
+      const rival = (model.rivals && model.rivals[0]) || { name: "Sable" };
+      pushLine(state, `${rival.name} draws her blade and sets her shoulder to yours. "I'm right here. Don't you dare do this alone." `, "mascot");
+      return startCombat(state, CONFIG.finale.phases[0], {
+        returnMode: "exploration",
+        returnRoom: dest,
+        bossId: "finale",
+        finale: true,
+        phases: [...CONFIG.finale.phases],
+      });
+    }
     if (model.world.flags.bossesDefeated.includes(nr.boss)) {
       pushLine(state, "The heart of the wood is still and clean now.", "system");
       return state;

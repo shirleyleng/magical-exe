@@ -96,6 +96,29 @@ export const ENEMIES = {
     isBoss: true,
   },
 
+  // ---- T19: the finale — ONE continuous fight, two winnable phases (DESIGN §9.5).
+  //      P1: the apparent source, the hidden hand that's been steering the corruption
+  //      at your city all along. A real Awakened-tier fight. ----
+  grey_sovereign: {
+    id: "grey_sovereign",
+    name: "the Grey Sovereign",
+    maxHp: 190, power: 22, defense: 12, speed: 10, dodge: 3,
+    coins: 0,
+    loot: [],
+    isBoss: true,
+  },
+  // P2: kill the Sovereign and the grey doesn't lift — it pours together into this,
+  //     the manifested despair of the whole city. Another normal, winnable fight
+  //     (no damage-wall): you CAN beat it down; whether that's enough is the brink.
+  city_despair: {
+    id: "city_despair",
+    name: "the City's Despair",
+    maxHp: 240, power: 26, defense: 13, speed: 11, dodge: 3,
+    coins: 0,
+    loot: [],
+    isBoss: true,
+  },
+
   // ---- T16: the rival, Sable — a winnable duel, NOT a story boss (no bossId). ----
   rival_sable: {
     id: "rival_sable",
