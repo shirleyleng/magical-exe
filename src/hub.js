@@ -279,11 +279,23 @@ function findItem(id) {
 }
 const coin = () => CONFIG.economy.currencySymbol;
 
+/** Human-readable effect of an item, built from its type/amount (facts stay in config). */
+function itemEffectText(it) {
+  if (!it) return "A curious trinket.";
+  switch (it.type) {
+    case "heal":     return `Restores ${it.amount} HP.`;
+    case "stamina":  return `Restores ${it.amount} Stamina.`;
+    case "material": return "Crafting material.";
+    default:         return "A curious trinket.";
+  }
+}
+
 export function openShopMenu(state) {
   const coins = state.model.character.coins ?? 0;
   const options = CONFIG.economy.shop.map((it) => ({
     label: `${it.name}  —  ${coin()}${it.price}`,
     value: it.id,
+    detail: `${itemEffectText(it)}  ·  buy ${coin()}${it.price}  ·  sell ${coin()}${it.sell}`,
   }));
   options.push({ label: "Sell something…", value: "__sell__" });
   options.push({ label: "Leave", value: "__leave__" });
@@ -301,7 +313,11 @@ export function openSellMenu(state) {
   const options = inv.map((name, i) => {
     const it = findItem(name);
     const price = it ? it.sell : 1;
-    return { label: `${name}  (+${coin()}${price})`, value: String(i) };
+    return {
+      label: `${name}  (+${coin()}${price})`,
+      value: String(i),
+      detail: `${itemEffectText(it)}  ·  sell for ${coin()}${price}`,
+    };
   });
   options.push({ label: "Back", value: "__back__" });
   pushLine(state, "Sell what?", "system");

@@ -100,6 +100,15 @@ function renderMenu(ui) {
     row.textContent = (active ? "▸ " : "  ") + opt.label;
     els.menu.appendChild(row);
   });
+  // Live detail line for the highlighted option (e.g. shop item effect + prices).
+  const activeOpt = m.options[m.index];
+  if (activeOpt && activeOpt.detail) {
+    const detail = document.createElement("div");
+    detail.className = "menu__detail";
+    detail.setAttribute("role", "presentation");
+    detail.textContent = activeOpt.detail;
+    els.menu.appendChild(detail);
+  }
 }
 
 /* ---- rotating example prompt / contextual controls ---- */
