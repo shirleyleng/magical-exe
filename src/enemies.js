@@ -113,7 +113,7 @@ export const ENEMIES = {
   city_despair: {
     id: "city_despair",
     name: "the City's Despair",
-    maxHp: 240, power: 26, defense: 13, speed: 11, dodge: 3,
+    maxHp: 240, power: 28, defense: 13, speed: 11, dodge: 3, // power 26→28: finale skill-check tuning (see config.finale.assistHealPct)
     coins: 0,
     loot: [],
     isBoss: true,
