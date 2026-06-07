@@ -302,6 +302,16 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   same; deploy static build to Netlify or GitHub Pages; confirm the Supabase function CORS allows
   the live domain.
 - DONE: game live at a URL; credit line present; AI proxy works from the deployed origin.
+- **DONE (✅ 2026-06-07):** Game live at magical-exe.redmint.studio (Cloudflare Pages). Deploy fix:
+  `scripts/build-config.js` regenerates the gitignored `config.js` from `docs/config.example.js` at
+  build time, injecting public values (SUPABASE_URL/ANON_KEY, TURNSTILE_SITE_KEY) from env vars +
+  a per-deploy build date into `CONFIG.meta.buildStamp`; see `docs/DEPLOY.md`. About screen
+  (`showAbout`) shows version (`src/version.js`, v1.0.0) + build stamp + GitHub link + Ko-fi +
+  homages + the deterministic-engine note; titlebar stamped from version. `_headers` pins
+  code+config to `no-cache` (ETag revalidation) so deploys aren't masked by stale ES-module caches.
+  `404.html` themed not-found page (keep the Cloudflare SPA catch-all OFF). Verified in preview;
+  console-clean. REMAINING (optional polish, not blocking): real Turnstile site key swap; README
+  refresh; the four deferred flavour task chips.
 
 ---
 
