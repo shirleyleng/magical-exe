@@ -9,11 +9,17 @@
  */
 import { aiAvailable } from "./ai.js";
 
-export function requestNarration(state, { scene, resolved, mood }) {
-  if (!aiAvailable()) return;
-  if (state.ui.effect) return; // don't clobber a pending effect (e.g. a load)
+export function requestNarration(state, { scene, resolved, mood, fallback, kind }) {
+  if (!aiAvailable()) return false;
+  if (state.ui.effect) return false; // don't clobber a pending effect (e.g. a load)
   const p = (state.model.character && state.model.character.pronouns) || {};
   const pronouns = `${p.subj || "they"}/${p.obj || "them"}/${p.poss || "their"}`;
-  state.ui.effect = { type: "ai", kind: "narrate", vars: { pronouns, scene, resolved, mood } };
+  // `fallback` prints if the AI is unavailable/garbled; `tone` is the line kind used for
+  // both the AI prose and the fallback (defaults to the mascot voice).
+  state.ui.effect = {
+    type: "ai", kind: "narrate",
+    vars: { pronouns, scene, resolved, mood, fallback: fallback || null, tone: kind || "mascot" },
+  };
   state.ui.busy = true;
+  return true;
 }

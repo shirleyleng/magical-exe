@@ -63,6 +63,7 @@ const VIGNETTES = [
 const TOWNSFOLK = [
   {
     id: "tomas", name: "Tomas", archetype: "kindness",
+    finaleEcho: "Tomas at his window, no longer talking to an empty chair",
     steps: [
       { label: "Carry old Tomas's shopping up the four flights — his hip's gone again",
         outcome: "He insists he's fine on every single landing, and leans on the rail a little harder on every single landing, and by the top you're both pretending you didn't notice. \"You're a good one,\" he says, like an accusation. \"Don't let this place make you otherwise.\"" },
@@ -78,6 +79,7 @@ const TOWNSFOLK = [
   },
   {
     id: "marisol", name: "Marisol", archetype: "service",
+    finaleEcho: "Marisol on the night ward, who got to watch her daughter dance",
     steps: [
       { label: "Run trays on the night ward so Nurse Marisol can sit down for ten whole minutes",
         outcome: "She doesn't sit, of course. She uses the ten minutes to do three other things — but slower, almost human-paced, and at the end of them she actually looks at you. \"Who sent you?\" she asks, suspicious of kindness, the way the overworked always are." },
@@ -93,6 +95,7 @@ const TOWNSFOLK = [
   },
   {
     id: "pen", name: "Pen", archetype: "kindness",
+    finaleEcho: "Pen singing the little warding song into the dark, unafraid",
     steps: [
       { label: "Pen's been waiting at the corner for hours — their kitten's wandered off again. Go look.",
         outcome: "You find it under the laundromat, unbothered and faintly smug. Pen, all of seven, hugs it and then hugs you, briefly and ferociously, and informs you that you are now officially Pen's Second Best Friend (the kitten is, regrettably, first)." },
@@ -109,6 +112,15 @@ const TOWNSFOLK = [
 ];
 
 export function townsfolkList() { return TOWNSFOLK; }
+
+/** Short finale callbacks for every townsperson the player meaningfully helped — woven
+    into the ascension coda so the people you lifted up are named at the climax. */
+export function helpedEchoes(model) {
+  const tf = (model.world && model.world.townsfolk) || {};
+  return TOWNSFOLK
+    .filter((t) => tf[t.id] && tf[t.id].helped > 0 && t.finaleEcho)
+    .map((t) => t.finaleEcho);
+}
 
 function npcProgress(model, id) {
   return (model.world.townsfolk && model.world.townsfolk[id]) || { helped: 0, done: false };

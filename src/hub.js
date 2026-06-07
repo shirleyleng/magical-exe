@@ -16,6 +16,8 @@ import { coolUnmasking, relaxUnmasking, recapHeat, adjustVisibility, checkUnmask
 import { adjustAlignment } from "./alignment.js";
 import { adjustHope, hopeBand, hopeMoodLine } from "./hope.js";
 import { offeredErrands, findVignette, advanceNpc } from "./errands.js";
+import { aiAvailable } from "./ai.js";
+import { requestNarration } from "./narrate.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -677,6 +679,15 @@ const sample = (x) => (Array.isArray(x) ? x[Math.floor(Math.random() * x.length)
 const errandArchetypes = () => (CONFIG.errands && CONFIG.errands.archetypes) || [];
 const errandArchetype = (id) => errandArchetypes().find((a) => a.id === id) || null;
 
+/* Mood seed handed to the AI narrator so each errand's bespoke prose lands in the right key
+   (the engine still owns what happened — this only colours how it's told). */
+const ERRAND_MOOD = {
+  kindness: "tender, quiet, unhurried — the warmth of simply showing up for someone",
+  service: "worn-out but warm, the good kind of tired that means it counted",
+  rescue: "brave and public — a held breath, then relief breaking into cheers",
+  expedient: "effective but faintly uneasy, a sour aftertaste you decide not to examine",
+};
+
 /** `errand` with no/unknown target -> today's rotating chooser of ways to spend yourself. */
 export function openErrandMenu(state) {
   const model = state.model;
@@ -731,27 +742,42 @@ export function doErrand(state, id) {
   if (fame || unmasking) adjustVisibility(ch, { fame, unmasking });
   if (hope) adjustHope(ch, hope);
 
-  pushLine(state, sample(v.outcome) || "You spend the hours helping where you can.", "system");
-
   // Don't re-offer the same vignette (or the same person's next step) again today.
   if (!model.hub.errandsDoneToday) model.hub.errandsDoneToday = [];
   model.hub.errandsDoneToday.push(v.id);
 
-  // Recurring townsfolk: advance the arc; the final step pays off.
-  if (v.npcId) {
-    const res = advanceNpc(model, v.npcId);
-    if (res.completed && res.payoff) {
-      const p = res.payoff;
-      if (p.line) pushLine(state, p.line, "system");
-      if (p.gift) { ch.inventory.push(p.gift); pushLine(state, `(${res.npc.name} presses a ${p.gift} into your hands.)`, "hint"); }
-      if (p.coins) { ch.coins = (ch.coins ?? 0) + p.coins; pushLine(state, `(+${coin()}${p.coins})`, "hint"); }
-      if (p.virtue || p.corruption) adjustAlignment(ch, { virtue: p.virtue || 0, corruption: p.corruption || 0 });
-      if (p.hope) adjustHope(ch, p.hope);
-    }
+  // Recurring townsfolk: advance the arc; the final step pays off (a curated, climactic beat).
+  let payoff = null, npc = null;
+  if (v.npcId) { const res = advanceNpc(model, v.npcId); npc = res.npc; if (res.completed) payoff = res.payoff; }
+
+  const curated = sample(v.outcome) || "You spend the hours helping where you can.";
+
+  if (payoff) {
+    // Arc completion: the special moment stays fully curated and prose-first.
+    pushLine(state, curated, "system");
+    if (payoff.line) pushLine(state, payoff.line, "system");
+    if (payoff.gift) { ch.inventory.push(payoff.gift); pushLine(state, `(${npc.name} presses a ${payoff.gift} into your hands.)`, "hint"); }
+    if (payoff.coins) { ch.coins = (ch.coins ?? 0) + payoff.coins; pushLine(state, `(+${coin()}${payoff.coins})`, "hint"); }
+    if (payoff.virtue || payoff.corruption) adjustAlignment(ch, { virtue: payoff.virtue || 0, corruption: payoff.corruption || 0 });
+    if (payoff.hope) adjustHope(ch, payoff.hope);
+    pushLine(state, `Slots: ${slotsUsed(model)}/${model.hub.slotsMax} used today.`, "hint");
+    if (a.public) checkUnmaskingEvents(state);
+    return state;
   }
 
+  // Ordinary errand: bookkeeping, then the prose as an epilogue (AI-narrated for endless
+  // variety when available — matching the combat rhythm — with the curated line as a
+  // reliable, offline-safe fallback).
   pushLine(state, `Slots: ${slotsUsed(model)}/${model.hub.slotsMax} used today.`, "hint");
   if (a.public) checkUnmaskingEvents(state); // a public deed may have crossed an Unmasking threshold
+  const queued = aiAvailable() && requestNarration(state, {
+    scene: "a small errand in the city's quiet corners",
+    resolved: v.label,
+    mood: ERRAND_MOOD[v.archetype] || "tender, understated",
+    fallback: curated,
+    kind: "system",
+  });
+  if (!queued) pushLine(state, curated, "system");
   return state;
 }
 

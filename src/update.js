@@ -560,7 +560,9 @@ function onAIResult(s, event) {
 
   if (kind === "narrate") {
     const text = res && res.ok ? cleanProse(res.text) : "";
-    if (text) pushLine(s, text, "mascot");
+    const tone = (vars && vars.tone) || "mascot";
+    if (text) pushLine(s, text, tone);
+    else if (vars && vars.fallback) pushLine(s, vars.fallback, tone); // AI down → curated line
     return s;
   }
 

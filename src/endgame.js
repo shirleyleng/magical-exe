@@ -27,6 +27,7 @@ import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { refreshSlotsMax } from "./hub.js";
 import { ART, corruptArt } from "./mascot.js";
+import { helpedEchoes } from "./errands.js";
 
 const mascotName = (state) => (state.model.mascot && state.model.mascot.name) || "your mascot";
 
@@ -114,6 +115,8 @@ function ascensionCoda(state, slotGain) {
   pushLine(state, "And it held — because none of it was ever only you:", "system");
   pushLine(state, "  · the city believed (every Fame you ever paid for in risk),", "system");
   pushLine(state, "  · the hope you carried back to it, errand by quiet errand,", "system");
+  const echoes = helpedEchoes(state.model);
+  if (echoes.length) pushLine(state, `  · the faces you turned back toward the light — ${echoes.join("; ")},`, "system");
   pushLine(state, `  · the bond that wouldn't let go of you,`, "system");
   pushLine(state, `  · and ${r}, who fought at your shoulder to the last.`, "system");
   if (slotGain > 0) pushLine(state, `(You stand fully realized now — ${state.model.hub.slotsMax} activity slots.)`, "hint");
