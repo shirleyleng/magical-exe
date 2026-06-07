@@ -77,6 +77,7 @@ export function freshModel(opts = {}) {
     hub: {
       slotsMax: CONFIG.hub.startingSlots,
       slotsUsedToday: { training: 0, combat: 0, errand: 0, sparring: 0 },
+      errandsDoneToday: [],           // errand vignette ids done today (reset each day)
       pendingDamageControl: false,    // T15: a mid-tier investigator costs a slot next day
     },
     world: {
@@ -84,6 +85,7 @@ export function freshModel(opts = {}) {
       currentRoom: null,
       roomItems: {},   // per-playthrough mutable room contents (keyed by room id)
       cleared: {},     // rooms whose encounter has been beaten (keyed by room id)
+      townsfolk: {},   // recurring-errand relationship progress (keyed by npc id)
       flags: {
         metRival: false, rivalChallengeDay: null, rivalReturnDay: null, rivalReturned: false,
         bossesDefeated: [], storyBeats: [],
@@ -136,7 +138,11 @@ export function createState(model) {
     if (f.dilemmasSeen === undefined) f.dilemmasSeen = [];
     // Backfill T19 finale flag.
     if (f.ascended === undefined) f.ascended = false;
+    // Backfill recurring-errand relationship progress (living-town errands).
+    if (m.world.townsfolk === undefined) m.world.townsfolk = {};
   }
+  // Backfill the per-day errand offer tracker.
+  if (m.hub && m.hub.errandsDoneToday === undefined) m.hub.errandsDoneToday = [];
   // Backfill T17 mascot presence fields for saves made before the mascot could leave.
   if (m.mascot) {
     if (m.mascot.present === undefined) m.mascot.present = true;

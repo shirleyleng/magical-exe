@@ -15,6 +15,7 @@ import { getAbility, meetsLearnReq, learnableAbilities } from "./abilities.js";
 import { coolUnmasking, relaxUnmasking, recapHeat, adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
 import { adjustAlignment } from "./alignment.js";
 import { adjustHope, hopeBand, hopeMoodLine } from "./hope.js";
+import { offeredErrands, findVignette, advanceNpc } from "./errands.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -474,6 +475,7 @@ function beginDay(state) {
   const model = state.model;
   model.day += 1;
   model.hub.slotsUsedToday = { training: 0, combat: 0, errand: 0, sparring: 0 };
+  model.hub.errandsDoneToday = []; // fresh set of errand offers each day
   refreshSlotsMax(model);
   // A mid-tier investigator eats part of the morning (T15 damage-control).
   if (model.hub.pendingDamageControl) {
@@ -663,58 +665,49 @@ export function visitAlliance(state) {
   return state;
 }
 
-/* ---- errands (T19 hope layer) ----
-   Opt-in help that brings the city hope (the hidden tally, hope.js). Archetypes
-   trade axes (config.errands): quiet help builds Virtue, public rescue builds
-   Fame but raises Unmasking, expedient help is fast but corrupts. Hope is NEVER
-   shown as a number — only the flavor + the city's mood drift hint at it. */
-const ERRAND_FLAVOR = {
-  kindness: [
-    "You sit a long while with someone who'd quietly stopped expecting anyone to come. Nothing gets fixed. They're just, for an afternoon, a little less alone — and it turns out that was the whole thing they needed.",
-    "You carry an old neighbour's shopping up four narrow flights, and then you stay for the tea you didn't have time for, and then for the second cup you really didn't, because she's telling you about her husband and her eyes are bright.",
-    "You listen — really listen, no clock running in your head — to someone the whole rest of the city has quietly learned to walk a little faster past.",
-  ],
-  service: [
-    "Dawn to dark, you give the whole day away — the soup line, the shelter, a stranger's leaking roof in the rain. By dusk you're wrung out and aching and tired in the good way, the way that means it counted.",
-    "A whole day of small mercies, one stacked on the next on the next, until your hands ache and your back complains and the street, when you finally look up at it, seems just a shade less grey than it did this morning.",
-  ],
-  rescue: [
-    "You pull someone clear of a corrupted snarl in the middle of the crowded market — a single held gasp from everyone watching, and then, breaking over you, the cheers. They all saw it. They saw you be brave for them.",
-    "Out in the open, in front of the whole street, you put yourself square between the dark and someone who couldn't run from it. It's the kind of thing a person carries the rest of their life. They won't forget it. Neither, you suspect, will you.",
-  ],
-  expedient: [
-    "You help — you do — but you take the shortcut, the one that gets it done and leaves a faint sour taste at the back of your mouth. It's handled. Mostly. You decide not to examine the 'mostly' too closely.",
-    "You fix it the fast way. The way that's so much easier than it is right. It works, and the person thanks you, and you smile back, and it's probably best not to turn the whole thing over in your head too much later tonight.",
-  ],
-};
-const sample = (arr) => arr[Math.floor(Math.random() * arr.length)];
+/* ---- errands (T19 hope layer + the living-town content pass) ----
+   Opt-in help that brings the city hope (the hidden tally, hope.js). The four
+   archetypes (config.errands) are the BALANCE buckets — quiet help builds Virtue,
+   public rescue builds Fame but raises Unmasking, expedient help corrupts. What the
+   player actually SEES is concrete, rotating vignettes + recurring townsfolk whose
+   arcs build over days (src/errands.js). Hope is NEVER shown as a number — only the
+   flavor + the city's mood drift hint at it. */
+const sample = (x) => (Array.isArray(x) ? x[Math.floor(Math.random() * x.length)] : x);
 
 const errandArchetypes = () => (CONFIG.errands && CONFIG.errands.archetypes) || [];
+const errandArchetype = (id) => errandArchetypes().find((a) => a.id === id) || null;
 
-/** `errand` with no/unknown target -> a chooser of the ways to spend yourself. */
+/** `errand` with no/unknown target -> today's rotating chooser of ways to spend yourself. */
 export function openErrandMenu(state) {
   const model = state.model;
   if (slotsFree(model) <= 0) {
     pushLine(state, "You're out of activity slots for today. Type rest to begin a new day.", "system");
     return state;
   }
-  const lieLow = model.character.mustLieLow;
-  const options = errandArchetypes()
-    .filter((a) => !(a.public && lieLow)) // no public heroics while your cover is too hot
-    .map((a) => ({ label: `${a.label} — ${a.blurb} [${a.slots} slot${a.slots > 1 ? "s" : ""}]`, value: a.id }));
+  const offered = offeredErrands(model);
+  if (!offered.length) {
+    pushLine(state, "You've given all you can today — the city's small hurts will keep till tomorrow.", "system");
+    return state;
+  }
+  const options = offered.map((v) => {
+    const a = errandArchetype(v.archetype) || { slots: 1 };
+    return { label: `${v.label} [${a.slots} slot${a.slots > 1 ? "s" : ""}]`, value: v.id };
+  });
   options.push({ label: "Cancel", value: "__cancel__" });
   pushLine(state, "The city is full of small hurts, the kind no boss fight ever fixes. How do you want to spend yourself today?", "system");
   state.ui.menu = { active: true, kind: "errand", options, index: 0 };
   return state;
 }
 
-/** Resolve one errand. Meter changes are applied SILENTLY (hope is hidden; the
-    visible meters move in STATUS but get no per-errand callout) — you feel it, you
-    don't read it. */
+/** Resolve one errand vignette. Axis/slot cost comes from its archetype; the vignette
+    supplies the concrete flavor. Meter changes are applied SILENTLY (hope is hidden) —
+    you feel it, you don't read it. NPC vignettes also advance a relationship arc. */
 export function doErrand(state, id) {
   const model = state.model;
   const ch = model.character;
-  const a = errandArchetypes().find((x) => x.id === id);
+  const v = findVignette(model, id);
+  if (!v) { pushLine(state, "That isn't something you can do right now.", "system"); return state; }
+  const a = errandArchetype(v.archetype);
   if (!a) { pushLine(state, "That isn't something you can do.", "system"); return state; }
   if (a.public && ch.mustLieLow) {
     pushLine(state, "Not out in the open — your cover is too hot right now. Lie low first.", "system");
@@ -724,24 +717,58 @@ export function doErrand(state, id) {
     pushLine(state, "There isn't enough of the day left for that. Rest first.", "system");
     return state;
   }
-  model.hub.slotsUsedToday.errand += a.slots;
-  if (a.virtue || a.corruption) adjustAlignment(ch, { virtue: a.virtue || 0, corruption: a.corruption || 0 });
-  if (a.fame || a.unmasking) adjustVisibility(ch, { fame: a.fame || 0, unmasking: a.unmasking || 0 });
-  if (a.hope) adjustHope(ch, a.hope);
 
-  pushLine(state, sample(ERRAND_FLAVOR[a.id] || ["You spend the hours helping where you can."]), "system");
+  // Axis math = archetype bucket + any per-step bonus on the vignette.
+  const b = v.bonus || {};
+  const virtue = (a.virtue || 0) + (b.virtue || 0);
+  const corruption = (a.corruption || 0) + (b.corruption || 0);
+  const fame = (a.fame || 0) + (b.fame || 0);
+  const unmasking = (a.unmasking || 0) + (b.unmasking || 0);
+  const hope = (a.hope || 0) + (b.hope || 0);
+
+  model.hub.slotsUsedToday.errand += a.slots;
+  if (virtue || corruption) adjustAlignment(ch, { virtue, corruption });
+  if (fame || unmasking) adjustVisibility(ch, { fame, unmasking });
+  if (hope) adjustHope(ch, hope);
+
+  pushLine(state, sample(v.outcome) || "You spend the hours helping where you can.", "system");
+
+  // Don't re-offer the same vignette (or the same person's next step) again today.
+  if (!model.hub.errandsDoneToday) model.hub.errandsDoneToday = [];
+  model.hub.errandsDoneToday.push(v.id);
+
+  // Recurring townsfolk: advance the arc; the final step pays off.
+  if (v.npcId) {
+    const res = advanceNpc(model, v.npcId);
+    if (res.completed && res.payoff) {
+      const p = res.payoff;
+      if (p.line) pushLine(state, p.line, "system");
+      if (p.gift) { ch.inventory.push(p.gift); pushLine(state, `(${res.npc.name} presses a ${p.gift} into your hands.)`, "hint"); }
+      if (p.coins) { ch.coins = (ch.coins ?? 0) + p.coins; pushLine(state, `(+${coin()}${p.coins})`, "hint"); }
+      if (p.virtue || p.corruption) adjustAlignment(ch, { virtue: p.virtue || 0, corruption: p.corruption || 0 });
+      if (p.hope) adjustHope(ch, p.hope);
+    }
+  }
+
   pushLine(state, `Slots: ${slotsUsed(model)}/${model.hub.slotsMax} used today.`, "hint");
   if (a.public) checkUnmaskingEvents(state); // a public deed may have crossed an Unmasking threshold
   return state;
 }
 
-/** `errand <name>` shortcut (matches an archetype id or label word). */
+/** `errand <name>` shortcut — match one of today's offered vignettes by archetype,
+    townsperson name, or a word from its label. */
 export function errandCommand(state, target) {
   if (!target) return openErrandMenu(state);
+  if (slotsFree(state.model) <= 0) return openErrandMenu(state);
   const t = target.toLowerCase();
-  const a = errandArchetypes().find((x) => x.id === t || x.label.toLowerCase().includes(t));
-  if (!a) { pushLine(state, "You're not sure what you mean by that. Type errand to see how you can help.", "system"); return state; }
-  return doErrand(state, a.id);
+  const offered = offeredErrands(state.model);
+  const match = offered.find((v) =>
+    v.archetype === t ||
+    (v.npc && v.npc.name.toLowerCase().includes(t)) ||
+    v.label.toLowerCase().includes(t)
+  );
+  if (!match) { pushLine(state, "You're not sure what you mean by that. Type errand to see how you can help today.", "system"); return state; }
+  return doErrand(state, match.id);
 }
 
 /* ---- menu select router for hub menus ---- */
