@@ -187,6 +187,16 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 - BUILD: two more dungeons/bosses; corruption-deepens hints; meet rival after #2 (wants to beat
   you); rival returns after #3 ("not everything is what it seems"); Knight tier on #3 + threshold.
 - DONE: arc beats fire in order; rival schedule ticks off `day`; Knight unlock works.
+- ✅ DONE (2026-06-06): two new themed dungeons (Drowned Harbor → boss2 Tideheart Wraith,
+  unlocks after boss1; Hollow Clocktower → boss3 Hour Warden, unlocks after boss2) with an
+  `explore` chooser menu + `explore <name>` shortcut + progressive unlock. Soldier→Knight
+  tier-up on boss3 (path-flavored reveal, +1 slot); one-time corruption story beats on boss2
+  (hidden big boss) + boss3 (hopelessness/errands). Rival arc: Sable schedule ticks off `day`
+  at rest/lie-low — challenges you to a winnable duel a few days after boss2, returns with the
+  "not everything is what it seems" hint a few days after boss3 (`config.rival`). Verified per
+  chunk + cross-module integration (beat boss2 → arm → rest to due day → duel fires).
+- ⬜ DEFERRED: knight-tier ability kit (all abilities still gated to novice); the deeper rival
+  recurring-challenge loop (return scene just sets `respectful` for now).
 
 ### T17 — Boss #4 story-loss + mascot injury + sparring
 - BUILD: scripted unwinnable Boss #4 (telegraphed per `config.js > combat.storyLoss`, mascot
