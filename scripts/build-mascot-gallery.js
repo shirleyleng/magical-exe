@@ -1,0 +1,184 @@
+/* ============================================================
+   build-mascot-gallery.js
+   Generates a SELF-CONTAINED mascot-gallery.html that works by
+   double-clicking (file://) — no dev server needed. It inlines the real
+   src/mascot.js + src/mascotAnim.js source (imports/exports stripped) so
+   the gallery can never drift from the game. Re-run after touching the
+   mascot art / frames / animator:
+
+       node scripts/build-mascot-gallery.js
+   ============================================================ */
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
+
+/* Strip ES-module syntax so the source runs as one classic <script>:
+   drop `import ... from "..."` lines, and the `export ` keyword. */
+const strip = (src) =>
+  src
+    .replace(/^\s*import\s.*?;?\s*$/gm, "")
+    .replace(/^\s*export\s+(?=(const|function|let|var|class)\b)/gm, "");
+
+const bundle = strip(read("src/mascot.js")) + "\n\n" + strip(read("src/mascotAnim.js"));
+
+const html = `<!doctype html>
+<html lang="en" data-theme="lipgloss">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MAGICAL.EXE — mascot gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="themes.css" />
+  <style>
+    body { display:block; padding:24px; background:#0d0b14; overflow-y:auto; }
+    .gallery-head { color:#e8e3f5; font-family:var(--font); max-width:1100px; margin:0 auto 18px; }
+    .gallery-head h1 { margin:0 0 4px; letter-spacing:.12em; }
+    .gallery-head p { margin:0 0 12px; color:#a99fce; font-size:13px; line-height:1.5; }
+    .controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; max-width:1100px; margin:0 auto 18px; font-family:var(--font); }
+    .controls span { color:#8a82a8; font-size:12px; margin-right:4px; }
+    .btn {
+      font-family:var(--font); font-size:12px; font-weight:700; letter-spacing:.04em;
+      color:#e8e3f5; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12);
+      border-radius:999px; padding:6px 14px; cursor:pointer; transition:background .12s, color .12s;
+    }
+    .btn:hover { background:rgba(255,126,182,.12); }
+    .btn.active { background:rgba(255,126,182,.18); border-color:rgba(255,126,182,.5); color:#ff7eb6; }
+    h2.section { color:#e8e3f5; font-family:var(--font); max-width:1100px; margin:30px auto 14px; letter-spacing:.08em; font-size:16px; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:6px; }
+    h2.section small { color:#8a82a8; font-weight:400; font-size:12px; letter-spacing:0; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:18px; max-width:1100px; margin:0 auto; }
+    .card {
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      background:var(--bg-deep, #14101f); border:1px solid rgba(255,255,255,.06);
+      border-radius:14px; padding:16px 12px;
+    }
+    .card .mascot-art { font-size:14px; margin:0; }
+    .card__label { font-family:var(--font); font-weight:700; letter-spacing:.05em; color:#e8e3f5; font-size:13px; }
+    .card__note { font-family:var(--font); color:#8a82a8; font-size:10.5px; text-align:center; line-height:1.4; }
+    .ascend-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:18px; max-width:1100px; margin:0 auto; }
+    .ascend-card { background:var(--bg-deep,#14101f); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:16px; }
+    .ascend-card .row { display:flex; gap:14px; justify-content:space-around; }
+    .ascend-col { display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
+    .ascend-col h4 { margin:0; font-family:var(--font); font-size:11px; letter-spacing:.04em; }
+    .ascend-col h4.virtuous { color:#9fe3c8; }
+    .ascend-col h4.corrupt { color:#d98a8a; }
+    .ascend-col h4.dark { color:#a99fce; }
+    .deity-hero { display:flex; flex-direction:column; align-items:center; gap:8px; max-width:1100px; margin:0 auto 20px; }
+    .deity-hero .mascot-art { font-size:16px; }
+    .mascot-art--corrupt { color:#d98a8a; text-shadow:0 0 8px rgba(180,60,60,.4); }
+  </style>
+</head>
+<body>
+  <div class="gallery-head">
+    <h1>✦ MAGICAL.EXE — mascot gallery ✦</h1>
+    <p>Every mascot base, live-animated with the in-game frame-cycler (idle blink/bob/sparkle).
+       Use the buttons to play the event reactions on all of them at once. The Ascended section shows
+       each one's endgame forms. Honors <code>prefers-reduced-motion</code> (frames go static).
+       <br><em style="color:#6f6890;">Self-contained — generated by scripts/build-mascot-gallery.js; opens fine by double-click.</em></p>
+  </div>
+
+  <div class="controls">
+    <span>reaction:</span>
+    <button class="btn active" data-mode="idle">Idle</button>
+    <button class="btn" data-mode="speak">Speak</button>
+    <button class="btn" data-mode="hit">Hit</button>
+    <button class="btn" data-mode="happy">Happy</button>
+    <span style="margin-left:16px;">theme:</span>
+    <button class="btn" data-theme="lipgloss">Lip Gloss</button>
+    <button class="btn" data-theme="moonlit">Moonlit</button>
+    <button class="btn" data-theme="cottoncandy">Cotton Candy</button>
+  </div>
+
+  <h2 class="section">The roster <small>— 9 bases · the fusion picks one from your three favourite animals</small></h2>
+  <div id="roster" class="grid"></div>
+
+  <h2 class="section">Ascended forms <small>— how each mascot ends the story</small></h2>
+  <div class="deity-hero">
+    <pre class="mascot-art" id="deity"></pre>
+    <div class="card__label" style="color:#9fe3c8;">Virtuous Ascension</div>
+    <div class="card__note" style="max-width:480px;">The mascot blazes up into its own guardian-spirit deity. This radiant form is shared — the same apotheosis for every mascot.</div>
+  </div>
+  <div id="ascend" class="ascend-grid"></div>
+
+  <!-- Inlined from src/mascot.js + src/mascotAnim.js (imports/exports stripped) -->
+  <script>
+${bundle}
+  </script>
+
+  <script>
+  (function () {
+    const BASES = Object.keys(FRAMES);
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const LABELS = { blob:"Blob", catflick:"Catflick", peek:"Peek", bean:"Bean", wing:"Wing", loaf:"Loaf", deer:"Deer", aqua:"Aqua", fluff:"Fluff" };
+    const examplesFor = (base) => Object.keys(ANIMAL_BASE).filter((a) => ANIMAL_BASE[a] === base).slice(0, 4).join(", ");
+    let mode = "idle";
+
+    const roster = document.getElementById("roster");
+    const cells = [];
+    for (const base of BASES) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const pre = document.createElement("pre");
+      pre.className = "mascot-art";
+      pre.textContent = idleFrame(base);
+      const label = document.createElement("div");
+      label.className = "card__label";
+      label.textContent = LABELS[base] || base;
+      const note = document.createElement("div");
+      note.className = "card__note";
+      note.textContent = examplesFor(base);
+      card.append(pre, label, note);
+      roster.appendChild(card);
+      cells.push({ base, pre });
+    }
+
+    document.getElementById("deity").textContent = ART.deity_large;
+    const ascend = document.getElementById("ascend");
+    for (const base of BASES) {
+      const card = document.createElement("div");
+      card.className = "ascend-card";
+      const large = ART[base + "_large"] || ART.blob_large;
+      card.innerHTML =
+        '<div class="card__label" style="text-align:center; margin-bottom:10px;">' + (LABELS[base] || base) + '</div>' +
+        '<div class="row">' +
+          '<div class="ascend-col"><h4 class="corrupt">Eldritch Merge</h4>' +
+            '<pre class="mascot-art mascot-art--corrupt">' + corruptArt(large).replace(/</g,"&lt;") + '</pre></div>' +
+          '<div class="ascend-col"><h4 class="dark">Dark Ascension</h4>' +
+            '<pre class="mascot-art mascot-art--dimmed">' + (ART[base + "_small"]||"").replace(/</g,"&lt;") + '</pre></div>' +
+        '</div>' +
+        '<div class="card__note" style="margin-top:10px;">Eldritch Merge corrupts this mascot\\'s own art (deterministic). Dark Ascension keeps it bound, its light guttered to an ember.</div>';
+      ascend.appendChild(card);
+    }
+
+    let tick = 0;
+    function step() {
+      tick++;
+      for (const c of cells) c.pre.textContent = composeFrameAt(c.base, tick, mode === "idle" ? null : mode);
+    }
+    if (!reduced) setInterval(step, 150);
+
+    document.querySelectorAll(".btn[data-mode]").forEach((b) => {
+      b.addEventListener("click", () => {
+        mode = b.dataset.mode;
+        document.querySelectorAll(".btn[data-mode]").forEach((x) => x.classList.toggle("active", x === b));
+        if (reduced) for (const c of cells) c.pre.textContent = composeFrameAt(c.base, 1, mode === "idle" ? null : mode);
+      });
+    });
+    document.querySelectorAll(".btn[data-theme]").forEach((b) => {
+      b.addEventListener("click", () => {
+        document.documentElement.setAttribute("data-theme", b.dataset.theme);
+        document.querySelectorAll(".btn[data-theme]").forEach((x) => x.classList.toggle("active", x === b));
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
+`;
+
+fs.writeFileSync(path.join(root, "mascot-gallery.html"), html);
+console.log("Wrote mascot-gallery.html (self-contained, " + bundle.length + " bytes of inlined module source).");
