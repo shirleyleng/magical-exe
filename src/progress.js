@@ -14,6 +14,7 @@ import { pushLine } from "./state.js";
 import { ART } from "./mascot.js";
 import { refreshSlotsMax } from "./hub.js";
 import { armRivalForBoss } from "./rival.js";
+import { adjustHope } from "./hope.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -108,6 +109,9 @@ export function handleBossDefeat(state) {
 
   const ch = state.model.character;
   const flags = state.model.world.flags;
+
+  // A boss win quietly brings the city hope (hidden tally — no callout).
+  adjustHope(ch, (CONFIG.errands && CONFIG.errands.passiveHopePerBoss) || 0);
 
   // Story beat (corruption's deeper nature), latched so it never repeats.
   if (!flags.storyBeats) flags.storyBeats = [];

@@ -42,6 +42,24 @@ export const CONFIG = {
     ],
   },
 
+  // ---- errands (T19 hope layer) ----
+  // Pull errands: an opt-in hub activity that brings people hope. Archetypes
+  // TRADE axes (they don't all stack), so Virtue / Fame / Hope stay independent
+  // ending inputs. Bigger errands cost more slots but give a BETTER hope-per-slot
+  // rate (commitment pays). Hope is a HIDDEN tally — never shown as a number; the
+  // player only feels the city's mood shift. Per-axis keys are optional and routed
+  // to the right mutator (virtue/corruption -> alignment; fame/unmasking ->
+  // visibility; hope -> the hidden tally). `public: true` is gated while cover is hot.
+  errands: {
+    passiveHopePerBoss: 3,   // quiet hope a boss win brings the city (hidden)
+    archetypes: [
+      { id: "kindness",  label: "A quiet kindness", blurb: "sit with someone the world forgot",     slots: 1, hope: 2, virtue: 1 },
+      { id: "service",   label: "A day of service", blurb: "give the whole day away, dawn to dusk",  slots: 2, hope: 6, virtue: 3 },
+      { id: "rescue",    label: "A public rescue",  blurb: "save someone out in the open",           slots: 1, hope: 3, fame: 6, unmasking: 4, public: true },
+      { id: "expedient", label: "Cut a corner",     blurb: "help the fast way, not the right way",   slots: 1, hope: 1, corruption: 6 },
+    ],
+  },
+
   // ---- starting character stats ----
   startingStats: {
     hp: 30, maxHp: 30, power: 6, spirit: 6, defense: 4,

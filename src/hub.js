@@ -12,7 +12,9 @@
 import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { getAbility, meetsLearnReq, learnableAbilities } from "./abilities.js";
-import { coolUnmasking, relaxUnmasking, recapHeat } from "./visibility.js";
+import { coolUnmasking, relaxUnmasking, recapHeat, adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
+import { adjustAlignment } from "./alignment.js";
+import { adjustHope, hopeBand, hopeMoodLine } from "./hope.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -400,7 +402,19 @@ export function doRest(state) {
   if (cooled > 0) pushLine(state, `The talk dies down a little. (-${cooled} Unmasking)`, "hint");
   relaxUnmasking(state);
   recapHeat(state);
+  readCityMood(state); // ambient, hidden-hope feedback when the mood band shifts
   return state;
+}
+
+/* The morning read of the city's mood — the only signal of the hidden Hope tally.
+   Fires once at the start, then only when hope crosses into a new band, so it's a
+   felt drift rather than a number (or daily spam). */
+function readCityMood(state) {
+  const ch = state.model.character;
+  const band = hopeBand(ch.hopeTally || 0);
+  if (ch.hopeBandSeen === band) return;
+  ch.hopeBandSeen = band;
+  pushLine(state, hopeMoodLine(ch), "hint");
 }
 
 /* ---- lowering methods (T15) ---- */
@@ -478,6 +492,87 @@ export function visitAlliance(state) {
   return state;
 }
 
+/* ---- errands (T19 hope layer) ----
+   Opt-in help that brings the city hope (the hidden tally, hope.js). Archetypes
+   trade axes (config.errands): quiet help builds Virtue, public rescue builds
+   Fame but raises Unmasking, expedient help is fast but corrupts. Hope is NEVER
+   shown as a number — only the flavor + the city's mood drift hint at it. */
+const ERRAND_FLAVOR = {
+  kindness: [
+    "You sit a long while with someone who'd stopped expecting company. Nothing fixed — just less alone.",
+    "You carry an old neighbour's shopping up four flights and stay for the tea you didn't have time for.",
+    "You listen, really listen, to someone the whole city had learned to walk past.",
+  ],
+  service: [
+    "Dawn to dark you give the day away — soup line, shelter, a stranger's leaking roof. You're tired in the good way.",
+    "A whole day of small mercies, one after another, until your hands ache and the street looks a little less grey.",
+  ],
+  rescue: [
+    "You pull someone clear of a corrupted snarl in the middle of the market — a gasp, then cheers. They saw you be brave.",
+    "Out in the open, in front of everyone, you put yourself between the dark and someone who couldn't run. They won't forget it.",
+  ],
+  expedient: [
+    "You help — but you take the shortcut, the one that leaves a taste in your mouth. It's done. Mostly.",
+    "You fix it the fast way, the way that's easier than it is right. Best not to think too hard about it afterward.",
+  ],
+};
+const sample = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+const errandArchetypes = () => (CONFIG.errands && CONFIG.errands.archetypes) || [];
+
+/** `errand` with no/unknown target -> a chooser of the ways to spend yourself. */
+export function openErrandMenu(state) {
+  const model = state.model;
+  if (slotsFree(model) <= 0) {
+    pushLine(state, "You're out of activity slots for today. Type rest to begin a new day.", "system");
+    return state;
+  }
+  const lieLow = model.character.mustLieLow;
+  const options = errandArchetypes()
+    .filter((a) => !(a.public && lieLow)) // no public heroics while your cover is too hot
+    .map((a) => ({ label: `${a.label} — ${a.blurb} [${a.slots} slot${a.slots > 1 ? "s" : ""}]`, value: a.id }));
+  options.push({ label: "Cancel", value: "__cancel__" });
+  pushLine(state, "The city is full of small hurts. How will you spend yourself?", "system");
+  state.ui.menu = { active: true, kind: "errand", options, index: 0 };
+  return state;
+}
+
+/** Resolve one errand. Meter changes are applied SILENTLY (hope is hidden; the
+    visible meters move in STATUS but get no per-errand callout) — you feel it, you
+    don't read it. */
+export function doErrand(state, id) {
+  const model = state.model;
+  const ch = model.character;
+  const a = errandArchetypes().find((x) => x.id === id);
+  if (!a) { pushLine(state, "That isn't something you can do.", "system"); return state; }
+  if (a.public && ch.mustLieLow) {
+    pushLine(state, "Not out in the open — your cover is too hot right now. Lie low first.", "system");
+    return state;
+  }
+  if (slotsFree(model) < a.slots) {
+    pushLine(state, "There isn't enough of the day left for that. Rest first.", "system");
+    return state;
+  }
+  model.hub.slotsUsedToday.errand += a.slots;
+  if (a.virtue || a.corruption) adjustAlignment(ch, { virtue: a.virtue || 0, corruption: a.corruption || 0 });
+  if (a.fame || a.unmasking) adjustVisibility(ch, { fame: a.fame || 0, unmasking: a.unmasking || 0 });
+  if (a.hope) adjustHope(ch, a.hope);
+
+  pushLine(state, sample(ERRAND_FLAVOR[a.id] || ["You spend the hours helping where you can."]), "system");
+  pushLine(state, `Slots: ${slotsUsed(model)}/${model.hub.slotsMax} used today.`, "hint");
+  if (a.public) checkUnmaskingEvents(state); // a public deed may have crossed an Unmasking threshold
+  return state;
+}
+
+/** `errand <name>` shortcut (matches an archetype id or label word). */
+export function errandCommand(state, target) {
+  if (!target) return openErrandMenu(state);
+  const t = target.toLowerCase();
+  const a = errandArchetypes().find((x) => x.id === t || x.label.toLowerCase().includes(t));
+  if (!a) { pushLine(state, "You're not sure what you mean by that. Type errand to see how you can help.", "system"); return state; }
+  return doErrand(state, a.id);
+}
+
 /* ---- menu select router for hub menus ---- */
 export function handleHubMenu(state, kind, opt) {
   pushLine(state, opt.label, "echo");
@@ -494,6 +589,8 @@ export function handleHubMenu(state, kind, opt) {
     if (opt.value.startsWith("learn:")) return learnAbility(state, opt.value.slice(6), "sparring");
     return doSpar(state, opt.value);
   }
+
+  if (kind === "errand") return doErrand(state, opt.value);
 
   if (kind === "shop") {
     if (opt.value === "__leave__") { pushLine(state, "You step back out into the day.", "system"); return state; }

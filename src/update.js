@@ -22,6 +22,7 @@ import {
   refreshSlotsMax, trainCommand, openTrainMenu, openShopMenu,
   sellCommand, useItem, doRest, handleHubMenu, slotsFree,
   doLieLow, doMisdirect, sparCommand, openSparMenu, visitAlliance,
+  errandCommand, openErrandMenu,
 } from "./hub.js";
 import { enterDungeon, openExploreMenu, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import { unlockedDungeons, resolveDungeon, DUNGEONS } from "./dungeons.js";
@@ -331,7 +332,7 @@ function buildParseContext(s, raw) {
   return {
     mode,
     allowedActions: [
-      "train", "spar", "alliance", "rest", "shop", "buy", "sell", "explore",
+      "train", "spar", "alliance", "errand", "rest", "shop", "buy", "sell", "explore",
       "use", "attack", "look", "status", "inventory",
     ],
     presentEntities: [
@@ -579,6 +580,8 @@ function routeHub(s, cmd) {
       return target ? sparCommand(s, target) : openSparMenu(s);
     case "alliance":
       return visitAlliance(s);
+    case "errand":
+      return target ? errandCommand(s, target) : openErrandMenu(s);
     case "rest":
       return tickRival(doRest(s));
     case "lielow":
@@ -669,6 +672,7 @@ function routeExplore(s, cmd) {
     case "train":
     case "spar":
     case "alliance":
+    case "errand":
     case "rest":
     case "shop":
     case "buy":
