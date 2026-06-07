@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------------
    visibility.js — the Fame / Unmasking axis (DESIGN §3, T15).
 
-   Two linked public-eye meters, mirroring how alignment.js owns the Purity/
+   Two linked public-eye meters, mirroring how alignment.js owns the Virtue/
    Corruption slider. They are NOT coupled to each other (rising Fame doesn't
    lower Unmasking), but the same flashy acts that build Fame also raise
    Unmasking — and corruption-flavored play raises Unmasking FASTER (dark power

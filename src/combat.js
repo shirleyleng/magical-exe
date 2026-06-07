@@ -106,7 +106,7 @@ function hasFx(c, kind) {
 }
 
 /* Install a status effect by kind + magnitude, pulling real numbers from CONFIG.combat.judge.
-   Shared by the AI judge (T13) and the pure ability kit (T14.5) so both stay config-driven. */
+   Shared by the AI judge (T13) and the virtue ability kit (T14.5) so both stay config-driven. */
 function installEffect(c, effect, magnitude, turns) {
   const J = CONFIG.combat.judge;
   const mag = magnitude === "moderate" ? "moderate" : "minor";
@@ -218,7 +218,7 @@ export function playerBurst(state) {
   return afterPlayerAction(state);
 }
 
-/** Mercy: spare a beaten, non-boss foe. It flees unharmed (no loot) and your Purity rises. */
+/** Mercy: spare a beaten, non-boss foe. It flees unharmed (no loot) and your Virtue rises. */
 export function playerSpare(state) {
   const c = state.model.combat;
   if (!c) return state;
@@ -252,7 +252,7 @@ export function playerAbility(state, name) {
   // Soft-fizzle: an opposed-alignment move can falter when you've drifted the other way. Chance
   // scales with how far you've strayed (alignment.js). purify is exempt — it's how you climb back.
   if (ab.kind !== "purify" && rolls(fizzleChance(ch, ab.align))) {
-    const why = ab.align === "pure"
+    const why = ab.align === "virtuous"
       ? "the light gutters out — your heart is too shadowed"
       : "the dark power slips your grasp — too much light in you";
     pushLine(state, `Your ${name} falters; ${why}. (-${ab.spirit} Spirit)`, "system");
@@ -372,7 +372,7 @@ export function applyJudgedAction(state, verdict) {
   const c = state.model.combat;
   if (!c) return state;
 
-  // Forbidden/dark improvisation stains you — a coupled corruption gain (drains purity,
+  // Forbidden/dark improvisation stains you — a coupled corruption gain (drains virtue,
   // updates path, may deepen the stat-warp). Re-clamp HP in case max HP just shrank.
   if (verdict.corruptionCost > 0) {
     const ch = state.model.character;
@@ -559,9 +559,9 @@ function endCombat(state, outcome) {
   if (c.enemy.isRival) return endRivalDuel(state, c, ch, outcome);
 
   if (outcome === "mercy") {
-    const gain = CONFIG.axes.alignment.mercyPurityGain;
-    adjustAlignment(ch, { purity: gain });
-    pushLine(state, `You lower your hand. The ${c.enemy.name} shrinks back and slips away, unharmed. Something in you steadies. (+${gain} Purity)`, "banner");
+    const gain = CONFIG.axes.alignment.mercyVirtueGain;
+    adjustAlignment(ch, { virtue: gain });
+    pushLine(state, `You lower your hand. The ${c.enemy.name} shrinks back and slips away, unharmed. Something in you steadies. (+${gain} Virtue)`, "banner");
     if (c.returnMode === "exploration" && c.returnRoom) model.world.cleared[c.returnRoom] = true;
     model.combat = null;
     model.mode = c.returnMode;

@@ -148,12 +148,12 @@ function lineEl({ text, kind }) {
 }
 
 /* ---- STATUS panel ---- */
-/* Compact alignment slider: a marker on a Pure←→Corrupt line, from the gap between
-   purity and corruption (left = pure, right = corrupt, centered = balanced). */
+/* Compact alignment slider: a marker on a Virtue←→Corrupt line, from the gap between
+   virtue and corruption (left = virtuous, right = corrupt, centered = balanced). */
 function alignmentBar(c) {
   const cells = 7;
   const mid = (cells - 1) / 2;
-  const gap = (c.purity || 0) - (c.corruption || 0); // + leans pure (left), - leans corrupt (right)
+  const gap = (c.virtue || 0) - (c.corruption || 0); // + leans virtuous (left), - leans corrupt (right)
   const idx = Math.max(0, Math.min(cells - 1, Math.round(mid - (gap / 100) * mid)));
   let bar = "";
   for (let i = 0; i < cells; i++) bar += i === idx ? "◆" : "·";
@@ -186,7 +186,7 @@ function renderStats(model) {
     `STA   ${s.stamina}/${s.maxStamina}`,
     `Coins ${CONFIG.economy.currencySymbol}${c.coins ?? 0}`,
     `──────────────`,
-    `Pure ${alignmentBar(c)} Corr${mark}`,
+    `Virtue ${alignmentBar(c)} Corr${mark}`,
   ].join("\n");
 
   els.stat.innerHTML = "";

@@ -27,7 +27,7 @@ const TIER_REVEAL = {
     pushLine(state, `${m}: "You did it! …There's something I should tell you now."`, "mascot");
     pushLine(
       state,
-      `${m}: "We aren't alone. Across the world there's an alliance of magical people, sworn to drive back corruption and keep cities pure — but there are far too few of us for every city. That's why we can travel from one to the next."`,
+      `${m}: "We aren't alone. Across the world there's an alliance of magical people, sworn to drive back corruption and keep cities whole — but there are far too few of us for every city. That's why we can travel from one to the next."`,
       "mascot"
     );
   },
@@ -35,7 +35,7 @@ const TIER_REVEAL = {
     const m = mascotName(state);
     const path = state.model.character.path;
     const flavor =
-      path === "pure"
+      path === "virtuous"
         ? "Clean light hardens around you like armor — every edge of you turned to shelter for others."
         : path === "corrupt"
         ? "The light comes edged and hungry, a darker steel — power that protects, and tempts."
@@ -49,7 +49,7 @@ const TIER_REVEAL = {
     const m = mascotName(state);
     const path = state.model.character.path;
     const flavor =
-      path === "pure"
+      path === "virtuous"
         ? "The light that fills you is wholly your own now — not borrowed, not feared. It knows your name."
         : path === "corrupt"
         ? "The dark and the light in you stop warring and simply answer to you. Whatever you've become, it's finally, fully yours."

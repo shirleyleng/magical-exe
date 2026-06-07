@@ -2,7 +2,7 @@
  *
  * Abilities are data in CONFIG.abilities. An ability with a `learn` block is acquired in
  * training once its prereqs (tier reached + a slider threshold) are met; abilities without
- * one are innate. `align` (pure/corrupt/neutral) gates learning and drives the soft-fizzle
+ * one are innate. `align` (virtuous/corrupt/neutral) gates learning and drives the soft-fizzle
  * in combat (see alignment.js). The actual combat effect lives in combat.js.
  */
 import { CONFIG } from "../config.js";
@@ -23,7 +23,7 @@ export function meetsLearnReq(ch, def) {
   if (!L) return false;
   if (L.reqTier && tierIndex(ch.transformationTier) < tierIndex(L.reqTier)) return false;
   if (typeof L.reqCorruption === "number" && (ch.corruption || 0) < L.reqCorruption) return false;
-  if (typeof L.reqGapPure === "number" && ((ch.purity || 0) - (ch.corruption || 0)) < L.reqGapPure) return false;
+  if (typeof L.reqGapVirtue === "number" && ((ch.virtue || 0) - (ch.corruption || 0)) < L.reqGapVirtue) return false;
   return true;
 }
 

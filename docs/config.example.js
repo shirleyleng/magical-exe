@@ -47,9 +47,9 @@ export const CONFIG = {
     hp: 30, maxHp: 30, power: 6, spirit: 6, defense: 4,
     speed: 6, dodge: 4, stamina: 20, maxStamina: 20,
   },
-  // purity/corruption start at 0/0 — a centered, unwritten alignment your choices shape
+  // virtue/corruption start at 0/0 — a centered, unwritten alignment your choices shape
   // (the slider reads from the gap between them; see axes.alignment).
-  startingMeters: { corruption: 0, purity: 0, fame: 0, unmasking: 0, hopeTally: 0 },
+  startingMeters: { corruption: 0, virtue: 0, fame: 0, unmasking: 0, hopeTally: 0 },
 
   // ---- economy ----
   // currencySymbol is shown next to coin counts everywhere. Swap freely:
@@ -110,21 +110,21 @@ export const CONFIG = {
         { at: 70, powerMult: 1.25, hpMult: 0.85, spiritMult: 0.85 },
       ],
     },
-    // high PURITY warps the OTHER way — a "grace" boon: resilient support (Defense up, healing
+    // high VIRTUE warps the OTHER way — a "grace" boon: resilient support (Defense up, healing
     // up), mirroring the corruption warp. Since the two ends are coupled, only one side is ever
-    // active. This is what makes committing PURE pay off structurally, not just via abilities.
-    purity: {
+    // active. This is what makes committing to VIRTUE pay off structurally, not just via abilities.
+    virtue: {
       graceThresholds: [
         { at: 40, defenseMult: 1.15, healMult: 1.15 },
         { at: 70, defenseMult: 1.35, healMult: 1.30 },
       ],
     },
-    // Purity & Corruption read as ONE coupled slider: gaining one end drains the other by
-    // `couplingDrain` * the gain. `path` (pure/balanced/corrupt) comes from the gap between them.
+    // Virtue & Corruption read as ONE coupled slider: gaining one end drains the other by
+    // `couplingDrain` * the gain. `path` (virtuous/balanced/corrupt) comes from the gap between them.
     alignment: {
-      pathGap: 25,                 // |purity - corruption| >= this => pure / corrupt; else balanced
-      couplingDrain: 0.5,          // a +10 corruption gain also removes 5 purity (and vice versa)
-      mercyPurityGain: 8,          // sparing a beaten, non-boss foe
+      pathGap: 25,                 // |virtue - corruption| >= this => virtuous / corrupt; else balanced
+      couplingDrain: 0.5,          // a +10 corruption gain also removes 5 virtue (and vice versa)
+      mercyVirtueGain: 8,          // sparing a beaten, non-boss foe
       finishCorruptionGain: 4,     // landing the killing blow instead
       spareEnemyHpPct: 0.25,       // you may `spare` once enemy HP <= this fraction of its max
       fizzlePerGapPoint: 0.012,    // opposed-ability fizzle chance per point you're into the wrong end
@@ -148,38 +148,38 @@ export const CONFIG = {
   },
 
   // ---- abilities (combat kit) ----
-  // align: neutral | pure | corrupt  → gates learning + drives soft-fizzle when you've
+  // align: neutral | virtuous | corrupt  → gates learning + drives soft-fizzle when you've
   //   drifted to the OPPOSITE end of the slider (chance scales with how far; see axes.alignment).
   // kind: damage | heal | lifesteal. nudge: slider movement when used (coupled, like any gain).
   // learn: prereqs to learn it in training (omit `learn` => innate from the start). reqTier =
-  //   transformation tier reached; reqCorruption = raw corruption >=; reqGapPure = purity-corruption >=.
+  //   transformation tier reached; reqCorruption = raw corruption >=; reqGapVirtue = virtue-corruption >=.
   abilities: {
     "light bolt": { align: "neutral", spirit: 3, kind: "damage", mult: 1.6,
                     verb: "hurl a bolt of light at" },
-    "mend":       { align: "pure", spirit: 4, kind: "heal", healPct: 0.30,
+    "mend":       { align: "virtuous", spirit: 4, kind: "heal", healPct: 0.30,
                     verb: "fold a soft, mending light around yourself",
-                    nudge: { purity: 4 },
-                    learn: { reqTier: "novice", reqGapPure: 15, slotCost: 1, blurb: "a healing light (Pure)" } },
+                    nudge: { virtue: 4 },
+                    learn: { reqTier: "novice", reqGapVirtue: 15, slotCost: 1, blurb: "a healing light (Virtue)" } },
     "drain":      { align: "corrupt", spirit: 3, kind: "lifesteal", mult: 1.2, lifestealPct: 0.5,
                     verb: "siphon the living warmth out of",
                     nudge: { corruption: 4 },
                     learn: { reqTier: "novice", reqCorruption: 40, slotCost: 1, blurb: "a life-siphon (Corrupt)" } },
-    // Pure kit: corruption tempts with raw burst damage; purity rewards control + safety + sustain.
+    // Virtue kit: corruption tempts with raw burst damage; virtue rewards control + safety + sustain.
     // applyFx installs a status effect (same magnitudes as combat.judge); reuses the T13 fx engine.
-    "radiance":   { align: "pure", spirit: 5, kind: "damage", mult: 1.3,
+    "radiance":   { align: "virtuous", spirit: 5, kind: "damage", mult: 1.3,
                     verb: "call down a lance of radiance on",
                     applyFx: { kind: "blind", magnitude: "moderate", turns: 1 }, // dazzles -> it misses
-                    nudge: { purity: 4 },
-                    learn: { reqTier: "novice", reqGapPure: 15, slotCost: 1, blurb: "a dazzling light strike (Pure)" } },
-    "ward":       { align: "pure", spirit: 4, kind: "buff",
+                    nudge: { virtue: 4 },
+                    learn: { reqTier: "novice", reqGapVirtue: 15, slotCost: 1, blurb: "a dazzling light strike (Virtue)" } },
+    "ward":       { align: "virtuous", spirit: 4, kind: "buff",
                     verb: "wreathe yourself in warding light",
                     applyFx: { kind: "defend", magnitude: "moderate", turns: 2 }, // incoming damage cut
-                    nudge: { purity: 3 },
-                    learn: { reqTier: "novice", reqGapPure: 30, slotCost: 1, blurb: "a protective ward (Pure)" } },
-    "purify":     { align: "pure", spirit: 4, kind: "purify",
+                    nudge: { virtue: 3 },
+                    learn: { reqTier: "novice", reqGapVirtue: 30, slotCost: 1, blurb: "a protective ward (Virtue)" } },
+    "purify":     { align: "virtuous", spirit: 4, kind: "purify",
                     verb: "breathe out a cleansing light",
                     shedCorruption: 10, healPct: 0.10, // climb back from the brink (fizzle-exempt)
-                    learn: { reqTier: "novice", reqCorruption: 10, slotCost: 1, blurb: "cleanse + shed Corruption (Pure)" } },
+                    learn: { reqTier: "novice", reqCorruption: 10, slotCost: 1, blurb: "cleanse + shed Corruption (Virtue)" } },
     // T18: the Awakened signature — your recovered magical weapon. Neutral (no
     // fizzle), heavy hit that staggers the foe (skips its next turn). Learnable
     // only once Awakened (reqTier), so it never appears before the weapon is found.

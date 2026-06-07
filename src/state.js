@@ -48,7 +48,7 @@ function freshCharacter() {
     transformationTier: "novice",
     stats: { ...CONFIG.startingStats },
     corruption: CONFIG.startingMeters.corruption,
-    purity: CONFIG.startingMeters.purity,
+    virtue: CONFIG.startingMeters.virtue,
     fame: CONFIG.startingMeters.fame,
     unmasking: CONFIG.startingMeters.unmasking,
     unmaskingTierSeen: "none",      // highest Unmasking event tier already fired (T15)
@@ -105,6 +105,9 @@ export function createState(model) {
   // `path` is derived from the slider; recompute on entry so loaded/older saves are correct
   // (during play, adjustAlignment keeps it fresh).
   if (m.character) {
+    // The Purity meter was renamed to Virtue — migrate older saves before deriving path.
+    if (m.character.virtue === undefined) m.character.virtue = m.character.purity || 0;
+    if ("purity" in m.character) delete m.character.purity;
     m.character.path = derivePath(m.character);
     // Backfill T15 fields for older saves so events/locks read correctly.
     if (m.character.unmaskingTierSeen === undefined) m.character.unmaskingTierSeen = "none";
