@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="lipgloss">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -78,8 +78,9 @@
   <div id="ascend" class="ascend-grid"></div>
 
   <script type="module">
-    import { ART, FRAMES, ANIMAL_BASE, corruptArt } from "./src/mascot.js";
-    import { composeFrameAt, idleFrame } from "./src/mascotAnim.js";
+  try {
+    const { ART, FRAMES, ANIMAL_BASE, corruptArt } = await import("./src/mascot.js");
+    const { composeFrameAt, idleFrame } = await import("./src/mascotAnim.js");
 
     const BASES = Object.keys(FRAMES); // the 9 animatable bases
     const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -164,6 +165,19 @@
         document.querySelectorAll(".btn[data-theme]").forEach((x) => x.classList.toggle("active", x === b));
       });
     });
+  } catch (err) {
+    // Never fail silently to a blank page — surface it (the usual cause is opening
+    // this file directly via file:// instead of through the dev server, which blocks
+    // ES-module imports). Serve it from the project root, e.g. localhost:4321.
+    const box = document.createElement("div");
+    box.style.cssText = "max-width:1100px;margin:20px auto;padding:16px;border:1px solid #d98a8a;border-radius:12px;color:#f0c9c9;font-family:monospace;white-space:pre-wrap;";
+    box.textContent =
+      "Couldn't load the mascot modules:\n  " + (err && err.message ? err.message : err) +
+      "\n\nOpen this page through the dev server (e.g. http://localhost:4321/mascot-gallery.html), " +
+      "not as a file:// path — browsers block ES-module imports over file://.";
+    document.body.appendChild(box);
+    console.error("[mascot-gallery]", err);
+  }
   </script>
 </body>
 </html>
