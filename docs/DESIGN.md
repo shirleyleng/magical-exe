@@ -219,6 +219,52 @@ Boss #2 onward is post-slice. (See CLAUDE.md > Build Order.)
 
 ---
 
+## 9.5 Hope tally & the ending fork (workshopped 2026-06-07, for T19)
+
+The endings are decided by a hidden **Hope tally** plus the Purity/Corruption slider, with Fame as
+a modifier. The player is never shown a hope number — they only *feel* the trend.
+
+**Sources of hope (errands = the "true fight" against hopelessness):**
+- **Pull — an `errand` hub activity** (opt-in, repeatable, costs slots). Archetypes that *trade*
+  axes rather than stack them, so Purity/Fame/Hope stay independent ending inputs:
+  - *Quiet kindness:* +hope, +purity, no Fame/Unmasking · small = +2 hope/+1 purity/1 slot ·
+    big = +6 hope/+3 purity/2 slots — **bigger errands give a BETTER hope/slot rate** (commitment
+    pays; ~2.0 → 3.0 per slot).
+  - *Public rescue:* +hope, +Fame, +Unmasking (seen heroics) — reuses the stubbed
+    `axes.fame.gainSaveCivilian`.
+  - *Expedient/dark help:* small hope + Corruption (you "helped," but cut a corner). The small
+    hope leak is cosmetic — see precedence below.
+- **Push — dilemma events** (one-shot, latched; fire at `rest`, reusing the T15 event-tick
+  pattern). Branching menu: a sincere choice (+hope/+purity), an expedient choice
+  (+corruption, ~0 hope), and **ignore** (inaction costs hope — e.g. not investigating a cry).
+- **Passive:** a little hope per boss felled and per rescue resolved kindly, so a hope-minded
+  player nears the threshold *naturally* — errands are the deliberate top-up, not a grind wall.
+
+**Feedback (hidden meter, but never arbitrary):** individual choices are **ambiguous** — no number,
+no explicit "that was bad" (the dark option only reads *off* in tone). But the **cumulative** state
+is felt: city-mood lines in errand/rest flavor, the mascot's periodic read ("people are starting to
+believe again"), and Fame as a loose visible proxy. The ending names the tally in retrospect.
+Heavy subject matter stays in *lingering ambiguity* ("you never do find out…"), not on-screen horror,
+to fit the cozy register.
+
+**Ending gate (path-first, Fame-modified):**
+1. `path === pure && hope ≥ THRESHOLD` → **Pure Ascension** (answer despair with accumulated hope).
+2. `path === corrupt` → **Dark Ascension** (seize the despair's power). *Banked hope can't save you —
+   what you* became *decides; this is why dark "help" leaking a little hope is harmless.*
+3. else (balanced, or pure-but-short-on-hope) → **Despair ending** (bittersweet).
+- **Fame modifies THRESHOLD:** high Fame lowers the hope you personally need (the city's belief
+  carries you); a hidden hero needs more — and fame costs Unmasking risk (a real be-seen-vs-stay-safe
+  tension). Anchor: `reqMinHopeTally` = 50 (already in `config.tiers.ascended`), Fame floor ~30.
+- The **coupled Purity/Corruption slider does the heavy lifting**: earning hope (via purity-flavored
+  help) drains corruption and vice-versa, so "high hope/low corruption" and "high corruption/low
+  hope" are the natural attractors — the dual gate rides the existing physics.
+
+**Build note:** this hope layer (errand activity + dilemma events + passive sources + ambient
+feedback) must land BEFORE the 3-phase finale + ending screens that consume the tally — treat it as
+the front half of T19 (or a "T18.5").
+
+---
+
 ## 10. State shape (the save object)
 
 One serializable object = one save slot. Rough skeleton (extend as needed):

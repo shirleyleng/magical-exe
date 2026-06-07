@@ -23,31 +23,39 @@ The finale. A 3-phase fight + the Awakened→Ascended tier + a Purity/Corruption
 - **Purity/Corruption fork:** Pure = ascension through connection/hope; Corrupt = a darker
   ascension that seizes the despair's power → a different ending.
 
-## ⚠️ Critical pre-req to design first: the hope tally has no SOURCE yet
+## ✅ Hope tally + endings design is LOCKED — see DESIGN.md §9.5
 
-`character.hopeTally` exists (`startingMeters`, currently 0) and `config.tiers.ascended =
-{ reqBoss:"finalPhase2", reqMinHopeTally:50 }` is already wired into `progress.js handleBossDefeat`
-(`reqs.reqMinHopeTally && ch.hopeTally < reqs.reqMinHopeTally`). BUT **nothing increments
-hopeTally** today — Fame is the only meter that climbs. DESIGN §8 says *errands that bring people
-hope are the true fight*. So T19 (or a T18.5) needs a **hope source**: an errand/help activity in
-the hub that raises hopeTally (and probably ties into the existing `gainSaveCivilian` Fame hook
-that was deferred in T15). Without it, ascension can't be gated on hope as designed.
+Workshopped 2026-06-07. Full spec in **DESIGN.md §9.5 "Hope tally & the ending fork"**. Summary:
+- **Hope is hidden.** Sources: (1) a repeatable opt-in **`errand` hub activity** with archetypes
+  that TRADE axes (quiet kindness = hope+purity; public rescue = hope+fame+unmask via the stubbed
+  `gainSaveCivilian`; expedient/dark help = small hope + corruption); bigger errands give a BETTER
+  hope/slot rate (commitment pays). (2) **One-shot dilemma events** that fire at `rest` (reuse the
+  T15 event-tick) with sincere/expedient/**ignore** branches — ignoring costs hope. (3) **Passive**
+  hope per boss + per kindly rescue.
+- **Feedback:** per-choice ambiguous (no numbers), but the cumulative trend is FELT via city-mood
+  flavor + mascot reads + Fame as a loose proxy; the ending names it in retrospect. Heavy themes
+  stay in lingering ambiguity, not on-screen horror (cozy register).
+- **Endings (path-first, Fame-modified):** pure+hope≥THRESHOLD → Pure Ascension; corrupt path →
+  Dark Ascension (banked hope can't override what you became); else → Despair ending. Fame LOWERS
+  the hope threshold needed (`reqMinHopeTally`=50, floor ~30). The coupled slider keeps hope-earning
+  and corruption near-mutually-exclusive on its own.
+- **`hopeTally` still has no code SOURCE today** — building it is the front half of T19 (or T18.5),
+  and must land BEFORE the finale + ending screens that consume it.
 
-## Likely open design calls to workshop first (don't code until decided)
+## Likely open design calls still to workshop (don't code until decided)
 
 1. How are the 3 phases structured in the engine? One `startCombat` with phase transitions inside
    `endCombat` (re-spawn next phase instead of ending), or three chained boss encounters? The
    `bossId` for the ascension gate is `finalPhase2` — decide what fires that and what `finalPhase3`
    /the final win looks like.
-2. Where is the hope tally earned — a new `errand`/`help` hub activity (costs a slot, +hopeTally,
-   maybe +Fame), and/or retroactively from existing errands (misdirection is currently the only
-   errand and it's about hiding, not hope)? How much hope per action vs `reqMinHopeTally`?
-3. Phase 3 ascension: is it automatic once hope ≥ threshold at the right moment, or a *choice* the
-   player makes (answer despair with hope vs seize its power) that also sets the Pure/Corrupt fork?
-4. The two endings — how different (just flavor text, or different final mechanics/credits)? Does
+2. Phase 3 ascension: automatic once the gate (path + hope/Fame) is met at the right moment, or a
+   *choice* the player confirms (answer despair with hope vs seize its power)?
+3. The endings — how different (flavor text only, or different final mechanics/credits)? Does
    reaching Ascended unlock anything post-game (prestige is T20)?
-5. Does the rival literally join the fight (an ally in combat — new system) or is it narrative
+4. Does the rival literally join the fight (an ally in combat — new system) or is it narrative
    ("Sable fights beside you" as flavor + maybe a stat/heal assist)?
+5. Errand content: how many archetypes ship (3 vs +restoration/cleanse 4th), and how many authored
+   one-shot dilemma events for the first pass?
 
 ## Working notes / conventions
 
