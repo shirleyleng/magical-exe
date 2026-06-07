@@ -24,7 +24,7 @@ import {
 } from "./hub.js";
 import { enterDungeon, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import {
-  startCombat, playerAttack, playerGuard, combatUse, combatLook, playerFlee,
+  startCombat, playerAttack, playerGuard, playerBurst, playerSpare, combatUse, combatLook, playerFlee,
   applyJudgedAction,
 } from "./combat.js";
 import { handleBossDefeat } from "./progress.js";
@@ -532,6 +532,10 @@ function routeCombat(s, cmd) {
       return playerAttack(s);
     case "guard":
       return playerGuard(s);
+    case "burst":
+      return playerBurst(s);
+    case "spare":
+      return playerSpare(s);
     case "use":
       return combatUse(s, target);
     case "retreat":

@@ -118,6 +118,7 @@ export function startCombat(state, enemyId, opts = {}) {
     fromSlot: !!opts.fromSlot,
     envTags: envTagsFor(model), // for the T13 freeform-action judge
     fx: {},                     // active status effects (T13), keyed by effect kind
+    couldSpare: false,          // latches once the foe is beaten enough to spare (T14)
   };
   model.mode = "combat";
   clampHpToWarp(model.character); // corruption gained since last fight may cap HP lower
@@ -130,7 +131,7 @@ export function startCombat(state, enemyId, opts = {}) {
     pushLine(state, `The ${enemy.name} is quicker — it moves first!`, "hint");
     enemyTurn(state);
   } else {
-    pushLine(state, "Your move. (attack · guard · use <ability> · use <item> · flee)", "hint");
+    pushLine(state, "Your move. (attack · guard · burst · use <ability> · use <item> · flee)", "hint");
   }
   return state;
 }
@@ -166,6 +167,41 @@ export function playerGuard(state) {
   state.model.combat.playerGuard = true;
   pushLine(state, "You raise your guard.", "system");
   return afterPlayerAction(state);
+}
+
+/** Burst (the corruption "battle resource"): a heavy hit at no Spirit cost that DEEPENS your
+   corruption — cheap power, real cost (worse warp, drifts you toward the dark end). */
+export function playerBurst(state) {
+  const c = state.model.combat;
+  const ch = state.model.character;
+  const e = c.enemy;
+  const eff = effectiveStats(ch);
+  const K = CONFIG.axes.corruption;
+
+  if (rolls(dodgeChance(e.dodge))) {
+    pushLine(state, `Dark power surges — but the ${e.name} twists aside!`, "system");
+  } else {
+    const dmg = damageAfterDefense(Math.round(eff.power * K.burstDamageMult), exposedDefense(c, e));
+    e.hp = Math.max(0, e.hp - dmg);
+    pushLine(state, `You unleash a corrupt burst on the ${e.name} for ${dmg}!`, "system");
+  }
+  adjustAlignment(ch, { corruption: K.burstCorruptionGain });
+  clampHpToWarp(ch);
+  pushLine(state, `The power answers — and stains you. (+${K.burstCorruptionGain} Corruption)`, "system");
+  return afterPlayerAction(state);
+}
+
+/** Mercy: spare a beaten, non-boss foe. It flees unharmed (no loot) and your Purity rises. */
+export function playerSpare(state) {
+  const c = state.model.combat;
+  if (!c) return state;
+  const e = c.enemy;
+  if (e.isBoss) { pushLine(state, "This foe gives no opening for mercy.", "system"); return state; }
+  if (!c.couldSpare) {
+    pushLine(state, `The ${e.name} is still standing strong — wear it down before you can spare it.`, "system");
+    return state; // not a turn-consuming action
+  }
+  return endCombat(state, "mercy");
 }
 
 export function playerAbility(state, name) {
@@ -306,7 +342,20 @@ function afterPlayerAction(state) {
   const c = state.model.combat;
   enemyStatusLine(state);
   if (c.enemy.hp <= 0) return endCombat(state, "victory");
+  maybeOfferSpare(state);
   return enemyTurn(state);
+}
+
+/** Once a non-boss foe is worn down past the spare threshold, surface the mercy choice.
+   `couldSpare` latches so a later killing blow counts as a deliberate finish. */
+function maybeOfferSpare(state) {
+  const c = state.model.combat;
+  const e = c.enemy;
+  if (e.isBoss || c.couldSpare) return;
+  if (e.hp <= Math.round(e.maxHp * CONFIG.axes.alignment.spareEnemyHpPct)) {
+    c.couldSpare = true;
+    pushLine(state, `The ${e.name} is barely holding together — you could finish it, or spare it.`, "hint");
+  }
 }
 
 /* ---- enemy turn ----
@@ -368,8 +417,26 @@ function endCombat(state, outcome) {
   const c = model.combat;
   const ch = model.character;
 
+  if (outcome === "mercy") {
+    const gain = CONFIG.axes.alignment.mercyPurityGain;
+    adjustAlignment(ch, { purity: gain });
+    pushLine(state, `You lower your hand. The ${c.enemy.name} shrinks back and slips away, unharmed. Something in you steadies. (+${gain} Purity)`, "banner");
+    if (c.returnMode === "exploration" && c.returnRoom) model.world.cleared[c.returnRoom] = true;
+    model.combat = null;
+    model.mode = c.returnMode;
+    pushLine(state, c.returnMode === "exploration" ? "The way is clear. (look around)" : "(Back at the hub.)", "hint");
+    return state;
+  }
+
   if (outcome === "victory") {
     pushLine(state, `The ${c.enemy.name} dissolves into motes of light. Victory!`, "banner");
+    // A killing blow on a foe you could have spared stains you (coupled corruption gain).
+    if (!c.enemy.isBoss && c.couldSpare) {
+      const gain = CONFIG.axes.alignment.finishCorruptionGain;
+      adjustAlignment(ch, { corruption: gain });
+      clampHpToWarp(ch);
+      pushLine(state, `You struck the final blow without mercy. (+${gain} Corruption)`, "system");
+    }
     if (c.enemy.coins) {
       ch.coins = (ch.coins ?? 0) + c.enemy.coins;
       pushLine(state, `You gather ${coin()}${c.enemy.coins}.`, "system");

@@ -34,6 +34,8 @@ const VERBS = {
   // combat
   attack: "attack", hit: "attack", fight: "attack", battle: "attack", a: "attack",
   guard: "guard", defend: "guard", block: "guard",
+  burst: "burst", unleash: "burst", surge: "burst",
+  spare: "spare", mercy: "spare",
   // social
   talk: "talk", speak: "talk", ask: "talk",
   // hub
@@ -97,7 +99,7 @@ export const HELP = [
   "  Move:    n s e w up down   (or: go north)",
   "  Look:    look (l) · examine <thing> (x)",
   "  Items:   take <item> · drop <item> · use <item> · inventory (i)",
-  "  Combat:  attack · guard · use <ability>",
+  "  Combat:  attack · guard · burst · use <ability> · spare",
   "  Hub:     train <stat> · rest · shop · buy <item> · sell <item> · explore",
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",
