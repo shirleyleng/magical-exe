@@ -53,13 +53,13 @@ config, not from theory** — keep every knob in one file.
 
 ## 3. The three axes (what makes choices bite)
 
-### Purity vs. Corruption (one slider, opposite ends)
+### Virtue vs. Corruption (one slider, opposite ends)
 Combines three roles:
 1. **Battle resource.** Spend Corruption for burst damage / forbidden moves. Cheap power,
    real cost.
 2. **Stat & ability gate.** High Corruption warps stats (e.g. Power up, HP/Spirit decay) and
-   unlocks aggressive/forbidden abilities; high Purity unlocks support/light/healing abilities.
-   Transformation tiers branch Pure/Corrupt in flavor and kit.
+   unlocks aggressive/forbidden abilities; high Virtue unlocks support/light/healing abilities.
+   Transformation tiers branch Virtuous/Corrupt in flavor and kit.
 3. **Narrative branch.** Choices and *how* you win (mercy vs. finishing blow) nudge the slider
    and steer which story beats and endings you reach.
 
@@ -78,7 +78,7 @@ Combines three roles:
   - High: identity at risk — forced story crisis; someone is threatened; you may have to choose
     to reveal yourself to save them. Top threshold event = "you've been unmasked."
 - **Lowering Unmasking:** lie low (skip public battles that day), misdirection errands, **relocate
-  your home hub** (consumes all slots, takes 2 days), **memory cloud** (Pure path) or
+  your home hub** (consumes all slots, takes 2 days), **memory cloud** (Virtuous path) or
   **memory wipe** (Corrupt path) abilities.
 - Cools over time but never trivially hits zero — once a little known, never fully anonymous
   again (genre-appropriate).
@@ -110,7 +110,7 @@ Combines three roles:
 `Novice -> Magical Soldier -> Magical Knight -> Awakened -> Ascended Deity`
 
 - Gated by **story beats AND a threshold** (stat/Stamina minimum + a key boss defeated).
-- Each tier branches **Pure / Corrupt / Balanced** flavor (`path` in state) for look + kit.
+- Each tier branches **Virtuous / Corrupt / Balanced** flavor (`path` in state) for look + kit.
 - Extra hub slot unlocked at tier milestones.
 
 See Plot (section 8) for what triggers each tier.
@@ -161,7 +161,7 @@ people.** The errands that bring people hope are secretly the real fight.
 ### Act / tier structure
 
 **Novice -> Soldier** — after defeating **Dungeon Boss #1**, the mascot reveals a **world
-alliance** of magical people dedicated to eliminating corruption and keeping cities pure — but
+alliance** of magical people dedicated to eliminating corruption and keeping cities whole — but
 there aren't enough of them to cover every city. (This is the in-fiction reason you can travel
 city-to-city.)
 
@@ -197,7 +197,7 @@ The mascot intervenes, is **injured, and disappears.**
   beside you "feed back" and ignite **ascension.** *Make the systems matter at the climax:* gate
   ascension partly on a hidden **hope tally** accumulated from errands/relationships, so the
   player who built hope literally has fuel to ascend.
-- **Purity/Corruption fork:** Pure = ascension through connection/hope; Corrupt = a darker
+- **Virtue/Corruption fork:** Virtuous = ascension through connection/hope; Corrupt = a darker
   ascension that seizes the despair's power -> a different ending.
 
 ### v1 SLICE BOUNDARY
@@ -221,21 +221,21 @@ Boss #2 onward is post-slice. (See CLAUDE.md > Build Order.)
 
 ## 9.5 Hope tally & the ending fork (workshopped 2026-06-07, for T19)
 
-The endings are decided by a hidden **Hope tally** plus the Purity/Corruption slider, with Fame as
+The endings are decided by a hidden **Hope tally** plus the Virtue/Corruption slider, with Fame as
 a modifier. The player is never shown a hope number — they only *feel* the trend.
 
 **Sources of hope (errands = the "true fight" against hopelessness):**
 - **Pull — an `errand` hub activity** (opt-in, repeatable, costs slots). Archetypes that *trade*
-  axes rather than stack them, so Purity/Fame/Hope stay independent ending inputs:
-  - *Quiet kindness:* +hope, +purity, no Fame/Unmasking · small = +2 hope/+1 purity/1 slot ·
-    big = +6 hope/+3 purity/2 slots — **bigger errands give a BETTER hope/slot rate** (commitment
+  axes rather than stack them, so Virtue/Fame/Hope stay independent ending inputs:
+  - *Quiet kindness:* +hope, +virtue, no Fame/Unmasking · small = +2 hope/+1 virtue/1 slot ·
+    big = +6 hope/+3 virtue/2 slots — **bigger errands give a BETTER hope/slot rate** (commitment
     pays; ~2.0 → 3.0 per slot).
   - *Public rescue:* +hope, +Fame, +Unmasking (seen heroics) — reuses the stubbed
     `axes.fame.gainSaveCivilian`.
   - *Expedient/dark help:* small hope + Corruption (you "helped," but cut a corner). The small
     hope leak is cosmetic — see precedence below.
 - **Push — dilemma events** (one-shot, latched; fire at `rest`, reusing the T15 event-tick
-  pattern). Branching menu: a sincere choice (+hope/+purity), an expedient choice
+  pattern). Branching menu: a sincere choice (+hope/+virtue), an expedient choice
   (+corruption, ~0 hope), and **ignore** (inaction costs hope — e.g. not investigating a cry).
 - **Passive:** a little hope per boss felled and per rescue resolved kindly, so a hope-minded
   player nears the threshold *naturally* — errands are the deliberate top-up, not a grind wall.
@@ -248,14 +248,14 @@ Heavy subject matter stays in *lingering ambiguity* ("you never do find out…")
 to fit the cozy register.
 
 **Ending gate (path-first, Fame-modified):**
-1. `path === pure && hope ≥ THRESHOLD` → **Pure Ascension** (answer despair with accumulated hope).
+1. `path === virtuous && hope ≥ THRESHOLD` → **Virtuous Ascension** (answer despair with accumulated hope).
 2. `path === corrupt` → **Dark Ascension** (seize the despair's power). *Banked hope can't save you —
    what you* became *decides; this is why dark "help" leaking a little hope is harmless.*
-3. else (balanced, or pure-but-short-on-hope) → **Despair ending** (bittersweet).
+3. else (balanced, or virtuous-but-short-on-hope) → **Despair ending** (bittersweet).
 - **Fame modifies THRESHOLD:** high Fame lowers the hope you personally need (the city's belief
   carries you); a hidden hero needs more — and fame costs Unmasking risk (a real be-seen-vs-stay-safe
   tension). Anchor: `reqMinHopeTally` = 50 (already in `config.tiers.ascended`), Fame floor ~30.
-- The **coupled Purity/Corruption slider does the heavy lifting**: earning hope (via purity-flavored
+- The **coupled Virtue/Corruption slider does the heavy lifting**: earning hope (via virtue-flavored
   help) drains corruption and vice-versa, so "high hope/low corruption" and "high corruption/low
   hope" are the natural attractors — the dual gate rides the existing physics.
 
@@ -292,7 +292,7 @@ One serializable object = one save slot. Rough skeleton (extend as needed):
     "stats": { "hp": 40, "maxHp": 40, "power": 12, "spirit": 8, "defense": 6,
                "speed": 9, "dodge": 5, "stamina": 30, "maxStamina": 30 },
     "corruption": 15,
-    "purity": 60,
+    "virtue": 60,
     "fame": 5,
     "unmasking": 10,
     "hopeTally": 0,
