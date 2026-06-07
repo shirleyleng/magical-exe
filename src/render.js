@@ -14,6 +14,7 @@ import { exampleFor } from "./prompts.js";
 import { ART } from "./mascot.js";
 import { CONFIG } from "../config.js";
 import { slotsUsed } from "./hub.js";
+import { effectiveStats, isWarped } from "./alignment.js";
 
 let els = null;
 let renderedCount = 0;
@@ -146,9 +147,23 @@ function lineEl({ text, kind }) {
 }
 
 /* ---- STATUS panel ---- */
+/* Compact alignment slider: a marker on a Pure←→Corrupt line, from the gap between
+   purity and corruption (left = pure, right = corrupt, centered = balanced). */
+function alignmentBar(c) {
+  const cells = 7;
+  const mid = (cells - 1) / 2;
+  const gap = (c.purity || 0) - (c.corruption || 0); // + leans pure (left), - leans corrupt (right)
+  const idx = Math.max(0, Math.min(cells - 1, Math.round(mid - (gap / 100) * mid)));
+  let bar = "";
+  for (let i = 0; i < cells; i++) bar += i === idx ? "◆" : "·";
+  return bar;
+}
+
 function renderStats(model) {
   const c = model.character;
   const s = c.stats;
+  const eff = effectiveStats(c);          // corruption warp: Power up, max HP down
+  const warped = isWarped(c);
   const pad = (n, w = 3) => String(n).padEnd(w);
 
   const statusLine =
@@ -163,13 +178,13 @@ function renderStats(model) {
     `Day ${model.day} · ${model.mode} · ${c.transformationTier}`,
     statusLine,
     ``,
-    `HP    ${s.hp}/${s.maxHp}`,
-    `PWR ${pad(s.power)} SPR ${pad(s.spirit)}`,
+    `HP    ${s.hp}/${eff.maxHp}`,
+    `PWR ${pad(eff.power)} SPR ${pad(s.spirit)}`,
     `DEF ${pad(s.defense)} SPD ${pad(s.speed)}`,
     `DODGE ${s.dodge}`,
     `STA   ${s.stamina}/${s.maxStamina}`,
     `──────────────`,
-    `Purity ${c.purity}  Corr ${c.corruption}`,
+    `Pure ${alignmentBar(c)} Corr${warped ? "  ⚠" : ""}`,
     `Fame ${c.fame}  Unmask ${c.unmasking}`,
     `Coins ${CONFIG.economy.currencySymbol}${c.coins ?? 0}`,
   ].join("\n");

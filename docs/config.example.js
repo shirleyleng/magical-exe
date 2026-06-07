@@ -33,7 +33,9 @@ export const CONFIG = {
     hp: 30, maxHp: 30, power: 6, spirit: 6, defense: 4,
     speed: 6, dodge: 4, stamina: 20, maxStamina: 20,
   },
-  startingMeters: { corruption: 0, purity: 50, fame: 0, unmasking: 0, hopeTally: 0 },
+  // purity/corruption start at 0/0 — a centered, unwritten alignment your choices shape
+  // (the slider reads from the gap between them; see axes.alignment).
+  startingMeters: { corruption: 0, purity: 0, fame: 0, unmasking: 0, hopeTally: 0 },
 
   // ---- economy ----
   // currencySymbol is shown next to coin counts everywhere. Swap freely:
@@ -85,12 +87,25 @@ export const CONFIG = {
   // ---- axes ----
   axes: {
     corruption: {
-      burstDamageMult: 1.6,       // spending corruption for a burst attack
-      // high corruption warps stats (applied as multipliers above these thresholds):
+      burstDamageMult: 1.6,        // burst attack damage = this * effective Power
+      burstCorruptionGain: 8,      // a burst deepens your corruption by this much
+      // high corruption warps stats (multipliers; the HIGHEST threshold reached wins).
+      // spiritMult is reserved for a later pass (Spirit is a consumable pool — not wired yet).
       warpThresholds: [
         { at: 40, powerMult: 1.10, hpMult: 0.95, spiritMult: 0.95 },
         { at: 70, powerMult: 1.25, hpMult: 0.85, spiritMult: 0.85 },
       ],
+    },
+    // Purity & Corruption read as ONE coupled slider: gaining one end drains the other by
+    // `couplingDrain` * the gain. `path` (pure/balanced/corrupt) comes from the gap between them.
+    alignment: {
+      pathGap: 25,                 // |purity - corruption| >= this => pure / corrupt; else balanced
+      couplingDrain: 0.5,          // a +10 corruption gain also removes 5 purity (and vice versa)
+      mercyPurityGain: 8,          // sparing a beaten, non-boss foe
+      finishCorruptionGain: 4,     // landing the killing blow instead
+      spareEnemyHpPct: 0.25,       // you may `spare` once enemy HP <= this fraction of its max
+      fizzlePerGapPoint: 0.012,    // opposed-ability fizzle chance per point you're into the wrong end
+      fizzleChanceCap: 0.6,        // ...capped here
     },
     unmasking: {
       gainPublicBattle: 6,
@@ -104,6 +119,25 @@ export const CONFIG = {
       gainVisibleQuest: 8,
       gainSaveCivilian: 6,
     },
+  },
+
+  // ---- abilities (combat kit) ----
+  // align: neutral | pure | corrupt  → gates learning + drives soft-fizzle when you've
+  //   drifted to the OPPOSITE end of the slider (chance scales with how far; see axes.alignment).
+  // kind: damage | heal | lifesteal. nudge: slider movement when used (coupled, like any gain).
+  // learn: prereqs to learn it in training (omit `learn` => innate from the start). reqTier =
+  //   transformation tier reached; reqCorruption = raw corruption >=; reqGapPure = purity-corruption >=.
+  abilities: {
+    "light bolt": { align: "neutral", spirit: 3, kind: "damage", mult: 1.6,
+                    verb: "hurl a bolt of light at" },
+    "mend":       { align: "pure", spirit: 4, kind: "heal", healPct: 0.30,
+                    verb: "fold a soft, mending light around yourself",
+                    nudge: { purity: 4 },
+                    learn: { reqTier: "novice", reqGapPure: 15, slotCost: 1, blurb: "a healing light (Pure)" } },
+    "drain":      { align: "corrupt", spirit: 3, kind: "lifesteal", mult: 1.2, lifestealPct: 0.5,
+                    verb: "siphon the living warmth out of",
+                    nudge: { corruption: 4 },
+                    learn: { reqTier: "novice", reqCorruption: 40, slotCost: 1, blurb: "a life-siphon (Corrupt)" } },
   },
 
   // ---- transformation tiers ----

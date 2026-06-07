@@ -15,6 +15,7 @@ import { getEnemy } from "./enemies.js";
 import { DUNGEONS } from "./dungeons.js";
 import { useItem } from "./hub.js";
 import { requestNarration } from "./narrate.js";
+import { adjustAlignment, effectiveStats, fizzleChance } from "./alignment.js";
 
 const coin = () => CONFIG.economy.currencySymbol;
 
@@ -74,6 +75,11 @@ function rolls(p) {
 function damageAfterDefense(raw, defense) {
   return Math.max(1, Math.round(raw - defense * CONFIG.combat.defenseMitigationPerPoint));
 }
+/** Corruption warp can shrink max HP; current HP can't exceed the warped max. */
+function clampHpToWarp(ch) {
+  const effMax = effectiveStats(ch).maxHp;
+  if (ch.stats.hp > effMax) ch.stats.hp = effMax;
+}
 
 /* ---- status effects (T13) ----
    Effects live in combat.fx, keyed by effect kind: { value, turns }. `value` is
@@ -114,6 +120,7 @@ export function startCombat(state, enemyId, opts = {}) {
     fx: {},                     // active status effects (T13), keyed by effect kind
   };
   model.mode = "combat";
+  clampHpToWarp(model.character); // corruption gained since last fight may cap HP lower
 
   pushLine(state, `A ${enemy.name} rises before you!`, "banner");
   enemyStatusLine(state);
@@ -136,13 +143,13 @@ function enemyStatusLine(state) {
 /* ---- player actions ---- */
 export function playerAttack(state) {
   const c = state.model.combat;
-  const stats = state.model.character.stats;
+  const eff = effectiveStats(state.model.character); // power amplified by corruption warp
   const e = c.enemy;
 
   if (rolls(dodgeChance(e.dodge))) {
     pushLine(state, `You swing — the ${e.name} slips aside!`, "system");
   } else {
-    const dmg = damageAfterDefense(stats.power, exposedDefense(c, e));
+    const dmg = damageAfterDefense(eff.power, exposedDefense(c, e));
     e.hp = Math.max(0, e.hp - dmg);
     pushLine(state, `You strike the ${e.name} for ${dmg}.`, "system");
   }
@@ -241,11 +248,12 @@ export function applyJudgedAction(state, verdict) {
   if (!c) return state;
   const J = CONFIG.combat.judge;
 
-  // Forbidden/dark improvisation stains you (Purity/Corruption axis lands in T13.5+,
-  // but the meter already exists — record the cost now).
+  // Forbidden/dark improvisation stains you — a coupled corruption gain (drains purity,
+  // updates path, may deepen the stat-warp). Re-clamp HP in case max HP just shrank.
   if (verdict.corruptionCost > 0) {
     const ch = state.model.character;
-    ch.corruption = Math.min(100, (ch.corruption || 0) + verdict.corruptionCost);
+    adjustAlignment(ch, { corruption: verdict.corruptionCost });
+    clampHpToWarp(ch);
     pushLine(state, `Shadow coils into you. (+${verdict.corruptionCost} Corruption)`, "system");
   }
 

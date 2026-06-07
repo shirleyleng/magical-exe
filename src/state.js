@@ -8,6 +8,7 @@
    ============================================================ */
 
 import { CONFIG } from "../config.js";
+import { derivePath } from "./alignment.js";
 
 export const SCHEMA_VERSION = 1;
 
@@ -92,8 +93,12 @@ export function freshModel(opts = {}) {
  *  `log` (scrollback) and `ui` are deliberately NOT persisted — the
  *  save is the model only, matching DESIGN's "one serializable object". */
 export function createState(model) {
+  const m = model || freshModel();
+  // `path` is derived from the slider; recompute on entry so loaded/older saves are correct
+  // (during play, adjustAlignment keeps it fresh).
+  if (m.character) m.character.path = derivePath(m.character);
   return {
-    model: model || freshModel(),
+    model: m,
     log: [],                        // [{ text, kind }]
     ui: { booted: false, turn: 0 }, // turn drives the rotating example prompt
   };
