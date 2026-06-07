@@ -198,6 +198,8 @@ function openSettingsMenu(s) {
 function showAbout(s) {
   const lines = [
     "MAGICAL.EXE — a cozy terminal magical-girl game.",
+    "Made with love by Red Mint Studio.",
+    "Enjoying it? Support development → https://ko-fi.com/shirleyleng ♥",
     "Aesthetic homage only — no vendored code:",
     "  · Lip Gloss / Charm — https://charm.sh",
     "  · Cotton Candy / Compute Cuter — sailorhg, https://computecuter.com",

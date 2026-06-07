@@ -207,6 +207,36 @@ body {
   user-select: none;
 }
 
+/* ---- Ko-fi support link ----
+   A small floating pill, pinned bottom-center. Sits in the empty margin below the
+   window on desktop; floats legibly over the scrolling layout on narrow screens (hence
+   the solid themed background + shadow, not a bare transparent link). Themed via tokens. */
+.kofi {
+  position: fixed;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 50;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.7);
+  opacity: 0.9;
+  transition: color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+}
+.kofi:hover,
+.kofi:focus-visible {
+  color: var(--pink);
+  border-color: var(--pink);
+  opacity: 1;
+  outline: none;
+}
+
 /* ---- Human-check (Turnstile) mount ----
    Sits just above the input line, in the terminal flow but outside the scrollback. */
 .captcha {
