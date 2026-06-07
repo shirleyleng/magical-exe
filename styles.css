@@ -229,8 +229,9 @@ body {
 
 /* ---- Ko-fi support link ----
    A small floating pill, pinned bottom-center. Sits in the empty margin below the
-   window on desktop; floats legibly over the scrolling layout on narrow screens (hence
-   the solid themed background + shadow, not a bare transparent link). Themed via tokens. */
+   window on desktop. On mobile (see the responsive block) it drops out of fixed
+   positioning into normal flow at the very bottom so it never floats over the panels.
+   Themed via tokens. */
 .kofi {
   position: fixed;
   left: 50%;
@@ -396,26 +397,86 @@ body {
   filter: grayscale(0.6);
 }
 
-/* ---- Responsive: stack everything in one column on narrow screens ---- */
+/* ---- Responsive: stack everything in one column on narrow screens ----
+   Desktop is a fixed-size centered window; on phones the window becomes the whole
+   page: full-bleed, page-scrolling, with the terminal on top and the panels flowing
+   below it. dvh units track the mobile browser chrome + on-screen keyboard so the
+   layout doesn't jump when the address bar collapses or the keyboard opens. */
 @media (max-width: 720px) {
+  :root {
+    --pad: 14px;                 /* tighter rhythm to reclaim space on small screens */
+    --gap: 12px;
+  }
+  html { overflow-x: clip; }     /* the page scrolls vertically only — never sideways */
   body {
     padding: 0;
-    align-items: flex-start;
-    overflow-y: auto;            /* let the page scroll on mobile */
+    /* Drop the desktop centering flexbox. The desktop body is a definite-height flex
+       container (height:100%), which pins the screen box to the viewport and makes the
+       stacked panels overflow it. As a normal block the body grows with its content and
+       the page scrolls naturally; the screen, then the Ko-fi pill, stack below. */
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: clip;            /* never expose a sideways scroll — clips the brief
+                                    translateX of the HUD reveal and any stray `pre` line */
   }
   .screen {
     width: 100%;
     height: auto;
     min-height: 100vh;
+    min-height: 100dvh;
     border-radius: 0;
     border: none;
+    box-shadow: none;            /* no floating-window glow when it's full-bleed */
+    overflow: visible;           /* let the stacked panels extend the page (it scrolls)
+                                    instead of being clipped by the desktop window */
   }
+
+  /* Title bar: keep the name + dots; the version/“terminal shell” hint wraps awkwardly
+     at this width and lives on the About screen anyway, so drop it here. */
+  .titlebar { padding: 10px 14px; }
+  .titlebar__name { letter-spacing: 0.08em; }
+  .titlebar__hint { display: none; }
+
   .layout {
     grid-template-columns: 1fr;  /* terminal, then panels, full width */
+    flex: 1 0 auto;              /* size from content (basis auto) and never shrink below
+                                    it: base `flex:1` (basis 0) lets the stacked panels
+                                    overflow the screen box, so the in-flow Ko-fi pill
+                                    anchors short and collides with the panels */
+    min-height: auto;
   }
-  .terminal { min-height: 60vh; }
+  .terminal {
+    min-height: 56vh;
+    min-height: 56dvh;
+  }
   .panels {
     flex-direction: column;      /* full-width panels -> mascot art renders like desktop */
   }
-  .panel--mascot .panel__body { min-height: 160px; }
+  .panel--mascot .panel__body { min-height: 150px; }
+
+  /* Touch input: a 16px field stops iOS Safari zooming in on focus; roomier hit areas
+     for the input line and the selection menu. */
+  .inputline { padding: 12px 14px; }
+  .inputline__field { font-size: 16px; }
+  /* Bigger hit area; wrap long option text (e.g. theme descriptions) instead of letting
+     a `pre` line run wider than the viewport — which forces a page-wide horizontal scroll
+     and clips the right edge of everything. */
+  .menu__item {
+    padding: 9px 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Ko-fi: leave the fixed overlay behind. In the column flow it sits centered at the
+     very bottom, clear of the panels, with safe-area room for the home indicator. */
+  .kofi {
+    position: static;
+    transform: none;
+    display: block;
+    width: max-content;
+    max-width: 90%;
+    margin: 4px auto calc(14px + env(safe-area-inset-bottom));
+    opacity: 1;
+  }
 }
