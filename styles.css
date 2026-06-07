@@ -343,6 +343,15 @@ body {
   font-weight: 700;
 }
 
+/* Meters live in a second block; don't let ::first-line bold the Fame line. */
+.meter-block::first-line { color: var(--text-dim); font-weight: 400; }
+
+/* Unmasking danger bar (T15): escalates from muted → amber → red with the tier. */
+.unmask--none { color: var(--text-muted); }
+.unmask--low  { color: var(--accent); }
+.unmask--mid  { color: #d98a3d; }
+.unmask--high { color: #e0556a; font-weight: 700; }
+
 .panel--mascot .panel__body {
   display: flex;
   flex-direction: column;

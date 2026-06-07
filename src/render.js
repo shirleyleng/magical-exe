@@ -15,6 +15,7 @@ import { ART } from "./mascot.js";
 import { CONFIG } from "../config.js";
 import { slotsUsed } from "./hub.js";
 import { effectiveStats, isWarped, isGraced } from "./alignment.js";
+import { unmaskingTier } from "./visibility.js";
 
 let els = null;
 let renderedCount = 0;
@@ -183,10 +184,9 @@ function renderStats(model) {
     `DEF ${pad(eff.defense)} SPD ${pad(s.speed)}`,
     `DODGE ${s.dodge}`,
     `STA   ${s.stamina}/${s.maxStamina}`,
+    `Coins ${CONFIG.economy.currencySymbol}${c.coins ?? 0}`,
     `──────────────`,
     `Pure ${alignmentBar(c)} Corr${mark}`,
-    `Fame ${c.fame}  Unmask ${c.unmasking}`,
-    `Coins ${CONFIG.economy.currencySymbol}${c.coins ?? 0}`,
   ].join("\n");
 
   els.stat.innerHTML = "";
@@ -194,6 +194,42 @@ function renderStats(model) {
   pre.className = "stat-block";
   pre.textContent = block;
   els.stat.appendChild(pre);
+
+  // Meters carry colour (the Unmasking danger bar reddens as it climbs), so they
+  // go in their own element rather than the monochrome textContent block above.
+  const meters = document.createElement("pre");
+  meters.className = "stat-block meter-block";
+  meters.innerHTML = metersHtml(c);
+  els.stat.appendChild(meters);
+}
+
+/* Danger bar for Unmasking (T15): fills toward red across thresholds, paired
+   with a Fame readout. Threshold ticks sit at low/mid/high cell boundaries. */
+function unmaskingBar(c) {
+  const cells = 10;
+  const t = CONFIG.axes.unmasking.thresholds;
+  const u = c.unmasking || 0;
+  const filled = Math.round((Math.max(0, Math.min(100, u)) / 100) * cells);
+  const ticks = new Set([t.low, t.mid, t.high].map((v) => Math.round((v / 100) * cells)));
+  let bar = "";
+  for (let i = 0; i < cells; i++) {
+    if (i < filled) bar += ticks.has(i) ? "▒" : "▓"; // tick cells read as a seam in the fill
+    else bar += ticks.has(i) ? "┊" : "░";            // ...or a faint gate ahead
+  }
+  return bar;
+}
+
+const UNMASK_LABEL = { none: "hidden", low: "rumors", mid: "hunted", high: "EXPOSED" };
+
+function metersHtml(c) {
+  const tier = unmaskingTier(c.unmasking || 0);
+  const warn = tier === "mid" || tier === "high" ? "⚠ " : "";
+  const label = UNMASK_LABEL[tier];
+  // Bar + tier label are generated entirely from code/numbers — safe to inject.
+  return (
+    `Fame   ${c.fame || 0}\n` +
+    `Unmask <span class="unmask unmask--${tier}">${unmaskingBar(c)}</span> ${c.unmasking || 0} ${warn}${label}`
+  );
 }
 
 /* ---- MASCOT panel (placeholder until T5 fusion/art) ---- */
