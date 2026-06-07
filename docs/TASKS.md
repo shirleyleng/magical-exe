@@ -146,7 +146,7 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 
 ## PHASE 5 — Depth systems
 
-### T14 — Purity/Corruption axis (DONE)
+### T14 — Purity/Corruption axis (DONE) — NOTE: the Purity axis was renamed to **Virtue** on 2026-06-07 (entries below use the old name)
 - BUILD: corruption as battle resource (burst/forbidden), stat-warp thresholds, ability gating
   (pure vs corrupt kits), path tracking (`path`). All values from `config.js`.
 - DONE/VERIFIED: Purity & Corruption are ONE coupled slider (`src/alignment.js`: gaining one
@@ -249,7 +249,7 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 ### T19 — Final boss (3 phases) + Awakened -> Ascended + endings
 - BUILD: Phase 1 big boss; Phase 2 twist (manifested city despair); Phase 3 ascension trigger
   gated partly on `hopeTally` (errands/relationships feed back), rival fights beside you.
-  Purity vs Corruption fork -> different ascension + endings.
+  Virtue vs Corruption fork -> different ascension + endings.
 - DONE: all three phases play; ascension fires when hope tally + beats are met; both endings reachable.
 
 ---

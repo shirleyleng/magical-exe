@@ -109,7 +109,7 @@ Do NOT build the whole game before anything is playable. Target order:
 **Then layer in:**
 11. Supabase Edge Function proxy + AI fallback parser + narration + rate limiting.
 12. AI-mediated freeform combat actions (plausibility judge).
-13. Purity/Corruption axis + Fame/Unmasking axis.
+13. Virtue/Corruption axis + Fame/Unmasking axis.
 14. Tiers 3–5, rival arc, special-place dungeon, 3-phase finale + ascension.
 15. Prestige/clean-slate mechanic, Easy/Normal scaling.
 
