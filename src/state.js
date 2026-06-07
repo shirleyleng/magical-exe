@@ -82,7 +82,10 @@ export function freshModel(opts = {}) {
       currentRoom: null,
       roomItems: {},   // per-playthrough mutable room contents (keyed by room id)
       cleared: {},     // rooms whose encounter has been beaten (keyed by room id)
-      flags: { metRival: false, rivalChallengeDay: null, bossesDefeated: [], storyBeats: [] },
+      flags: {
+        metRival: false, rivalChallengeDay: null, rivalReturnDay: null, rivalReturned: false,
+        bossesDefeated: [], storyBeats: [],
+      },
     },
     combat: null,      // active fight state, or null (set by combat.js)
     rivals: [
@@ -105,8 +108,13 @@ export function createState(model) {
     if (m.character.unmaskingTierSeen === undefined) m.character.unmaskingTierSeen = "none";
     if (m.character.mustLieLow === undefined) m.character.mustLieLow = false;
   }
-  // Backfill T16 story-beat tracking for older saves.
-  if (m.world && m.world.flags && m.world.flags.storyBeats === undefined) m.world.flags.storyBeats = [];
+  // Backfill T16 story-beat + rival-schedule tracking for older saves.
+  if (m.world && m.world.flags) {
+    const f = m.world.flags;
+    if (f.storyBeats === undefined) f.storyBeats = [];
+    if (f.rivalReturnDay === undefined) f.rivalReturnDay = null;
+    if (f.rivalReturned === undefined) f.rivalReturned = false;
+  }
   return {
     model: m,
     log: [],                        // [{ text, kind }]

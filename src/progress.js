@@ -13,6 +13,7 @@ import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { ART } from "./mascot.js";
 import { refreshSlotsMax } from "./hub.js";
+import { armRivalForBoss } from "./rival.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -77,6 +78,9 @@ export function handleBossDefeat(state) {
     flags.storyBeats.push(bossId);
     BOSS_BEAT[bossId](state);
   }
+
+  // Arm the rival schedule off this boss (meets after #2, returns after #3).
+  armRivalForBoss(state, bossId);
 
   // Which tier does this boss gate?
   const tierName = Object.keys(CONFIG.tiers).find((t) => CONFIG.tiers[t].reqBoss === bossId);

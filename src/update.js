@@ -25,6 +25,7 @@ import {
 } from "./hub.js";
 import { enterDungeon, openExploreMenu, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import { unlockedDungeons, resolveDungeon, DUNGEONS } from "./dungeons.js";
+import { tickRival } from "./rival.js";
 import {
   startCombat, playerAttack, playerGuard, playerBurst, playerSpare, combatUse, combatLook, playerFlee,
   applyJudgedAction,
@@ -567,9 +568,9 @@ function routeHub(s, cmd) {
     case "train":
       return target ? trainCommand(s, target) : openTrainMenu(s);
     case "rest":
-      return doRest(s);
+      return tickRival(doRest(s));
     case "lielow":
-      return doLieLow(s);
+      return tickRival(doLieLow(s));
     case "misdirect":
       return doMisdirect(s);
     case "shop":

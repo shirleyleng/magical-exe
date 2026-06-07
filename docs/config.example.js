@@ -178,6 +178,14 @@ export const CONFIG = {
     ascended: { reqBoss: "finalPhase2", reqMinHopeTally: 50 }, // hope fuels ascension
   },
 
+  // ---- rival arc (T16) ----
+  // Sable's schedule ticks off the day cycle (at rest / lie low). Days are counted
+  // from the day the gating boss falls.
+  rival: {
+    daysAfterBoss2: 2,   // days after Boss #2 before Sable shows up to challenge you (duel)
+    daysAfterBoss3: 2,   // days after Boss #3 before Sable returns with the hint (dialogue)
+  },
+
   // ---- prestige / clean-slate ----
   prestige: {
     statMultiplier: 0.5,          // halve current stats

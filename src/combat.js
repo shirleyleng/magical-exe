@@ -19,6 +19,11 @@ import { adjustAlignment, effectiveStats, fizzleChance, healMultiplier, derivePa
 import { adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
 import { getAbility } from "./abilities.js";
 
+/* A named rival takes no article ("Sable hits you", not "the Sable hits you");
+   ordinary monsters do ("the dust sprite"). */
+const eRef = (e) => (e && e.isRival ? e.name : `the ${e.name}`);
+const ERef = (e) => (e && e.isRival ? e.name : `The ${e.name}`);
+
 const coin = () => CONFIG.economy.currencySymbol;
 
 /* ---- environment tags (T13 plausibility judge) ----
@@ -50,6 +55,7 @@ function spawnEnemy(model, enemyId) {
     id: base.id,
     name: base.name,
     isBoss: !!base.isBoss,
+    isRival: !!base.isRival,
     maxHp,
     hp: maxHp,
     power: Math.round(base.power * sm),
@@ -142,12 +148,12 @@ export function startCombat(state, enemyId, opts = {}) {
   model.mode = "combat";
   clampHpToWarp(model.character); // corruption gained since last fight may cap HP lower
 
-  pushLine(state, `A ${enemy.name} rises before you!`, "banner");
+  pushLine(state, enemy.isRival ? `${enemy.name} steps into your path, weapon already drawn!` : `A ${enemy.name} rises before you!`, "banner");
   enemyStatusLine(state);
 
   // Speed decides who strikes first.
   if (enemy.speed > model.character.stats.speed) {
-    pushLine(state, `The ${enemy.name} is quicker — it moves first!`, "hint");
+    pushLine(state, `${ERef(enemy)} is quicker — it moves first!`, "hint");
     enemyTurn(state);
   } else {
     pushLine(state, "Your move. (attack · guard · burst · use <ability> · use <item> · flee)", "hint");
@@ -167,11 +173,11 @@ export function playerAttack(state) {
   const e = c.enemy;
 
   if (rolls(dodgeChance(e.dodge))) {
-    pushLine(state, `You swing — the ${e.name} slips aside!`, "system");
+    pushLine(state, `You swing — ${eRef(e)} slips aside!`, "system");
   } else {
     const dmg = damageAfterDefense(eff.power, exposedDefense(c, e));
     e.hp = Math.max(0, e.hp - dmg);
-    pushLine(state, `You strike the ${e.name} for ${dmg}.`, "system");
+    pushLine(state, `You strike ${eRef(e)} for ${dmg}.`, "system");
   }
   return afterPlayerAction(state);
 }
@@ -198,11 +204,11 @@ export function playerBurst(state) {
   const K = CONFIG.axes.corruption;
 
   if (rolls(dodgeChance(e.dodge))) {
-    pushLine(state, `Dark power surges — but the ${e.name} twists aside!`, "system");
+    pushLine(state, `Dark power surges — but ${eRef(e)} twists aside!`, "system");
   } else {
     const dmg = damageAfterDefense(Math.round(eff.power * K.burstDamageMult), exposedDefense(c, e));
     e.hp = Math.max(0, e.hp - dmg);
-    pushLine(state, `You unleash a corrupt burst on the ${e.name} for ${dmg}!`, "system");
+    pushLine(state, `You unleash a corrupt burst on ${eRef(e)} for ${dmg}!`, "system");
   }
   adjustAlignment(ch, { corruption: K.burstCorruptionGain });
   clampHpToWarp(ch);
@@ -218,7 +224,7 @@ export function playerSpare(state) {
   const e = c.enemy;
   if (e.isBoss) { pushLine(state, "This foe gives no opening for mercy.", "system"); return state; }
   if (!c.couldSpare) {
-    pushLine(state, `The ${e.name} is still standing strong — wear it down before you can spare it.`, "system");
+    pushLine(state, `${ERef(e)} is still standing strong — wear it down before you can spare it.`, "system");
     return state; // not a turn-consuming action
   }
   return endCombat(state, "mercy");
@@ -259,13 +265,13 @@ export function playerAbility(state, name) {
 
   } else if (ab.kind === "lifesteal") {
     if (rolls(dodgeChance(e.dodge))) {
-      pushLine(state, `You reach for the ${e.name}, but it slips away!`, "system");
+      pushLine(state, `You reach for ${eRef(e)}, but it slips away!`, "system");
     } else {
       const dmg = damageAfterDefense(Math.round(eff.power * (ab.mult || 1)), exposedDefense(c, e));
       e.hp = Math.max(0, e.hp - dmg);
       const heal = Math.max(1, Math.round(dmg * (ab.lifestealPct || 0.5)));
       stats.hp = Math.min(eff.maxHp, stats.hp + heal);
-      pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}, drawing ${heal} back into yourself. (-${ab.spirit} Spirit)`, "system");
+      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}, drawing ${heal} back into yourself. (-${ab.spirit} Spirit)`, "system");
     }
 
   } else if (ab.kind === "buff") {
@@ -290,7 +296,7 @@ export function playerAbility(state, name) {
 
   } else { // damage (with optional applyFx, e.g. radiance's dazzle)
     if (rolls(dodgeChance(e.dodge))) {
-      pushLine(state, `You ${ab.verb} the ${e.name}, but it evades!`, "system");
+      pushLine(state, `You ${ab.verb} ${eRef(e)}, but it evades!`, "system");
     } else {
       const dmg = damageAfterDefense(Math.round(eff.power * (ab.mult || 1)), exposedDefense(c, e));
       e.hp = Math.max(0, e.hp - dmg);
@@ -299,7 +305,7 @@ export function playerAbility(state, name) {
         installEffect(c, ab.applyFx.kind, ab.applyFx.magnitude, ab.applyFx.turns);
         extra = " The light leaves it reeling.";
       }
-      pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}!${extra} (-${ab.spirit} Spirit)`, "system");
+      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}!${extra} (-${ab.spirit} Spirit)`, "system");
     }
   }
 
@@ -350,7 +356,7 @@ function activeFxSummary(c) {
     stagger: "staggering", burn: "burning", defend: "warded",
   };
   const parts = Object.keys(c.fx || {}).map((k) => {
-    const who = k === "defend" ? "you" : `the ${c.enemy.name}`;
+    const who = k === "defend" ? "you" : eRef(c.enemy);
     return `${who} ${labels[k] || k} (${c.fx[k].turns})`;
   });
   return parts.length ? "In play: " + parts.join(", ") + "." : "";
@@ -412,7 +418,7 @@ function maybeOfferSpare(state) {
   if (e.isBoss || c.couldSpare) return;
   if (e.hp <= Math.round(e.maxHp * CONFIG.axes.alignment.spareEnemyHpPct)) {
     c.couldSpare = true;
-    pushLine(state, `The ${e.name} is barely holding together — you could finish it, or spare it.`, "hint");
+    pushLine(state, `${ERef(e)} is barely holding together — you could finish it, or spare it.`, "hint");
   }
 }
 
@@ -428,13 +434,13 @@ function enemyTurn(state) {
   const burn = takeFx(c, "burn");
   if (burn > 0) {
     e.hp = Math.max(0, e.hp - burn);
-    pushLine(state, `The ${e.name} smoulders for ${burn}.`, "system");
+    pushLine(state, `${ERef(e)} smoulders for ${burn}.`, "system");
     if (e.hp <= 0) return endCombat(state, "victory");
   }
 
   // Stagger: it loses the turn entirely.
   if (takeFx(c, "stagger") > 0) {
-    pushLine(state, `The ${e.name} reels — it can't strike back this turn.`, "system");
+    pushLine(state, `${ERef(e)} reels — it can't strike back this turn.`, "system");
     return endEnemyTurn(state);
   }
 
@@ -444,8 +450,8 @@ function enemyTurn(state) {
 
   if (rolls(dodgeChance(stats.dodge)) || (blind > 0 && rolls(blind))) {
     pushLine(state, blind > 0
-      ? `The ${e.name} strikes wide — it can't find you!`
-      : `The ${e.name} lunges — you dodge!`, "system");
+      ? `${ERef(e)} strikes wide — it can't find you!`
+      : `${ERef(e)} lunges — you dodge!`, "system");
   } else {
     let raw = e.power * e.damageMult * (1 - slow);
     let dmg = damageAfterDefense(raw, effectiveStats(state.model.character).defense); // grace boon raises Defense
@@ -453,7 +459,7 @@ function enemyTurn(state) {
     if (defend > 0) dmg = Math.max(1, Math.round(dmg * (1 - defend)));
     stats.hp = Math.max(0, stats.hp - dmg);
     const tags = [c.playerGuard ? "guarded" : null, defend > 0 ? "warded" : null].filter(Boolean);
-    pushLine(state, `The ${e.name} hits you for ${dmg}${tags.length ? ` (${tags.join(", ")})` : ""}.`, "system");
+    pushLine(state, `${ERef(e)} hits you for ${dmg}${tags.length ? ` (${tags.join(", ")})` : ""}.`, "system");
   }
   return endEnemyTurn(state);
 }
@@ -503,6 +509,10 @@ function endCombat(state, outcome) {
   const model = state.model;
   const c = model.combat;
   const ch = model.character;
+
+  // A rival duel resolves on its own terms — no loot, no public-eye fallout, no
+  // story-boss flags. It's a personal contest; outcome is flavored, never harsh.
+  if (c.enemy.isRival) return endRivalDuel(state, c, ch, outcome);
 
   if (outcome === "mercy") {
     const gain = CONFIG.axes.alignment.mercyPurityGain;
@@ -575,5 +585,27 @@ function endCombat(state, outcome) {
   model.world.currentLocation = "homebase";
   model.world.currentRoom = null;
   pushLine(state, "(Rest to recover fully.)", "hint");
+  return state;
+}
+
+/* A rival duel: winnable, low-stakes, flavored either way. Always returns you to
+   the hub on your feet — the point is the rivalry, not a loss penalty. */
+function endRivalDuel(state, c, ch, outcome) {
+  const model = state.model;
+  const name = c.enemy.name;
+  if (outcome === "victory" || outcome === "mercy") {
+    pushLine(state, `${name} drops to one knee, breathing hard — then laughs. "…Not bad. Not bad at all."`, "banner");
+    pushLine(state, `"Don't get comfortable. I'll be back for a rematch." ${name} melts into the dark.`, "mascot");
+  } else if (outcome === "flee") {
+    pushLine(state, `You break away from the duel. ${name} doesn't give chase — "Running? We'll finish this another day."`, "system");
+  } else {
+    // defeat — no harsh penalty; Sable pulls the final blow.
+    pushLine(state, `${name} knocks you flat and steps back instead of pressing the advantage. "…You're not ready yet. Train harder. I want you at your best."`, "banner");
+    ch.stats.hp = Math.max(1, Math.round(ch.stats.maxHp * 0.5));
+  }
+  model.combat = null;
+  model.mode = "hub";
+  model.world.currentLocation = "homebase";
+  model.world.currentRoom = null;
   return state;
 }
