@@ -144,6 +144,7 @@ export function startCombat(state, enemyId, opts = {}) {
     fx: {},                     // active status effects (T13), keyed by effect kind
     couldSpare: false,          // latches once the foe is beaten enough to spare (T14)
     corruptActs: 0,             // corrupt-flavored moves this fight → extra Unmasking on a public win (T15)
+    storyLoss: !!opts.storyLoss, // T17: a scripted, unwinnable fight (Boss #4) ending in the mascot's sacrifice
   };
   model.mode = "combat";
   clampHpToWarp(model.character); // corruption gained since last fight may cap HP lower
@@ -404,10 +405,51 @@ export function playerFlee(state) {
 /* After a turn-consuming player action: check win, else enemy turn. */
 function afterPlayerAction(state) {
   const c = state.model.combat;
+  if (c.storyLoss) return storyLossTick(state); // scripted Boss #4 — can't be won (T17)
   enemyStatusLine(state);
   if (c.enemy.hp <= 0) return endCombat(state, "victory");
   maybeOfferSpare(state);
   return enemyTurn(state);
+}
+
+/* ---- T17: scripted story-loss (Boss #4) ----
+   The fight is real combat, but the boss can't be hurt and won't kill you: your
+   hits are clamped to a sliver so its HP "barely moves", and the enemy turn floors
+   your HP at 1. After a set number of player turns the mascot throws itself in the
+   way — injured, then gone. Heavily telegraphed so it never reads as a bug. */
+function storyLossTick(state) {
+  const c = state.model.combat;
+  const e = c.enemy;
+  const SL = CONFIG.combat.storyLoss;
+  // Boss HP barely moves: undo any damage past the scripted per-turn sliver.
+  const floor = Math.ceil(e.maxHp * (1 - SL.bossHpVisibleDrainPerHit * c.round));
+  if (e.hp < floor) e.hp = floor;
+  enemyStatusLine(state);
+  pushLine(state, `${ERef(e)} shrugs off the blow as if it never landed.`, "hint");
+  if (c.round >= SL.maxPlayerTurnsBeforeIntervene) return storyLossIntervene(state);
+  return enemyTurn(state);
+}
+
+/* The mascot's sacrifice: end of the scripted fight. Hands off to progress.js
+   (handleStoryLoss) via state.ui.justLostStoryBoss for the aftermath beat. */
+function storyLossIntervene(state) {
+  const model = state.model;
+  const c = model.combat;
+  const ch = model.character;
+  const m = (model.mascot && model.mascot.name) || "Your mascot";
+  pushLine(state, `Your strength runs out before its patience does. ${ERef(c.enemy)} raises a hand to end you—`, "banner");
+  pushLine(state, `"NO!" ${m} streaks past your shoulder and throws itself into the blow meant for you.`, "mascot");
+  pushLine(state, `A flash. A cry, small and bright and then cut short. When the rain clears, ${m} is gone — and so is the towering shape, melting back into the grey as if bored of you.`, "banner");
+  if (model.mascot) { model.mascot.injured = true; model.mascot.present = false; }
+  model.world.flags.boss4Attempted = true;
+  ch.stats.hp = Math.max(1, Math.round(ch.stats.maxHp * 0.25));
+  model.combat = null;
+  model.mode = "hub";
+  model.world.currentLocation = "homebase";
+  model.world.currentRoom = null;
+  pushLine(state, "You wake at home. You don't remember the climb down. The house is very quiet.", "system");
+  state.ui.justLostStoryBoss = "boss4"; // progress.js: aftermath + alliance/Awakened hook + sparring unlock
+  return state;
 }
 
 /** Once a non-boss foe is worn down past the spare threshold, surface the mercy choice.
@@ -433,7 +475,7 @@ function enemyTurn(state) {
   // Burn: flat damage-over-time, ticks before the enemy can act.
   const burn = takeFx(c, "burn");
   if (burn > 0) {
-    e.hp = Math.max(0, e.hp - burn);
+    e.hp = Math.max(c.storyLoss ? 1 : 0, e.hp - burn); // a scripted boss can't be burned down
     pushLine(state, `${ERef(e)} smoulders for ${burn}.`, "system");
     if (e.hp <= 0) return endCombat(state, "victory");
   }
@@ -457,7 +499,9 @@ function enemyTurn(state) {
     let dmg = damageAfterDefense(raw, effectiveStats(state.model.character).defense); // grace boon raises Defense
     if (c.playerGuard) dmg = Math.max(1, Math.round(dmg * CONFIG.combat.guardMitigation));
     if (defend > 0) dmg = Math.max(1, Math.round(dmg * (1 - defend)));
-    stats.hp = Math.max(0, stats.hp - dmg);
+    // During the scripted story-loss the boss never quite finishes you — the mascot
+    // gets the last word (storyLossIntervene), so floor HP at 1 until then.
+    stats.hp = Math.max(c.storyLoss ? 1 : 0, stats.hp - dmg);
     const tags = [c.playerGuard ? "guarded" : null, defend > 0 ? "warded" : null].filter(Boolean);
     pushLine(state, `${ERef(e)} hits you for ${dmg}${tags.length ? ` (${tags.join(", ")})` : ""}.`, "system");
   }

@@ -142,11 +142,25 @@ export function moveDir(state, dir) {
       pushLine(state, "The heart of the wood is still and clean now.", "system");
       return state;
     }
-    pushLine(state, "The corruption draws together into a towering shape...", "mascot");
+    // Boss #4 is a scripted story-loss until you've recovered your magical weapon
+    // (T18). Telegraph it heavily so the loss never reads as a bug. After the weapon
+    // is found it becomes a normal, winnable Awakened-tier fight.
+    const storyLoss =
+      nr.boss === "boss4" &&
+      CONFIG.combat.storyLoss.enabled &&
+      !model.character.magicalWeapon.found;
+    if (storyLoss) {
+      const m = (model.mascot && model.mascot.name) || "Your mascot";
+      pushLine(state, `${m}: "...No. No, not this one — turn back!"`, "mascot");
+      pushLine(state, `${m}: "I've never felt corruption like this. Whatever happens, do NOT let it take you."`, "mascot");
+    } else {
+      pushLine(state, "The corruption draws together into a towering shape...", "mascot");
+    }
     return startCombat(state, BOSS_ENEMY[nr.boss], {
       returnMode: "exploration",
       returnRoom: dest,
       bossId: nr.boss,
+      storyLoss,
     });
   }
 

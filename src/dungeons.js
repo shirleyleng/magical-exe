@@ -147,6 +147,44 @@ export const DUNGEONS = {
       },
     },
   },
+
+  // ---- T17: Dungeon #4 — the Knight->Awakened low point. Unlocks after Boss #3
+  //      AND at Knight tier; ends in the scripted story-loss vs the Grief Herald.
+  spire: {
+    id: "spire",
+    name: "Sorrowing Spire",
+    entrance: "spire_steps",
+    unlockReqBoss: "boss3",
+    unlockReqTier: "knight",
+    env: ["rain", "grief", "grey light", "stone", "rising stair", "thick corruption"],
+    rooms: {
+      spire_steps: {
+        name: "Rain-Worn Steps",
+        desc: "A black spire claws at a sky that won't stop weeping. The steps are slick and endless; every face you pass on the way up has stopped trying. The stair climbs.",
+        exits: { up: "spire_landing" },
+        items: [],
+        encounter: null,
+        tags: ["rain", "wet stone", "steep stair", "grey light"],
+      },
+      spire_landing: {
+        name: "The Listening Hall",
+        desc: "A long hall of broken windows. The wind carries voices through them — every doubt you've ever swallowed, said back to you in your own tone. Something drifts between the panes.",
+        exits: { down: "spire_steps", up: "spire_apex" },
+        items: ["dew vial"],
+        encounter: { monster: "grief_wisp", chance: 0.6 },
+        tags: ["broken windows", "echoing voices", "draught", "grief"],
+      },
+      spire_apex: {
+        name: "The Weeping Apex",
+        desc: "The top of the spire opens to the rain. The corruption here doesn't rage — it grieves, vast and patient, and at its heart something immense turns to regard you.",
+        exits: { down: "spire_landing" },
+        items: [],
+        encounter: null,
+        boss: "boss4",
+        tags: ["open sky", "rain", "thick corruption", "no cover"],
+      },
+    },
+  },
 };
 
 export function getRoom(dungeonId, roomId) {
@@ -159,13 +197,25 @@ export const BOSS_ENEMY = {
   boss1: "grove_warden",
   boss2: "tideheart_wraith",
   boss3: "hour_warden",
+  boss4: "grief_herald",
 };
 
+const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
+
+/** Has the player reached at least `tier`? */
+function meetsTier(model, tier) {
+  if (!tier) return true;
+  return TIER_ORDER.indexOf(model.character.transformationTier) >= TIER_ORDER.indexOf(tier);
+}
+
 /** Dungeons the player can currently enter: a dungeon unlocks once its
-    `unlockReqBoss` (if any) is in world.flags.bossesDefeated. */
+    `unlockReqBoss` (if any) is in world.flags.bossesDefeated AND its
+    `unlockReqTier` (if any) has been reached. */
 export function unlockedDungeons(model) {
   const beaten = model.world.flags.bossesDefeated || [];
-  return Object.values(DUNGEONS).filter((d) => !d.unlockReqBoss || beaten.includes(d.unlockReqBoss));
+  return Object.values(DUNGEONS).filter(
+    (d) => (!d.unlockReqBoss || beaten.includes(d.unlockReqBoss)) && meetsTier(model, d.unlockReqTier)
+  );
 }
 
 /** Resolve a free-text explore target to a dungeon id (by id or name), or null. */

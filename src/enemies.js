@@ -66,6 +66,25 @@ export const ENEMIES = {
     isBoss: true,
   },
 
+  // ---- T17: Dungeon #4 (Sorrowing Spire) — the Knight->Awakened low point ----
+  grief_wisp: {
+    id: "grief_wisp",
+    name: "grief wisp",
+    maxHp: 40, power: 13, defense: 5, speed: 6, dodge: 4,
+    coins: 11,
+    loot: ["dew vial"],
+  },
+  // Boss #4 — the scripted story-loss (combat.js storyLoss). Stats are tuned for a
+  // real Awakened-tier rematch later (T18); the first encounter is unwinnable by script.
+  grief_herald: {
+    id: "grief_herald",
+    name: "Grief Herald",
+    maxHp: 200, power: 24, defense: 14, speed: 13, dodge: 4,
+    coins: 100,
+    loot: ["moonstone shard", "moonstone shard"],
+    isBoss: true,
+  },
+
   // ---- T16: the rival, Sable — a winnable duel, NOT a story boss (no bossId). ----
   rival_sable: {
     id: "rival_sable",

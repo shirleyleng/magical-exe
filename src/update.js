@@ -30,8 +30,16 @@ import {
   startCombat, playerAttack, playerGuard, playerBurst, playerSpare, combatUse, combatLook, playerFlee,
   applyJudgedAction,
 } from "./combat.js";
-import { handleBossDefeat } from "./progress.js";
+import { handleBossDefeat, handleStoryLoss } from "./progress.js";
 import { listSlots, deleteSlot, hasSlot } from "./persist.js";
+
+/* Resolve story reactions a combat turn may have triggered: a boss falling
+   (tier-up + reveal) or the scripted Boss #4 story-loss (mascot gone + hooks). */
+function afterCombat(out) {
+  if (out.ui.justDefeatedBoss) return handleBossDefeat(out);
+  if (out.ui.justLostStoryBoss) return handleStoryLoss(out);
+  return out;
+}
 
 export function update(state, event) {
   const s = structuredClone(state);
@@ -183,7 +191,7 @@ function onInput(s, event) {
 
   const out = route(s, cmd);
   // A boss may have fallen during this turn -> resolve tier-up + reveal.
-  return out.ui.justDefeatedBoss ? handleBossDefeat(out) : out;
+  return afterCombat(out);
 }
 
 /* ---- save-slot helpers ---- */
@@ -429,7 +437,7 @@ function onAIResult(s, event) {
       return s;
     }
     const out = applyJudgedAction(s, verdict);
-    return out.ui.justDefeatedBoss ? handleBossDefeat(out) : out;
+    return afterCombat(out);
   }
 
   // kind === "parse"
@@ -459,7 +467,7 @@ function onAIResult(s, event) {
     raw: raw || res.text,
   };
   const out = route(s, cmd);
-  return out.ui.justDefeatedBoss ? handleBossDefeat(out) : out;
+  return afterCombat(out);
 }
 
 /* ---- command router ----

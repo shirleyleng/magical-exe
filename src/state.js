@@ -114,6 +114,14 @@ export function createState(model) {
     if (f.storyBeats === undefined) f.storyBeats = [];
     if (f.rivalReturnDay === undefined) f.rivalReturnDay = null;
     if (f.rivalReturned === undefined) f.rivalReturned = false;
+    // Backfill T17 (Boss #4 story-loss / mascot-gone) flags.
+    if (f.boss4Attempted === undefined) f.boss4Attempted = false;
+    if (f.mascotGone === undefined) f.mascotGone = false;
+  }
+  // Backfill T17 mascot presence fields for saves made before the mascot could leave.
+  if (m.mascot) {
+    if (m.mascot.present === undefined) m.mascot.present = true;
+    if (m.mascot.injured === undefined) m.mascot.injured = false;
   }
   return {
     model: m,
