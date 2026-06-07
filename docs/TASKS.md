@@ -146,10 +146,21 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 
 ## PHASE 5 — Depth systems
 
-### T14 — Purity/Corruption axis
+### T14 — Purity/Corruption axis (DONE)
 - BUILD: corruption as battle resource (burst/forbidden), stat-warp thresholds, ability gating
   (pure vs corrupt kits), path tracking (`path`). All values from `config.js`.
-- DONE: spending corruption works and warps stats at thresholds; abilities gate by path.
+- DONE/VERIFIED: Purity & Corruption are ONE coupled slider (`src/alignment.js`: gaining one
+  end drains the other; `path` = pure/balanced/corrupt from the gap). Corruption warps stats
+  (`effectiveStats`: Power up / max HP down) shown in STATUS as a Pure←◆→Corr bar + ⚠ marker.
+  `burst` = no-Spirit heavy hit that deepens corruption (the "battle resource"). Narrative
+  nudge: `spare` a beaten non-boss foe → +Purity (it flees, no loot); a finishing blow on a
+  spareable foe → +Corruption (this is how Purity rises in-slice). Path kits: `mend` (Pure heal)
+  + `drain` (Corrupt lifesteal), LEARNED in training once tier + slider-threshold prereqs are met,
+  with an opposed-alignment SOFT-FIZZLE whose chance scales with how far you've strayed. Starting
+  meters now 0/0 (unwritten). DESIGN DECISIONS (workshopped): coupled slider; burst deepens (not
+  spends); learn-via-training gated by tier+threshold; soft-fizzle (not hard-lock). Spirit-warp
+  (spiritMult) deferred — Spirit is a consumable pool, needs a later refactor. Full pure/corrupt
+  kits expand alongside tiers 3–5.
 
 ### T15 — Fame/Unmasking axis
 - BUILD: Fame gains (public wins, visible quests, saving civilians); Unmasking gains (public
