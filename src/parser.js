@@ -52,6 +52,7 @@ const VERBS = {
   shop: "shop", store: "shop",
   buy: "buy", purchase: "buy",
   sell: "sell",
+  prestige: "prestige", reincarnate: "prestige", reborn: "prestige", newgame: "prestige",
   // exploration
   explore: "explore", venture: "explore", dungeon: "explore", adventure: "explore",
   retreat: "retreat", leave: "retreat", flee: "retreat", escape: "retreat", home: "retreat",
@@ -110,6 +111,7 @@ export const HELP = [
   "  Combat:  attack · guard · burst · use <ability> · spare",
   "  Hub:     train <stat> · spar <stat> · errand · rest · shop · buy <item> · sell <item> · explore · alliance",
   "  Lay low: lie low · misdirection   (cool your Unmasking when the heat rises)",
+  "  Meta+:   prestige   (begin a new, stronger turning) · settings (theme · difficulty)",
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",
   "  Settings: settings  (theme / color palette · about & credits)",

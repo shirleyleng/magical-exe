@@ -174,9 +174,10 @@ function renderStats(model) {
       ? `VS ${model.combat.enemy.name} ${model.combat.enemy.hp}/${model.combat.enemy.maxHp}`
       : `Location: ${model.world.currentLocation}`;
 
+  const prestigeTag = model.prestigeCount > 0 ? ` · ✦${model.prestigeCount}` : "";
   const block = [
     `${c.name}  ·  ${c.path}`,
-    `Day ${model.day} · ${model.mode} · ${c.transformationTier}`,
+    `Day ${model.day} · ${model.mode} · ${c.transformationTier}${prestigeTag}`,
     statusLine,
     ``,
     `HP    ${s.hp}/${eff.maxHp}`,

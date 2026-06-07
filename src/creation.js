@@ -37,6 +37,16 @@ const STEPS = [
     apply: (d, v) => { if (!v.trim()) return false; d.name = v.trim(); return true; },
   },
   {
+    key: "difficulty",
+    kind: "menu",
+    prompt: () => ["And how hard a road do you want? (you can change this later in settings)"],
+    options: () => [
+      { label: "Gentle (Easy) — kinder foes, richer rewards", value: "easy" },
+      { label: "Standard (Normal) — the world as it's meant to be", value: "normal" },
+    ],
+    apply: (d, v) => { d.difficulty = v; return true; },
+  },
+  {
     key: "gender",
     kind: "menu",
     prompt: () => ["How do you present in the world?"],
@@ -246,6 +256,9 @@ function commit(state) {
   ch.city = d.city;
   ch.secretPlace = d.secret;
   ch.magicalWeapon = toyToWeapon(d.toy);
+
+  // Difficulty (T20) — model-level, defaults to Normal; tunable later in settings.
+  state.model.difficulty = d.difficulty || "normal";
 
   // Fuse the mascot (T5).
   const mascot = fuseMascot(d.animals, d.mascotName);

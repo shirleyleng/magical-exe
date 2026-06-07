@@ -34,6 +34,7 @@ import {
 } from "./combat.js";
 import { handleBossDefeat, handleStoryLoss } from "./progress.js";
 import { handleFinaleResolve, resolveBrink } from "./endgame.js";
+import { openPrestigeMenu, doPrestige } from "./prestige.js";
 import { listSlots, deleteSlot, hasSlot } from "./persist.js";
 
 /* Resolve story reactions a combat turn may have triggered: a boss falling
@@ -89,6 +90,7 @@ export function update(state, event) {
         s.ui.menu = null;
         if (opt.value === "__cancel__") return s;
         if (opt.value === "theme") return openThemeMenu(s);
+        if (opt.value === "difficulty") return openDifficultyMenu(s);
         if (opt.value === "about") return showAbout(s);
         return s;
       }
@@ -125,6 +127,22 @@ export function update(state, event) {
         pushLine(s, opt.label, "echo");
         s.ui.menu = null;
         return resolveBrink(s, opt.value); // T19 finale: fuel-check gate → one of four endings
+      }
+      if (m.kind === "prestige") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") { pushLine(s, "(You hold on to this run — for now.)", "hint"); return s; }
+        return doPrestige(s);
+      }
+      if (m.kind === "difficulty") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") return s;
+        s.model.difficulty = opt.value;
+        pushLine(s, `Difficulty set to ${opt.value === "easy" ? "Gentle (Easy)" : "Standard (Normal)"}.`, "system");
+        return s;
       }
       return handleHubMenu(s, m.kind, m.options[m.index]);
     }
@@ -227,16 +245,32 @@ function openLoadMenu(s) {
   return s;
 }
 
-/** Settings home — a discoverable menu of player preferences (currently theme + about). */
+/** Settings home — a discoverable menu of player preferences (theme · difficulty · about). */
 function openSettingsMenu(s) {
   const current = document.documentElement.dataset.theme || "lipgloss";
   const options = [
     { label: `Theme — ${themeName(current)}`, value: "theme" },
+    { label: `Difficulty — ${difficultyLabel(s.model.difficulty)}`, value: "difficulty" },
     { label: "About & credits", value: "about" },
     { label: "Close", value: "__cancel__" },
   ];
   pushLine(s, "Settings:", "system");
   s.ui.menu = { active: true, kind: "settings", options, index: 0 };
+  return s;
+}
+
+const difficultyLabel = (d) => (d === "easy" ? "Gentle (Easy)" : "Standard (Normal)");
+
+/** Easy/Normal picker. Writes model.difficulty; takes effect on the next enemy spawned. */
+function openDifficultyMenu(s) {
+  const cur = s.model.difficulty || "normal";
+  const options = [
+    { label: `Gentle (Easy)${cur === "easy" ? " (current)" : ""} — kinder foes, richer rewards`, value: "easy" },
+    { label: `Standard (Normal)${cur === "normal" ? " (current)" : ""} — the world as it's meant to be`, value: "normal" },
+    { label: "Cancel", value: "__cancel__" },
+  ];
+  pushLine(s, "How hard a road?", "system");
+  s.ui.menu = { active: true, kind: "difficulty", options, index: cur === "easy" ? 0 : 1 };
   return s;
 }
 
@@ -351,7 +385,7 @@ function buildParseContext(s, raw) {
     mode,
     allowedActions: [
       "train", "spar", "alliance", "errand", "rest", "shop", "buy", "sell", "explore",
-      "use", "attack", "look", "status", "inventory",
+      "prestige", "use", "attack", "look", "status", "inventory",
     ],
     presentEntities: [
       "power", "spirit", "defense", "speed", "dodge", "hp", "stamina", // train targets
@@ -611,6 +645,8 @@ function routeHub(s, cmd) {
       return openShopMenu(s);
     case "sell":
       return sellCommand(s, target);
+    case "prestige":
+      return openPrestigeMenu(s);
     case "explore": {
       if (!target) return openExploreMenu(s);
       const id = resolveDungeon(target);
@@ -696,6 +732,7 @@ function routeExplore(s, cmd) {
     case "buy":
     case "sell":
     case "explore":
+    case "prestige":
       pushLine(s, "Not while you're out exploring — retreat to the hub first.", "system");
       return s;
     default:
