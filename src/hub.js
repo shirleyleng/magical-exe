@@ -103,11 +103,10 @@ export function trainDirect(state, statKey) {
 export function trainCommand(state, target) {
   if (trainingClosed(state)) return state;
   const key = resolveStat(target);
-  if (!key) {
-    pushLine(state, "Train what? Try: power, spirit, defense, speed, dodge, hp, stamina.", "system");
-    return state;
-  }
-  return trainDirect(state, key);
+  if (key) return trainDirect(state, key);
+  if (target && getAbility(target)) return learnAbility(state, target, "training");
+  pushLine(state, "Train what? Try a stat (power, spirit, defense, speed, dodge, hp, stamina) or an ability you can learn.", "system");
+  return state;
 }
 
 /** `train` with no argument -> a selection menu. */
@@ -235,11 +234,10 @@ export function sparCommand(state, target) {
     return state;
   }
   const key = resolveStat(target);
-  if (!key) {
-    pushLine(state, "Spar to sharpen what? Try: power, spirit, defense, speed, dodge, hp, stamina.", "system");
-    return state;
-  }
-  return doSpar(state, key);
+  if (key) return doSpar(state, key);
+  if (target && getAbility(target)) return learnAbility(state, target, "sparring");
+  pushLine(state, "Spar to sharpen what? Try a stat (power, spirit, defense, speed, dodge, hp, stamina) or an ability you can learn.", "system");
+  return state;
 }
 
 /** `spar` with no argument -> a selection menu. */
