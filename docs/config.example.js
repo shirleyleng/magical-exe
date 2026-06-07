@@ -119,9 +119,12 @@ export const CONFIG = {
     unmasking: {
       gainPublicBattle: 6,
       gainCorruptAction: 4,       // corruption-flavored actions raise unmasking faster
-      coolPerRestDay: 2,          // passive cooling
+      coolPerRestDay: 2,          // passive cooling per rested day
+      residualFloor: 5,           // once publicly known (fame>0), cooling never drops below this
       relocateHubCostDays: 2,     // relocating home consumes all slots, takes 2 days
       thresholds: { low: 25, mid: 55, high: 85 },  // event tiers
+      lieLowReduction: 12,        // `lie low` (spends the day) sheds this much heat
+      misdirectionReduction: 8,   // misdirection errand (spends a slot) sheds this much
     },
     fame: {
       gainPublicWin: 5,

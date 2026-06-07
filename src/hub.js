@@ -12,6 +12,7 @@
 import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { getAbility, meetsLearnReq, learnableAbilities } from "./abilities.js";
+import { coolUnmasking } from "./visibility.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -252,6 +253,9 @@ export function doRest(state) {
   stats.hp = stats.maxHp;
   stats.stamina = stats.maxStamina;
   pushLine(state, `You rest. Day ${model.day} dawns; your ${model.hub.slotsMax} slots are fresh and you feel restored.`, "system");
+  // The public eye cools a little overnight (T15) — but never fully forgets.
+  const cooled = coolUnmasking(model.character);
+  if (cooled > 0) pushLine(state, `The talk dies down a little. (-${cooled} Unmasking)`, "hint");
   return state;
 }
 

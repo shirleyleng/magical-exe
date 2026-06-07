@@ -16,6 +16,7 @@ import { DUNGEONS } from "./dungeons.js";
 import { useItem } from "./hub.js";
 import { requestNarration } from "./narrate.js";
 import { adjustAlignment, effectiveStats, fizzleChance, healMultiplier, derivePath } from "./alignment.js";
+import { adjustVisibility } from "./visibility.js";
 import { getAbility } from "./abilities.js";
 
 const coin = () => CONFIG.economy.currencySymbol;
@@ -136,6 +137,7 @@ export function startCombat(state, enemyId, opts = {}) {
     envTags: envTagsFor(model), // for the T13 freeform-action judge
     fx: {},                     // active status effects (T13), keyed by effect kind
     couldSpare: false,          // latches once the foe is beaten enough to spare (T14)
+    corruptActs: 0,             // corrupt-flavored moves this fight → extra Unmasking on a public win (T15)
   };
   model.mode = "combat";
   clampHpToWarp(model.character); // corruption gained since last fight may cap HP lower
@@ -204,6 +206,7 @@ export function playerBurst(state) {
   }
   adjustAlignment(ch, { corruption: K.burstCorruptionGain });
   clampHpToWarp(ch);
+  c.corruptActs += 1;            // conspicuous dark power → raises Unmasking faster on a public win
   pushLine(state, `The power answers — and stains you. (+${K.burstCorruptionGain} Corruption)`, "system");
   return afterPlayerAction(state);
 }
@@ -301,7 +304,11 @@ export function playerAbility(state, name) {
   }
 
   // Leaning on a path ability nudges the slider that way (coupled). purify already shed above.
-  if (ab.nudge) { adjustAlignment(ch, ab.nudge); clampHpToWarp(ch); }
+  if (ab.nudge) {
+    adjustAlignment(ch, ab.nudge);
+    clampHpToWarp(ch);
+    if (ab.nudge.corruption > 0) c.corruptActs += 1; // dark kit is conspicuous (T15)
+  }
   return afterPlayerAction(state);
 }
 
@@ -364,6 +371,7 @@ export function applyJudgedAction(state, verdict) {
     const ch = state.model.character;
     adjustAlignment(ch, { corruption: verdict.corruptionCost });
     clampHpToWarp(ch);
+    c.corruptActs += 1;          // forbidden improvisation is conspicuous (T15)
     pushLine(state, `Shadow coils into you. (+${verdict.corruptionCost} Corruption)`, "system");
   }
 
@@ -461,6 +469,34 @@ function endEnemyTurn(state) {
   return state;
 }
 
+/* Fame/Unmasking fallout of a win (T15). Only PUBLIC (hub) battles touch the
+   public eye — the forest has no witnesses. A boss is a known, talked-about deed
+   and earns Fame wherever it's fought; corrupt-flavored moves raise Unmasking
+   faster (corruption's third cost), as does a needless finishing blow. */
+function grantWinVisibility(state, c, ch) {
+  const AX = CONFIG.axes;
+  const isPublic = c.returnMode === "hub";
+  let fame = 0;
+  let unmasking = 0;
+
+  if (c.enemy.isBoss) fame += AX.fame.gainVisibleQuest;   // visible quest
+  else if (isPublic) fame += AX.fame.gainPublicWin;
+
+  if (isPublic) {
+    unmasking += AX.unmasking.gainPublicBattle;
+    // a finishing blow you could have spared is itself a conspicuous, ruthless act
+    const ruthlessFinish = !c.enemy.isBoss && c.couldSpare ? 1 : 0;
+    unmasking += (c.corruptActs + ruthlessFinish) * AX.unmasking.gainCorruptAction;
+  }
+
+  if (!fame && !unmasking) return;
+  const d = adjustVisibility(ch, { fame, unmasking });
+  const parts = [];
+  if (d.fame) parts.push(`+${d.fame} Fame`);
+  if (d.unmasking) parts.push(`+${d.unmasking} Unmasking`);
+  if (parts.length) pushLine(state, `Word spreads through the city. (${parts.join(" · ")})`, "system");
+}
+
 /* ---- resolution ---- */
 function endCombat(state, outcome) {
   const model = state.model;
@@ -487,6 +523,8 @@ function endCombat(state, outcome) {
       clampHpToWarp(ch);
       pushLine(state, `You struck the final blow without mercy. (+${gain} Corruption)`, "system");
     }
+    // Public-eye fallout: Fame for the win, Unmasking for being seen — more if you fought dirty.
+    grantWinVisibility(state, c, ch);
     if (c.enemy.coins) {
       ch.coins = (ch.coins ?? 0) + c.enemy.coins;
       pushLine(state, `You gather ${coin()}${c.enemy.coins}.`, "system");
