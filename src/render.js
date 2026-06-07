@@ -333,16 +333,24 @@ function metersHtml(c) {
   );
 }
 
-/* ---- MASCOT panel (placeholder until T5 fusion/art) ---- */
+/* ---- MASCOT panel (placeholder until T5 fusion/art) ----
+   The <pre> is built once and reused: the animator (main.js) holds a live
+   reference to it and ticks ~7×/s, so rebuilding it every turn churned DOM and
+   handed the animator a fresh node each paint. We now only swap class/text. */
 function renderMascot(model) {
-  els.mascot.innerHTML = "";
-
-  const pre = document.createElement("pre");
-  pre.className = "mascot-art";
-  pre.setAttribute("aria-hidden", "true");
-
-  const caption = document.createElement("p");
-  caption.className = "panel__body--muted";
+  let pre = els.mascot.querySelector(".mascot-art");
+  let caption = els.mascot.querySelector(".panel__body--muted");
+  if (!pre) {
+    pre = document.createElement("pre");
+    pre.className = "mascot-art";
+    pre.setAttribute("aria-hidden", "true");
+    caption = document.createElement("p");
+    caption.className = "panel__body--muted";
+    els.mascot.appendChild(pre);
+    els.mascot.appendChild(caption);
+  }
+  // Reset the per-state modifiers; the active branch re-adds what it needs.
+  pre.classList.remove("mascot-art--gone", "mascot-art--dimmed");
 
   // Base style key (e.g. "catflick") drives which animation frames apply.
   const base = baseOf(model.mascot);
@@ -368,9 +376,6 @@ function renderMascot(model) {
     caption.textContent = "awaiting fusion…";
     syncMascot({ base: "blob", status: "none" });
   }
-
-  els.mascot.appendChild(pre);
-  els.mascot.appendChild(caption);
 }
 
 /** The base style id from a mascot's artKeySmall (e.g. "catflick_small" -> "catflick"). */
