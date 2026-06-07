@@ -180,6 +180,13 @@ export const CONFIG = {
                     verb: "breathe out a cleansing light",
                     shedCorruption: 10, healPct: 0.10, // climb back from the brink (fizzle-exempt)
                     learn: { reqTier: "novice", reqCorruption: 10, slotCost: 1, blurb: "cleanse + shed Corruption (Pure)" } },
+    // T18: the Awakened signature — your recovered magical weapon. Neutral (no
+    // fizzle), heavy hit that staggers the foe (skips its next turn). Learnable
+    // only once Awakened (reqTier), so it never appears before the weapon is found.
+    "true strike": { align: "neutral", spirit: 6, kind: "damage", mult: 2.0,
+                     verb: "bring your awakened weapon down on",
+                     applyFx: { kind: "stagger", magnitude: "minor", turns: 1 },
+                     learn: { reqTier: "awakened", slotCost: 1, blurb: "a staggering strike with your true weapon (Awakened)" } },
   },
 
   // ---- transformation tiers ----

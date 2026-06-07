@@ -89,6 +89,15 @@ const BOSS_BEAT = {
     pushLine(state, `${m}: "I've started to understand. The corruption grows thickest where people have given up — it *feeds* on hopelessness."`, "mascot");
     pushLine(state, `${m}: "Every errand you run, every person you give hope back to — that may be the truer fight. Remember that."`, "mascot");
   },
+  // T18: the Boss #4 rematch (now winnable as Awakened) — the rival pays her dues
+  // and resumes challenging you, this time as an equal.
+  boss4(state) {
+    const rival = (state.model.rivals && state.model.rivals[0]) || { name: "Sable" };
+    pushLine(state, "The Grief Herald comes apart at last — not banished so much as *answered*. The long rain finally stops.", "banner");
+    pushLine(state, `${rival.name} is waiting when you return, and for once she doesn't bother hiding the grin. "You went back. You won. …I had a whole speech ready about not throwing your life away. Guess I'll keep it."`, "mascot");
+    pushLine(state, `"You're the real thing now. I'll keep coming for you — but as an equal. Someone has to keep an Awakened honest." She holds out a hand.`, "mascot");
+    rival.disposition = "respectful";
+  },
 };
 
 /** React to a boss defeat: fire its story beat, then maybe advance a tier. */
