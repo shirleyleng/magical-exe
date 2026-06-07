@@ -11,7 +11,7 @@
 
 import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
-import { DUNGEONS, getRoom, BOSS_ENEMY } from "./dungeons.js";
+import { DUNGEONS, getRoom, BOSS_ENEMY, unlockedDungeons, resolveDungeon } from "./dungeons.js";
 import { startCombat } from "./combat.js";
 import { requestNarration } from "./narrate.js";
 
@@ -45,6 +45,28 @@ function liveItems(model, roomId) {
     model.world.roomItems[roomId] = [...((r && r.items) || [])];
   }
   return model.world.roomItems[roomId];
+}
+
+/** `explore` with no/unknown target -> a chooser of currently-unlocked dungeons. */
+export function openExploreMenu(state) {
+  const model = state.model;
+  const beaten = model.world.flags.bossesDefeated || [];
+  const unlocked = unlockedDungeons(model);
+  const options = unlocked.map((d) => {
+    const boss = bossOf(d);
+    const done = boss && beaten.includes(boss) ? "  ✓ cleared" : "";
+    return { label: `${d.name}${done}`, value: d.id };
+  });
+  options.push({ label: "Cancel", value: "__cancel__" });
+  pushLine(state, "Where will you venture?", "system");
+  state.ui.menu = { active: true, kind: "explore", options, index: 0 };
+  return state;
+}
+
+/** The boss id a dungeon ends with (for the "cleared" marker), or null. */
+function bossOf(d) {
+  for (const r of Object.values(d.rooms)) if (r.boss) return r.boss;
+  return null;
 }
 
 export function enterDungeon(state, dungeonId = "forest") {

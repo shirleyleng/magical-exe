@@ -23,7 +23,8 @@ import {
   sellCommand, useItem, doRest, handleHubMenu, slotsFree,
   doLieLow, doMisdirect,
 } from "./hub.js";
-import { enterDungeon, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
+import { enterDungeon, openExploreMenu, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
+import { unlockedDungeons, resolveDungeon, DUNGEONS } from "./dungeons.js";
 import {
   startCombat, playerAttack, playerGuard, playerBurst, playerSpare, combatUse, combatLook, playerFlee,
   applyJudgedAction,
@@ -90,6 +91,13 @@ export function update(state, event) {
         s.ui.effect = { type: "theme", id: opt.value }; // commit: main.js applies + persists
         pushLine(s, `Theme set to ${themeName(opt.value)}.`, "system");
         return s;
+      }
+      if (m.kind === "explore") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") { pushLine(s, "(never mind)", "hint"); return s; }
+        return enterDungeon(s, opt.value);
       }
       return handleHubMenu(s, m.kind, m.options[m.index]);
     }
@@ -569,8 +577,16 @@ function routeHub(s, cmd) {
       return openShopMenu(s);
     case "sell":
       return sellCommand(s, target);
-    case "explore":
-      return enterDungeon(s, "forest");
+    case "explore": {
+      if (!target) return openExploreMenu(s);
+      const id = resolveDungeon(target);
+      if (!id) { pushLine(s, `You don't know a way to "${target}". Type explore to see where you can go.`, "system"); return s; }
+      if (!unlockedDungeons(s.model).some((d) => d.id === id)) {
+        pushLine(s, `The way to the ${DUNGEONS[id].name} isn't open to you yet.`, "system");
+        return s;
+      }
+      return enterDungeon(s, id);
+    }
     case "use":
       return useItem(s, target);
 
