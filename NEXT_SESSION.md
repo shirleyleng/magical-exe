@@ -11,17 +11,22 @@ Done & verified: T1–T16 (slice + AI + both axes + bosses #2/#3 + Soldier→Kni
 `true strike` ability + winnable Boss #4 rematch + rival-as-equal beat). Everything committed;
 `config.js` stays uncommitted (synced to `docs/config.example.js`).
 
-## What's next: T19 — Final boss + Ascension + endings (DESIGN §8, TASKS T19)
+## What's next: T19 finale — fully designed, see DESIGN §9.5 "The finale"
 
-The finale. A 3-phase fight + the Awakened→Ascended tier + a Purity/Corruption fork on the ending.
+The hope LAYER (front half of T19) is built (below). What remains is the **finale that consumes the
+tally** — a 3-phase fight + the Awakened→Ascended resolution with a **four-ending** fork (note the
+axis is now **Virtue**, not Purity):
 
-- **Phase 1:** fight the "big boss" as the apparent source of the corruption.
-- **Phase 2 (twist):** defeating P1 doesn't stop it — the boss becomes the **manifested despair of
-  the whole city** (every person you couldn't help feeds it). Hopelessness made literal.
-- **Phase 3 (ascension trigger):** you don't out-muscle despair — you **answer it with accumulated
-  hope.** Gate ascension partly on a hidden **hope tally**; the rival fights beside you.
-- **Purity/Corruption fork:** Pure = ascension through connection/hope; Corrupt = a darker
-  ascension that seizes the despair's power → a different ending.
+- **Phase 1:** the "big boss," apparent source — a real winnable fight.
+- **Phase 2 (twist):** you kill it and it *reforms as the city's despair* — another **normal
+  winnable** fight (no damage-wall; the theme rides the fiction + the gate).
+- **Phase 3 = ascension resolution:** a dramatized brink CHOICE ("answer with hope" / "seize the
+  despair") + a **fuel-check gate WITH TEETH**. Four endings (2×2 = reach × enough-fuel):
+  Virtuous Ascension (you + guardian-deity mascot) · Dark Ascension (dark deity, self intact) ·
+  Quiet Tragedy (hope-but-short, replayable) · Eldritch Merge (seize-but-short → you+mascot become
+  the horror; art = the mascot's own ASCII corrupted). Fame lowers the hope threshold.
+
+Full spec + the build chunks are below and in DESIGN §9.5.
 
 ## ✅ Hope-source LAYER is BUILT (front half of T19, 2026-06-07)
 
