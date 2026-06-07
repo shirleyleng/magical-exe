@@ -159,8 +159,11 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   with an opposed-alignment SOFT-FIZZLE whose chance scales with how far you've strayed. Starting
   meters now 0/0 (unwritten). DESIGN DECISIONS (workshopped): coupled slider; burst deepens (not
   spends); learn-via-training gated by tier+threshold; soft-fizzle (not hard-lock). Spirit-warp
-  (spiritMult) deferred — Spirit is a consumable pool, needs a later refactor. Full pure/corrupt
-  kits expand alongside tiers 3–5.
+  (spiritMult) deferred — Spirit is a consumable pool, needs a later refactor.
+- T14.5 (balance pass): pure path made as tempting as corrupt. Added a Purity "grace" boon
+  mirroring the corruption warp (high purity → Defense↑/healing↑) and a pure kit — radiance
+  (damage + dazzle/blind), ward (defend buff), purify (cleanse + shed Corruption, fizzle-exempt).
+  Corruption stays the raw-damage king; purity owns tempo/safety/sustain. Kits expand more w/ tiers 3–5.
 
 ### T15 — Fame/Unmasking axis
 - BUILD: Fame gains (public wins, visible quests, saving civilians); Unmasking gains (public
