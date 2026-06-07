@@ -11,6 +11,7 @@
 
 import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
+import { getAbility, meetsLearnReq, learnableAbilities } from "./abilities.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -111,10 +112,31 @@ export function openTrainMenu(state) {
     { label: `Dodge     (+${g.dodge})`, value: "dodge" },
     { label: `Max HP    (+${g.maxHp})`, value: "maxHp" },
     { label: `Max Stam. (+${g.maxStamina})`, value: "maxStamina" },
-    { label: "Cancel", value: "__cancel__" },
   ];
+  // Path abilities you're eligible to learn (tier + slider threshold met) appear here.
+  for (const { name, def } of learnableAbilities(state.model.character)) {
+    const cost = def.learn.slotCost || 1;
+    options.push({ label: `Learn ${name} — ${def.learn.blurb} [${cost} slot]`, value: `learn:${name}` });
+  }
+  options.push({ label: "Cancel", value: "__cancel__" });
   pushLine(state, "What will you train today?", "system");
   state.ui.menu = { active: true, kind: "train", options, index: 0 };
+  return state;
+}
+
+/** Learn an ability in training: spends slot(s); requires prereqs still met. */
+export function learnAbility(state, name) {
+  const model = state.model;
+  const ch = model.character;
+  const def = getAbility(name);
+  if (!def || !def.learn) { pushLine(state, "There's nothing to learn there.", "system"); return state; }
+  if (ch.abilities.includes(name)) { pushLine(state, `You already know ${name}.`, "system"); return state; }
+  if (!meetsLearnReq(ch, def)) { pushLine(state, `You're not ready to learn ${name} yet.`, "system"); return state; }
+  const cost = def.learn.slotCost || 1;
+  if (slotsFree(model) < cost) { pushLine(state, "Not enough activity slots left today. Type rest to begin a new day.", "system"); return state; }
+  model.hub.slotsUsedToday.training += cost;
+  ch.abilities.push(name);
+  pushLine(state, `You spend the day in focused practice. You've learned ${name} — ${def.learn.blurb}.`, "banner");
   return state;
 }
 
@@ -240,7 +262,10 @@ export function handleHubMenu(state, kind, opt) {
 
   if (opt.value === "__cancel__") { pushLine(state, "(never mind)", "hint"); return state; }
 
-  if (kind === "train") return trainDirect(state, opt.value);
+  if (kind === "train") {
+    if (opt.value.startsWith("learn:")) return learnAbility(state, opt.value.slice(6));
+    return trainDirect(state, opt.value);
+  }
 
   if (kind === "shop") {
     if (opt.value === "__leave__") { pushLine(state, "You step back out into the day.", "system"); return state; }

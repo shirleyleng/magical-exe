@@ -16,6 +16,7 @@ import { DUNGEONS } from "./dungeons.js";
 import { useItem } from "./hub.js";
 import { requestNarration } from "./narrate.js";
 import { adjustAlignment, effectiveStats, fizzleChance } from "./alignment.js";
+import { getAbility } from "./abilities.js";
 
 const coin = () => CONFIG.economy.currencySymbol;
 
@@ -32,11 +33,6 @@ function envTagsFor(model) {
   }
   return [...(CONFIG.combat.judge.hubEnvTags || ["open ground"])];
 }
-
-/* Starter abilities. Path-gated kits (Pure/Corrupt) arrive in T14. */
-const ABILITIES = {
-  "light bolt": { name: "light bolt", spirit: 3, mult: 1.6, verb: "hurl a bolt of light at" },
-};
 
 /* ---- spawn an enemy instance with difficulty + prestige scaling ---- */
 function spawnEnemy(model, enemyId) {
@@ -208,25 +204,56 @@ export function playerAbility(state, name) {
   const c = state.model.combat;
   const ch = state.model.character;
   const stats = ch.stats;
-  const ab = ABILITIES[name];
+  const ab = getAbility(name);
 
   if (!ab || !ch.abilities.includes(name)) {
     pushLine(state, `You don't know "${name}". You know: ${ch.abilities.join(", ")}.`, "system");
     return state; // not a turn-consuming action
   }
   if (stats.spirit < ab.spirit) {
-    pushLine(state, `Not enough Spirit for ${ab.name} (needs ${ab.spirit}).`, "system");
+    pushLine(state, `Not enough Spirit for ${name} (needs ${ab.spirit}).`, "system");
     return state;
   }
   stats.spirit -= ab.spirit;
+  const eff = effectiveStats(ch);   // corruption warp: amplified Power, lowered max HP
   const e = c.enemy;
-  if (rolls(dodgeChance(e.dodge))) {
-    pushLine(state, `You ${ab.verb} the ${e.name}, but it evades!`, "system");
-  } else {
-    const dmg = damageAfterDefense(Math.round(stats.power * ab.mult), exposedDefense(c, e));
-    e.hp = Math.max(0, e.hp - dmg);
-    pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}! (-${ab.spirit} Spirit)`, "system");
+
+  // Soft-fizzle: an opposed-alignment move can falter when you've drifted the other way.
+  // Chance scales with how far you've strayed (alignment.js). It still costs Spirit + the turn.
+  if (rolls(fizzleChance(ch, ab.align))) {
+    const why = ab.align === "pure"
+      ? "the light gutters out — your heart is too shadowed"
+      : "the dark power slips your grasp — too much light in you";
+    pushLine(state, `Your ${name} falters; ${why}. (-${ab.spirit} Spirit)`, "system");
+    return afterPlayerAction(state);
   }
+
+  if (ab.kind === "heal") {
+    const heal = Math.max(1, Math.round(eff.maxHp * (ab.healPct || 0.3)));
+    stats.hp = Math.min(eff.maxHp, stats.hp + heal);
+    pushLine(state, `You ${ab.verb}; ${heal} HP returns. (-${ab.spirit} Spirit)`, "system");
+  } else if (ab.kind === "lifesteal") {
+    if (rolls(dodgeChance(e.dodge))) {
+      pushLine(state, `You reach for the ${e.name}, but it slips away!`, "system");
+    } else {
+      const dmg = damageAfterDefense(Math.round(eff.power * (ab.mult || 1)), exposedDefense(c, e));
+      e.hp = Math.max(0, e.hp - dmg);
+      const heal = Math.max(1, Math.round(dmg * (ab.lifestealPct || 0.5)));
+      stats.hp = Math.min(eff.maxHp, stats.hp + heal);
+      pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}, drawing ${heal} back into yourself. (-${ab.spirit} Spirit)`, "system");
+    }
+  } else { // damage
+    if (rolls(dodgeChance(e.dodge))) {
+      pushLine(state, `You ${ab.verb} the ${e.name}, but it evades!`, "system");
+    } else {
+      const dmg = damageAfterDefense(Math.round(eff.power * (ab.mult || 1)), exposedDefense(c, e));
+      e.hp = Math.max(0, e.hp - dmg);
+      pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}! (-${ab.spirit} Spirit)`, "system");
+    }
+  }
+
+  // Leaning on a path ability nudges the slider that way (coupled).
+  if (ab.nudge) { adjustAlignment(ch, ab.nudge); clampHpToWarp(ch); }
   return afterPlayerAction(state);
 }
 
@@ -237,7 +264,7 @@ export function combatUse(state, target) {
     return state;
   }
   // Ability?
-  if (ABILITIES[target] || ch.abilities.includes(target)) return playerAbility(state, target);
+  if (getAbility(target) || ch.abilities.includes(target)) return playerAbility(state, target);
   // Item — consuming one costs your turn.
   const before = ch.inventory.length;
   useItem(state, target);
