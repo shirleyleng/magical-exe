@@ -170,6 +170,14 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   battles, corrupt actions faster); cooling; escalating threshold events; lowering methods
   (lie low, misdirection errand, relocate hub over 2 days, memory cloud/wipe by path).
 - DONE: flashy wins raise both meters; thresholds fire events; lowering methods work.
+- ✅ DONE (lightweight pass, 2026-06-06): public (hub) wins raise Fame + Unmasking; corrupt
+  acts (burst/dark-kit/forbidden/finish) raise Unmasking faster; boss wins = big Fame; cooling
+  at rest (residual floor); HUD Unmasking danger bar; escalating low/mid/high events (mid =
+  -1 slot, high = lie-low lock); lowering methods `lie low` + `misdirection`.
+- ⬜ DEFERRED to a follow-up: relocate-hub (2 days/all slots) + memory cloud/wipe abilities;
+  the high-tier "choose to reveal yourself" branching crisis (currently a lock + warning);
+  Unmasking gains in the forest (intentionally witness-free for now); `gainSaveCivilian`
+  (no civilian-rescue action exists in the slice yet).
 
 ---
 

@@ -1,51 +1,46 @@
-# NEXT SESSION — T15: Fame / Unmasking axis
+# NEXT SESSION — T16: Bosses #2 & #3 + Soldier→Knight + rival introduction
 
 > Kickoff notes for the next session. Read `MEMORY.md` + `memory/v1-slice-status.md` first
-> for full status. Delete/replace this file when T15 is underway.
+> for full status. Delete/replace this file when T16 is underway.
 
 ## Where things stand (as of 2026-06-06)
 
-Done & verified live: T1–T13 (slice + AI layer), **T11b** (Turnstile spend-gate, "Option B"),
-**T14 + T14.5** (Purity/Corruption axis — coupled slider, corruption warp + purity **grace**
-boon, `burst`, mercy/finish nudges, path ability kits: `mend`/`drain`/`radiance`/`ward`/`purify`,
-soft-fizzle, learn-via-training). Settings menu + themes (live preview, dark/light groups) +
-Ko-fi (footer + About) also shipped.
+Done & verified live: T1–T13 (slice + AI layer), **T11b** (Turnstile spend-gate), **T14 + T14.5**
+(Purity/Corruption axis), and now **T15** (Fame/Unmasking visibility axis — public-win gains,
+corruption-as-conspicuous, danger-bar HUD, escalating low/mid/high events, `lie low` +
+`misdirection` lowering methods). Settings menu + themes + Ko-fi also shipped. Everything committed.
 
-Backlog (memory/backlog.md): mascot idle animations; mobile-friendly redesign.
+T15 DEFERRED (a clean follow-up when you want it, see `docs/TASKS.md` T15):
+- relocate-hub (2 days / all slots) + **memory cloud** (Pure) / **memory wipe** (Corrupt) abilities.
+- the high-tier "choose to reveal yourself to save someone" branching crisis (today: a lock + warning).
+- Unmasking gains in the forest (intentionally witness-free right now).
+- `gainSaveCivilian` — unwired; no civilian-rescue action exists in the slice yet.
 
-## What's next: T15 — Fame / Unmasking (the visibility axis)
+## What's next: T16 — tiers 3–5 story arc (DESIGN.md, TASKS.md T16)
 
-Two linked meters (DESIGN.md §3 "Fame vs. Unmasking", TASKS.md T15). Config knobs already
-exist in `config.js > axes.fame` and `axes.unmasking`; meters live on the character
-(`fame`, `unmasking`, start 0/0). Neither moves yet — wire them up.
+- Bosses **#2 and #3** (new dungeons / encounters beyond the Moonlit Forest boss).
+- Transformation **Soldier → Knight** tier-up (mirrors the T9 Novice→Soldier + alliance reveal;
+  see `state.ui.justDefeatedBoss` hook in `combat.js` endCombat victory, reacted to in update/T9 code).
+- **Rival introduction** — the rival arc begins. `model.rivals` already seeds `Sable`
+  (power 14, corruption 50, `scheduleState:"dormant"`); `world.flags.metRival` / `rivalChallengeDay`
+  exist but nothing drives them yet.
 
-- **Fame** (good): rises from public wins, visible quests, saving civilians → unlocks
-  events/allies/shops/story doors.
-- **Unmasking** (rising = danger): public battles raise it; **corrupt-flavored play raises it
-  FASTER** — this is corruption's *third* cost, tying T15 back to the T14 slider. Cools over
-  time (`coolPerRestDay`); never trivially hits zero.
-- **Escalating threshold events** (low/mid/high in config): rumors → active investigator +
-  damage-control events → identity-at-risk crisis.
-- **Lowering methods**: lie low, misdirection errand, relocate hub (2 days / all slots),
-  memory cloud (Pure) / memory wipe (Corrupt).
+## Likely open design calls to workshop first (don't code until decided)
 
-## Open design calls to workshop at the start (don't code until decided)
-
-1. **Scope this pass**: full threshold-event system now, or meters + gains + HUD first and
-   events as a follow-up? (Events can be large.)
-2. **HUD**: Fame/Unmasking already render as bare numbers — keep, or give Unmasking a
-   danger-styled bar like the alignment slider?
-3. **Where do gains fire**: combat victory = public win? exploration vs hub visibility? How
-   does "saving civilians" surface as an action in the current slice?
-4. **Event delivery**: do Unmasking threshold events interrupt on `rest`/day-tick, as hub
-   events, or both?
+1. New dungeon(s) vs. reuse the forest graph with scaled enemies for bosses #2/#3?
+2. How/where the rival first appears — hub event on a day-tick, a dungeon encounter, or gated
+   by Fame (a famous persona attracts a rival)? Could tie into the new T15 Fame meter.
+3. Knight tier: what changes mechanically (stat bumps, new slots, kit) beyond flavor?
+4. Does the rival's disposition key off the player's path (Pure/Corrupt) and/or Unmasking?
 
 ## Working notes / conventions
 
 - All balance in `config.js` (gitignored, holds live keys); keep `docs/config.example.js` in sync.
-- Verify with the preview (`.claude/launch.json`, port 4321) + reload after every src edit.
-  Drive deterministic logic via `preview_eval` importing modules with throwaway state objects.
-- Alignment is the model for "coupled meters done right" — see `src/alignment.js`
-  (`adjustAlignment` is the single mutator). Fame/Unmasking are simpler (not coupled to
-  each other, but Unmasking gain rate keys off corruption/path).
-- Commit per logical chunk. Don't commit `config.js`.
+  **Don't commit `config.js`.**
+- Verify with the preview (`.claude/launch.json`, port 4321) + reload after every src edit. Drive
+  deterministic logic via `preview_eval` importing modules with throwaway state objects.
+- **Gotcha:** async victory narration sets `ui.busy` (input lock) — scripted `attack` spam drops
+  follow-up turns; pace combat drives or wait for the lock to clear.
+- Mutator pattern: `src/alignment.js` (`adjustAlignment`) and `src/visibility.js`
+  (`adjustVisibility`) are the single mutators for their axes — follow that shape for new meters.
+- Commit per logical chunk. Avoid backticks in `git commit -m` messages (the shell eats them).
