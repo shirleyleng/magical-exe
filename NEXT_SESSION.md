@@ -1,69 +1,58 @@
-# NEXT SESSION — T20: prestige / clean-slate + Easy/Normal scaling
+# NEXT SESSION — T21: credits / about polish + deploy hardening (final slice item)
 
 > Kickoff notes for the next session. Read `MEMORY.md` + `memory/v1-slice-status.md` first
-> for full status. Delete/replace this file when T20 is underway.
+> for full status. Delete/replace this file when T21 is underway.
 
 ## Where things stand (as of 2026-06-07)
 
-**The whole story arc is DONE.** T1–T18 (slice + AI + both axes + bosses #1–#4 + rival arc +
-secret-place + Awakened) and now **all of T19** — the hope layer (errands + dilemmas + passive +
-ambient mood) AND the **finale**:
+**The whole game is mechanically complete: T1–T20.** Story arc Novice→Ascended with a four-ending
+finale; AI layer (parse/narrate/city/judge) + spend protection (caps/kill-switch/CAPTCHA); both axes
+(Virtue/Corruption + Fame/Unmasking); the hidden Hope tally + errands/dilemmas; **T20 prestige +
+Easy/Normal difficulty**. Everything committed and pushed; the live site
+(`magical-exe.redmint.studio`, Cloudflare Pages) boots correctly.
 
-- `source` dungeon "the Heart of the Grey" (`unlockReqBoss:"boss4"`), entered when the player chooses.
-- ONE continuous two-phase fight (`combat.js`): P1 `grey_sovereign` "the Grey Sovereign" → (twist) P2
-  `city_despair` "the City's Despair". `advancePhase` swaps forms in place; `triggerFinaleResolve`
-  hands off via `ui.finaleResolve`. Once-per-phase Sable/mascot clutch assist (heal + stagger).
-- `src/endgame.js` brink resolver (NOT handleBossDefeat): a no-take-back choice menu (kind "brink",
-  esc-proof) + the fuel-check gate WITH TEETH → four endings:
-  - **Virtuous Ascension** (hope ≥ `clamp(50−fame·0.2,30,50)`): you + guardian-deity mascot.
-  - **Dark Ascension** (corruption ≥ 50 or path corrupt): dark deity, self intact, mascot bound/dimmed.
-  - **Quiet Tragedy** (reached for hope, short): survive hollow — NOT ascended, finale stays replayable.
-  - **Eldritch Merge** (seized, short = hubris): you+mascot become the horror; art = `mascot.js
-    corruptArt`, a deterministic corruption of the player's own mascot ASCII.
-  - Both ascensions set `transformationTier="ascended"` + `flags.ascended` + a milestone slot; coda
-    points to prestige.
+Recently shipped this session:
+- **T19 finale** (`source` dungeon → two-phase fight → `src/endgame.js` brink resolver → 4 endings).
+- **T20 prestige** (`src/prestige.js`, hub `prestige` verb + confirm) **+ difficulty** (creation step
+  AND Settings → Difficulty).
+- **Deploy fix:** `scripts/build-config.js` regenerates the gitignored `config.js` from
+  `docs/config.example.js` at build time (Cloudflare env vars inject the public Supabase/Turnstile
+  values). See `docs/DEPLOY.md`. This is why prod had been booting blank.
 
-Everything committed (`config.js` stays untracked, synced to `docs/config.example.js`). Verified per
-chunk + a full real-path `update()` integration + a live screenshot. Console-clean.
+## What's next: T21 — credits/about + deploy hardening (the last slice task in docs/TASKS.md)
 
-## What's next: T20 — prestige / clean-slate + Easy/Normal scaling (DESIGN §9)
+Mostly polish; the pieces largely exist:
+- **About/credits** already exists (`showAbout` in update.js: Red Mint Studio + Ko-fi + aesthetic
+  homages) and there's a persistent Ko-fi footer pill. Decide if anything more is wanted (a proper
+  credits scroll? version/build stamp? link to the GitHub repo?).
+- **Deploy:** the Cloudflare Pages build is now self-healing. Remaining hardening ideas: swap the
+  Turnstile **test** site key (`1x00000000000000000000AA`) for the real one (env var
+  `TURNSTILE_SITE_KEY`, domains allowlisted); confirm the SPA catch-all that serves index.html for
+  missing paths isn't masking real 404s in a harmful way; a cache-busting story for `src/*.js` on
+  deploy (the devserver sends no-store locally, but prod caching of ES modules could serve stale code
+  after a deploy — check Cloudflare's asset caching / consider hashed filenames or a version query).
+- **Playtest pass / balance** once everything's in.
 
-Hooks already in place:
-- `model.prestigeCount` (state.js) + `CONFIG.prestige` (`statMultiplier:0.5`,
-  `enemyScalePerPrestigeNormal:0.1`, `enemyScalePerPrestigeEasy:0.0`).
-- `combat.js spawnEnemy` ALREADY applies `prestigeScale` off `prestigeCount` + the difficulty's
-  `prestigeScalesEnemies` flag — so enemy scaling is wired; what's missing is the *prestige action*.
-- `flags.ascended` now marks a completed run — the natural trigger to OFFER prestige from.
-- `CONFIG.difficulty[normal|easy]` multipliers already feed spawnEnemy; difficulty is chosen... check
-  whether character creation sets `model.difficulty` (it defaults to "normal" in freshModel) — may need
-  an Easy/Normal pick in creation or settings.
+## Deferred polish (spawned as task chips this session — not blocking)
 
-Suggested build (DESIGN §9 "Meta systems"):
-1. A `prestige` hub verb (gated on `flags.ascended`, or available anytime per design — decide):
-   confirm-menu → halve current stats (`statMultiplier`), `prestigeCount++`, reset story progress
-   (bosses/tier/flags/weapon/mascot) but KEEP identity (name/mascot/city/secretPlace) + maybe a
-   keepsake. Incremental-game "prestige" feel.
-2. Easy/Normal surfaced to the player (creation step or settings) writing `model.difficulty`.
-3. Verify enemy scaling actually changes with prestigeCount on Normal vs Easy.
-
-Then T21: credits/about polish (About screen exists) + deploy (static files → Netlify/Pages; the
-Supabase fn is already deployed). See `docs/TASKS.md`.
+1. **Story/prose polish** across all narrative files — and fix the **"Generic Company Name"**
+   placeholder leaking into the AI city description (creation.js occupation → ai.js city prompt).
+2. **Shop menu item descriptions** that update as you scroll the menu (build from item type/amount).
+3. **Day-passing flavour text** after a rest (`hub.js` doRest/beginDay; a small rotating pool in config).
+4. **Mascot ASCII animation** (idle blink/bob/sparkle; respect `prefers-reduced-motion`; keep the
+   gone/dimmed states somber). Also in `backlog.md`, along with the **mobile-friendly redesign**.
 
 ## Working notes / conventions (unchanged)
 
-- All balance in `config.js` (gitignored, holds live keys); keep `docs/config.example.js` in sync.
-  **Don't commit `config.js`.** Avoid backticks in `git commit -m` — use a heredoc.
+- All balance in `config.js` (gitignored, holds the public Supabase/Turnstile values + balance);
+  keep `docs/config.example.js` in sync — it's the tracked source AND what the deploy builds from.
+  **Don't commit `config.js`.** Avoid backticks in `git commit -m` (use a heredoc).
 - Verify with the preview (`.claude/launch.json`, port 4321). **GOTCHA:** dynamic `import()` in
   `preview_eval` caches ES modules per page session — full-reload (`location.reload()` in its own
-  eval) after each src edit before re-importing, or you test stale code. Drive logic via
-  `update(state,event)` with `st.freshModel()` + `st.createState(m)`; suppress random room encounters
-  with `m.world.cleared = { <roomId>: true }`. To screenshot a real rendered state, inject a model
-  into `localStorage` (`magicalexe:slot:<name>` + `magicalexe:active`) and reload — restore the prior
-  active slot after.
-- **Other gotchas:** async victory narration sets `ui.busy` (boss wins aren't narrated, so finale
-  drives run synchronously). Don't bulk string-replace template fragments in combat.js (clobbered
-  eRef/ERef once). Boss names beginning with "the" now flow through the eRef/ERef article helpers.
+  eval) after each src edit. Drive logic via `update(state,event)` with `st.freshModel()` +
+  `st.createState(m)`; suppress random room encounters with `m.world.cleared = { <roomId>: true }`.
+  To screenshot a real rendered state, inject a model into `localStorage`
+  (`magicalexe:slot:<name>` + `magicalexe:active`) and reload — restore the prior active slot after.
 - Story reactions flow through `update.js afterCombat`: `justDefeatedBoss`→handleBossDefeat,
   `justLostStoryBoss`→handleStoryLoss, `finaleResolve`→`endgame.js handleFinaleResolve`.
-- **Outstanding polish (not blocking):** STATUS-panel labels still abbreviated (PWR/SPR/DEF/SPD/STA) —
-  a background task chip is open. Mobile design pass still flagged in the backlog.
+- Boss names beginning with "the" flow through the eRef/ERef article helpers in combat.js.

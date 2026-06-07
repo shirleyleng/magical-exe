@@ -284,7 +284,18 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 ### T20 — Prestige/clean-slate + Easy/Normal scaling
 - BUILD: prestige (halve stats, restart; Normal scales enemies per `prestigeCount`, Easy doesn't).
   Difficulty multipliers from `config.js` applied throughout.
-- DONE: prestige resets correctly with scaling; Easy vs Normal differ as configured.
+- **DONE (✅ 2026-06-07):** `src/prestige.js` — a hub `prestige` verb opens a confirm dialog
+  (kind "prestige", defaults to "No") → `doPrestige` rebuilds from `freshModel()` carrying identity
+  (name/gender/occupation/personality/city/secret-place + weapon ORIGIN flavor), the mascot bond
+  (restored present/un-injured/un-dimmed), and learned abilities; current stats HALVED
+  (`CONFIG.prestige.statMultiplier`, floored 1, full HP/Stamina on the new run); story fully resets
+  (tier→novice, bosses/flags/meters/day/coins/inventory) and `prestigeCount++`. Enemy scaling was
+  already wired in `combat.js spawnEnemy` (verified 60→66→72 per prestige on Normal; Easy flat 51).
+  STATUS panel shows a `✦N` tag. Difficulty (Easy/Normal) is player-chosen BOTH at character creation
+  (new menu step after name → `model.difficulty`) AND in Settings → Difficulty (kind "difficulty"
+  submenu). Verified end-to-end via `update()`; console-clean. Decisions (workshopped): prestige
+  available anytime w/ confirm; carries identity + halved stats + abilities; difficulty pick at
+  creation AND changeable in settings.
 
 ### T21 — Credits, about screen, deploy
 - BUILD: in-game about/credits with the Charm homage line (DESIGN.md > Credits); README with the
