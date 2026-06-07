@@ -141,4 +141,18 @@ export const CONFIG = {
     anonKey: "YOUR_SUPABASE_ANON_PUBLIC_KEY",
     functionName: "ai-proxy",
   },
+
+  // ---- Turnstile (human-check on first AI use; T11b "Option B") ----
+  // The ai-proxy Edge Function requires a Cloudflare Turnstile token before the FIRST paid
+  // AI call per browser, blocking bots from burning the Anthropic budget. Only the PUBLIC
+  // site key goes here. The SECRET key lives in Supabase, never in the client:
+  //   supabase secrets set CLOUDFLARE_TURNSTILE_SECRET=<your-secret>
+  // Get keys at dash.cloudflare.com > Turnstile (allowlist your domains, incl. localhost).
+  // For local dev you can use Cloudflare's always-pass TEST key "1x00000000000000000000AA"
+  // (secret "1x0000000000000000000000000000000AA"). Leave the placeholder to disable the
+  // check (the game still runs; a bot could then mint paid calls — set a real key to ship).
+  turnstile: {
+    siteKey: "YOUR_TURNSTILE_SITE_KEY",
+    scriptUrl: "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+  },
 };

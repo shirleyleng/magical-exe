@@ -31,6 +31,18 @@ export function aiAvailable() {
   return configured();
 }
 
+/* ── Human-verification (Turnstile) provider ──────────────────────────────────────
+   The edge function gates the first PAID call per session behind a Turnstile token
+   (T11b, "Option B"). Obtaining a token means rendering a widget — a UI concern — so the
+   UI layer registers a provider here. callAI invokes it ONLY when the server says it needs
+   one (reason:"captcha"), keeping the server the single source of truth for who's verified
+   and the widget appearing exactly on first AI use. A null/throwing provider degrades
+   gracefully to deterministic-only — same contract as everything else in this file. */
+let _captchaProvider = null;
+export function setCaptchaProvider(fn) {
+  _captchaProvider = typeof fn === "function" ? fn : null;
+}
+
 let _client = null;
 let _clientPromise = null;
 async function getClient() {
@@ -94,7 +106,30 @@ export async function callAI(kind, vars = {}) {
   }
   if (!session) return { ok: false, reason: "auth" };
 
+  // First attempt with no token. If this user is already human-verified the server just
+  // answers; if not (and this isn't an exempt kind like ping) it replies reason:"captcha".
+  let data = await postProxy(session, kind, vars);
+
+  // Reactive retry: the server asked for a human check. Render the widget once, get a
+  // token, retry exactly once. No token (blocked CDN / unsolved) -> degrade as-is.
+  if (data && data.ok === false && data.reason === "captcha" && _captchaProvider) {
+    let token = null;
+    try {
+      token = await _captchaProvider();
+    } catch (e) {
+      console.warn("[ai] captcha provider failed:", e);
+      token = null;
+    }
+    if (token) data = await postProxy(session, kind, vars, token);
+  }
+  return data;
+}
+
+/** POST the proxy once. Never throws — returns the proxy JSON or an {ok:false} shape. */
+async function postProxy(session, kind, vars, captchaToken) {
   const fnUrl = `${CONFIG.supabase.url}/functions/v1/${CONFIG.supabase.functionName}`;
+  const body = { kind, vars };
+  if (captchaToken) body.captchaToken = captchaToken;
   try {
     const res = await fetch(fnUrl, {
       method: "POST",
@@ -103,7 +138,7 @@ export async function callAI(kind, vars = {}) {
         "apikey": CONFIG.supabase.anonKey,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ kind, vars }),
+      body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => null);
     if (!data) return { ok: false, reason: "badresponse" };

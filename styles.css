@@ -207,6 +207,25 @@ body {
   user-select: none;
 }
 
+/* ---- Human-check (Turnstile) mount ----
+   Sits just above the input line, in the terminal flow but outside the scrollback. */
+.captcha {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.captcha[hidden] { display: none; }
+.captcha__label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+  user-select: none;
+}
+.captcha__widget { min-height: 0; }
+
 /* ---- Input line ---- */
 .inputline {
   display: flex;

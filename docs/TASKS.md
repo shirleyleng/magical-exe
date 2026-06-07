@@ -103,18 +103,31 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   enforced server-side). Logs calls to a usage table.
 - DONE: function proxies a Haiku call; caps enforced; over-cap returns graceful refusal.
 
-### T11b — Bot protection: CAPTCHA on anonymous sign-in
-- GOAL: stop bots from minting anon sessions to drain the API key (Supabase recommends this
-  for anonymous auth). Complements the server-side caps in T11 — defense in depth.
-- BUILD: enable a CAPTCHA provider in Supabase Auth (Cloudflare Turnstile or hCaptcha — both
-  free); render the widget at first AI use (NOT on game start — keep the cold open friction-free);
-  pass the token on `signInAnonymously({ options: { captchaToken } })`. Degrade gracefully if the
-  widget fails to load (fall back to deterministic-only, never block play). Add provider keys:
-  site key (public, client) + secret key (Supabase dashboard, server-side).
-- DONE: anon sign-in requires a solved CAPTCHA; a scripted sign-in without a token is rejected;
-  the game still loads and plays with AI simply unavailable if the widget can't run.
-- NOTE: needs a Cloudflare Turnstile or hCaptcha account (free). Turnstile is the lighter-weight,
-  less-intrusive option. Do AFTER T11 works end-to-end, so CAPTCHA is the only new variable.
+### T11b — Bot protection: CAPTCHA human-check (DONE, Cloudflare Turnstile, "Option B")
+- GOAL: stop bots from burning the Anthropic budget. Complements the T11 server-side caps —
+  defense in depth.
+- DESIGN DECISION: we gate the SPEND, not the auth. What costs money is the Anthropic call
+  inside `ai-proxy`; minting an anon JWT is free. So instead of Supabase's project-global Auth
+  CAPTCHA (which gates `signInAnonymously` itself — "Option A"), the proxy requires a Turnstile
+  token before the FIRST paid call per user, verifies it via Cloudflare `siteverify`, and records
+  the user in `verified_humans`. Later calls skip the check (one CAPTCHA per browser). This is
+  code-only (no global dashboard flip), reversible, decoupled from auth, and leaves `ai-test.html`
+  working (ping is exempt). Picked Turnstile over hCaptcha (free, lighter, less intrusive).
+- BUILT: migration `verified_humans` (RLS service_role-only); `ai-proxy` human gate +
+  `verifyTurnstile()` (secret `CLOUDFLARE_TURNSTILE_SECRET`, fail-closed); `src/captcha.js`
+  (lazy Turnstile loader — blocked CDN never breaks boot); `src/ai.js` `setCaptchaProvider()` +
+  reactive retry on `reason:"captcha"` (server stays source of truth); inline `#captcha` widget
+  in the terminal (outside the reconciled scrollback), shown only on first AI use; `config.turnstile.siteKey`.
+- DONE/VERIFIED LIVE: first paid call renders widget → token → verified → `ok:true`; second call
+  skips the widget (verified-skip); blocked Turnstile → `{ok:false,reason:"captcha"}`, no throw,
+  game continues deterministic-only.
+- SHIP TODO (before real players): swap Cloudflare's always-pass TEST keys for real ones —
+  `config.turnstile.siteKey` (public; allowlist domains incl. localhost) + the matching secret
+  via `supabase secrets set CLOUDFLARE_TURNSTILE_SECRET=...`.
+- FOLLOW-UP (Option A, optional): if anon `auth.users` bloat ever becomes a real problem (it's
+  free $-wise + Supabase rate-limits anon sign-in per IP), additionally enable the project-global
+  Supabase Auth CAPTCHA so bots can't even mint a JWT. Composes with B; pass the same token on
+  `signInAnonymously({ options: { captchaToken } })`.
 
 ### T12 — AI fallback parser + narration + city description
 - GOAL: the AI translator/narrator layer (PROMPTS.md A, C, E).

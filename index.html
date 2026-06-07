@@ -36,6 +36,13 @@
         <div id="output" class="output" aria-live="polite" tabindex="0"></div>
         <div id="menu" class="menu" role="listbox" aria-label="Choose an option" hidden></div>
         <div id="example-prompt" class="example-prompt" aria-hidden="true"></div>
+        <!-- Human-check (Turnstile) mount. Lives OUTSIDE #output so the append-only
+             scrollback reconciliation never disturbs the live widget. Shown by main.js
+             only on first AI use; hidden otherwise. -->
+        <div id="captcha" class="captcha" hidden>
+          <p class="captcha__label">// a quick human check before the magic…</p>
+          <div id="captcha-widget" class="captcha__widget"></div>
+        </div>
         <form id="input-form" class="inputline" autocomplete="off">
           <label class="prompt" for="input" aria-hidden="true">&gt;</label>
           <input

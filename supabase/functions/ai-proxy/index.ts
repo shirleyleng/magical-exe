@@ -12,13 +12,24 @@
 //      call Claude Haiku 4.5 with prompt caching on the static system prompt.
 //   5. Log the call to ai_usage (also how the daily counters are computed).
 //
-// Secrets/env (set by Supabase automatically, except ANTHROPIC_API_KEY which you set via
-// `supabase secrets set`): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY.
+// Secrets/env (set by Supabase automatically, except ANTHROPIC_API_KEY and
+// CLOUDFLARE_TURNSTILE_SECRET which you set via `supabase secrets set`):
+// SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, CLOUDFLARE_TURNSTILE_SECRET.
+//
+// T11b — human-verification gate (Cloudflare Turnstile, "Option B"). What actually costs
+// money is the Anthropic call below; minting an anon JWT is free. So we gate the SPEND,
+// not the auth: before the first PAID call for a given user we require a Turnstile token,
+// verify it with Cloudflare, and record the user in `verified_humans`. Later calls skip
+// the check (one CAPTCHA per browser). `ping` is exempt — it's a trivial-cost connectivity
+// probe (used by ai-test.html), still bounded by the daily caps + kill switch. A missing or
+// failed token returns HTTP 200 { ok:false, reason:"captcha" } so the client degrades to
+// deterministic-only and re-prompts for a token, never a crash.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
+const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 // Origins allowed to call the function. Add your deployed domain in T21.
 const ALLOWED_ORIGINS = new Set([
@@ -108,6 +119,23 @@ const SYS_CITY =
 
 function asText(v: unknown): string {
   return v == null ? "" : String(v);
+}
+
+// Verify a Cloudflare Turnstile token. Returns true only on a confirmed human. Any
+// network/parse failure returns false (fail-closed: an unverifiable token is not a pass).
+async function verifyTurnstile(token: string, remoteip: string | null): Promise<boolean> {
+  const secret = Deno.env.get("CLOUDFLARE_TURNSTILE_SECRET");
+  if (!secret || !token) return false;
+  try {
+    const form = new URLSearchParams({ secret, response: token });
+    if (remoteip) form.set("remoteip", remoteip);
+    const res = await fetch(TURNSTILE_VERIFY_URL, { method: "POST", body: form });
+    const data = await res.json().catch(() => null);
+    return data?.success === true;
+  } catch (e) {
+    console.error("turnstile verify failed", e);
+    return false;
+  }
 }
 
 function buildPayload(kind: string, vars: Record<string, unknown>, model: string) {
@@ -209,6 +237,29 @@ Deno.serve(async (req) => {
   if (userErr || !userData?.user) return json({ ok: false, reason: "auth" }, 401);
   const userId = userData.user.id;
 
+  // Parse the request body once here — the human gate needs `kind` (to exempt ping) and
+  // `captchaToken`; step 4 reuses the same `kind`/`vars`.
+  const body = await req.json().catch(() => null);
+  const kind = typeof body?.kind === "string" ? body.kind : "";
+  const vars = (body?.vars ?? {}) as Record<string, unknown>;
+
+  // 2b. Human-verification gate (T11b, Option B). Skip ping (cheap probe). For any PAID
+  // kind, if this user hasn't been verified yet, require + verify a Turnstile token and
+  // record them. Stays a soft, graceful gate: failure -> 200 { ok:false, reason:"captcha" }.
+  if (kind !== "ping") {
+    const { data: human } = await admin
+      .from("verified_humans").select("user_id").eq("user_id", userId).maybeSingle();
+    if (!human) {
+      const token = asText(body?.captchaToken);
+      const ip = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for");
+      const ok = await verifyTurnstile(token, ip);
+      if (!ok) return json({ ok: false, reason: "captcha" });
+      // Idempotent: concurrent first calls race harmlessly on the primary key.
+      await admin.from("verified_humans")
+        .upsert({ user_id: userId }, { onConflict: "user_id" });
+    }
+  }
+
   // 3a. Kill switch.
   const { data: cfg, error: cfgErr } = await admin
     .from("ai_config").select("*").eq("id", 1).single();
@@ -235,10 +286,7 @@ Deno.serve(async (req) => {
     return json({ ok: false, reason: "limit" });
   }
 
-  // 4. Build + call.
-  const body = await req.json().catch(() => null);
-  const kind = typeof body?.kind === "string" ? body.kind : "";
-  const vars = (body?.vars ?? {}) as Record<string, unknown>;
+  // 4. Build + call (kind/vars parsed above).
   const payload = buildPayload(kind, vars, cfg.model);
   if (!payload) return json({ ok: false, reason: "unknown_kind" }, 400);
 

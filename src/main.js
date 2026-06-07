@@ -11,8 +11,10 @@ import { createState } from "./state.js";
 import { update } from "./update.js";
 import { render, initDom } from "./render.js";
 import { saveModel, loadActive, loadSlot } from "./persist.js";
-import { callAI } from "./ai.js";
+import { callAI, setCaptchaProvider } from "./ai.js";
+import { getCaptchaToken } from "./captcha.js";
 import { applyTheme, getStoredTheme, setStoredTheme } from "./theme.js";
+import { CONFIG } from "../config.js";
 
 let state;
 
@@ -57,8 +59,33 @@ async function applyEffect() {
   }
 }
 
+/* The human-check provider handed to ai.js. Invoked only when the proxy asks for a token
+   (first AI use per browser). Mounts the inline Turnstile widget in #captcha — outside the
+   reconciled scrollback — and resolves the token. Any failure (no key, blocked CDN, unsolved)
+   returns null, and the game keeps running deterministic-only. */
+function makeCaptchaProvider() {
+  const box = document.getElementById("captcha");
+  const widget = document.getElementById("captcha-widget");
+  return async () => {
+    const siteKey = CONFIG.turnstile && CONFIG.turnstile.siteKey;
+    if (!siteKey || siteKey.includes("YOUR_") || !box || !widget) return null;
+    box.hidden = false;
+    widget.innerHTML = "";
+    try {
+      return await getCaptchaToken(widget, siteKey, { scriptUrl: CONFIG.turnstile.scriptUrl });
+    } catch (e) {
+      console.warn("[captcha] token unavailable:", e);
+      return null;
+    } finally {
+      box.hidden = true;
+      widget.innerHTML = "";
+    }
+  };
+}
+
 function boot() {
   initDom();
+  setCaptchaProvider(makeCaptchaProvider());
   applyTheme(getStoredTheme()); // restore the saved palette before first paint
 
   const loaded = loadActive();
