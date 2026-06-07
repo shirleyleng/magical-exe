@@ -258,15 +258,24 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   **Passive:** `config.errands.passiveHopePerBoss` on each boss win. **Feedback:** `doRest` reads
   the city's mood only when the hope band shifts. Verified per chunk + a 6-day integration (hope
   73 / virtue 37, all dilemmas fired, no hope number ever printed); console-clean.
-- BUILD (finale, back half — NOT STARTED): Phase 1 big boss; Phase 2 twist (manifested city
-  despair); Phase 3 ascension trigger gated on path + `hopeTally` (Fame lowers the threshold,
-  DESIGN §9.5), rival fights beside you. Virtue vs Corruption fork -> different ascension + endings.
-- DONE (finale): all three phases play; ascension fires when path + hope/Fame gate is met; the
-  Virtuous/Dark/Despair endings are reachable.
-- OPEN DESIGN CALLS (workshop before building the finale): 3-phase combat structure (phase
-  transitions in endCombat vs chained bosses; `finalPhase2` is the ascended-gate bossId);
-  auto-ascend vs player-confirmed choice; how distinct the ending screens are; rival as a real
-  combat ally vs narrative; final THRESHOLD/Fame-modifier numbers.
+- BUILD (finale, back half): one continuous fight (P1 big boss → P2 manifested-despair twist) then a
+  brink choice + fuel-check gate, rival/mascot beside you. **DONE (✅ 2026-06-07):** `source` dungeon
+  "the Heart of the Grey" (`unlockReqBoss:"boss4"`); two phases in `combat.js` (`phases` on combat
+  state, `advancePhase` swaps forms in place, `triggerFinaleResolve` → `ui.finaleResolve`); both
+  NORMAL winnable, losing a phase is gentle/re-enterable. Dedicated `src/endgame.js` resolver (NOT
+  handleBossDefeat): no-take-back brink menu (kind "brink", esc-proof) + gate
+  `effHopeThreshold = clamp(50−fame·0.2,30,50)`, seize needs corruption≥50 or path corrupt → 2×2 of
+  four endings: **Virtuous Ascension** (you + guardian-deity mascot) · **Dark Ascension** (dark deity,
+  self intact, mascot bound/dimmed) · **Quiet Tragedy** (reach-but-short, replayable, not ascended) ·
+  **Eldritch Merge** (seize-but-short = hubris; art = deterministic `mascot.js corruptArt` of the
+  player's own mascot). Both ascensions set `transformationTier="ascended"` + `flags.ascended` + a
+  slot; coda points to prestige. Climax flavor = mascot soft-warning + Sable/mascot once-per-phase
+  scripted assist (heal + stagger), NOT full ally combat. Verified per chunk + a full real-path
+  `update()` integration + a live dimmed-mascot screenshot; console-clean.
+- DECIDED (the open design calls): phase transitions live in `endCombat` (one continuous fight, not
+  chained bosses); **player-confirmed** brink choice (not auto-ascend); FOUR distinct ending screens
+  (a 2×2, upgraded from the original 3); rival = narrative + light scripted assist (not a real combat
+  ally); THRESHOLD anchor 50 / Fame relief 0.2 / floor 30 / seizeCorrThreshold 50.
 
 ---
 

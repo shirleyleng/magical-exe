@@ -289,10 +289,15 @@ system. The ascension narration enumerates what "feeds back": Fame (the city bel
 
 **Losing a finale phase** is gentle (wake at home, re-enterable) — not a hard fail.
 
-**Build note:** the hope layer (errands + dilemmas + passive + ambient feedback) is DONE (front half
-of T19). What remains is this finale + the four ending screens that consume the tally. A dedicated
-resolver (not the generic `handleBossDefeat`) should own the brink choice + gate, since it's richer
-than a tier threshold.
+**Build note:** BUILT (T19, 2026-06-07). The hope layer (errands + dilemmas + passive + ambient
+feedback) and the finale both shipped. The finale lives in: the `source` dungeon ("the Heart of the
+Grey", `unlockReqBoss:"boss4"`); the two-phase fight in `combat.js` (a `phases` list on combat state,
+`advancePhase` swaps forms in place, `triggerFinaleResolve` hands off via `ui.finaleResolve`); and a
+dedicated resolver `src/endgame.js` (NOT `handleBossDefeat`) that owns the no-take-back brink menu +
+the fuel-check gate → the four endings. The Eldritch Merge art is `mascot.js corruptArt` (a
+deterministic glyph-corruption of the player's own mascot). Decided at build time: the Dark-Ascension
+mascot stays as a bound/dimmed familiar (sadder than leaving; contrasts the guardian deity), and
+`seizeCorrThreshold` = 50 (or `path === "corrupt"`).
 
 ---
 
