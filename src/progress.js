@@ -152,6 +152,7 @@ export function handleBossDefeat(state) {
 
   const reveal = TIER_REVEAL[tierName];
   if (reveal) reveal(state);
+  if (state.ui) state.ui.mascotReact = "happy"; // a tier-up is the mascot's proudest beat
 
   if (state.model.hub.slotsMax > before) {
     pushLine(state, `(A new path opens — you now have ${state.model.hub.slotsMax} activity slots.)`, "hint");

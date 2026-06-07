@@ -521,6 +521,7 @@ function enemyTurn(state) {
     stats.hp = Math.max(c.storyLoss ? 1 : 0, stats.hp - dmg);
     const tags = [c.playerGuard ? "guarded" : null, defend > 0 ? "warded" : null].filter(Boolean);
     pushLine(state, `${ERef(e)} hits you for ${dmg}${tags.length ? ` (${tags.join(", ")})` : ""}.`, "system");
+    if (state.ui) state.ui.mascotReact = "hit"; // the mascot winces with you
   }
   return endEnemyTurn(state);
 }
@@ -596,6 +597,7 @@ function endCombat(state, outcome) {
     }
 
     pushLine(state, `The ${c.enemy.name} dissolves into motes of light. Victory!`, "banner");
+    if (state.ui) state.ui.mascotReact = "happy"; // the mascot cheers the win
     // A killing blow on a foe you could have spared stains you (coupled corruption gain).
     if (!c.enemy.isBoss && c.couldSpare) {
       const gain = CONFIG.axes.alignment.finishCorruptionGain;

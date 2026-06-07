@@ -61,6 +61,28 @@ export const ART = {
   [_________]
    ·  ✦  ♡  ·`,
 
+  // deer — antlered (deer/goat/elk/reindeer/cow)
+  deer_small: ` \\|/
+(o.o)`,
+  deer_large: `  ·  ✦  ·
+   \\|/
+  (o.o)
+  · ✦ ♡ ·`,
+
+  // aqua — little aquatic one (fish/axolotl/dolphin/turtle/otter-ish)
+  aqua_small: ` · ·
+>(o)>`,
+  aqua_large: `  ·  ✦  ·
+   · ·
+  >(o)>
+  · ✦ ♡ ·`,
+
+  // fluff — very round + fuzzy (sheep/alpaca/poodle/cloudy ones)
+  fluff_small: `((^.^))`,
+  fluff_large: `  ·  ✦  ·
+  ((^.^))
+  · ✦ ♡ ·`,
+
   // Shared celebration pose — used on happy beats (tier-ups, boss wins).
   star_small: `\\( ^o^ )/`,
   star_large: `  ✦ · ☆ · ✦
@@ -103,6 +125,78 @@ export function corruptArt(art) {
     .join("\n");
 }
 
+/* ---- Animation frame variants per base (T-anim, mascotAnim.js) ----
+   Same line-count + width as the matching `${base}_small` so swapping a frame
+   never shifts the monospace grid. `blink` is the idle blink; `speak`/`hit` are
+   one-shot reaction poses. The neutral/open frame is just ART[`${base}_small`];
+   the shared happy pose is ART.star_small. Curated, not generated — same ethos
+   as the art library. */
+export const FRAMES = {
+  blob: {
+    blink: `( -   - )
+ \\  w  /`,
+    speak: `( o   o )
+ \\  o  /`,
+    hit: `( >   < )
+ \\  o  /`,
+  },
+  catflick: {
+    blink: ` /\\_/\\
+( -w- )`,
+    speak: ` /\\_/\\
+( =o= )`,
+    hit: ` /\\_/\\
+( >w< )`,
+  },
+  peek: {
+    blink: `( - w - )
+ c(   )o`,
+    speak: `( o o o )
+ c(   )o`,
+    hit: `( > w < )
+ c(   )o`,
+  },
+  bean: {
+    blink: `( - - - )`,
+    speak: `( ^ o ^ )`,
+    hit: `( x - x )`,
+  },
+  wing: {
+    blink: `<( - v - )>`,
+    speak: `<( o o o )>`,
+    hit: `<( > v < )>`,
+  },
+  loaf: {
+    blink: `( =-.-= )
+[_______]`,
+    speak: `( =^o^= )
+[_______]`,
+    hit: `( =>.<= )
+[_______]`,
+  },
+  deer: {
+    blink: ` \\|/
+(-.-)`,
+    speak: ` \\|/
+(ooo)`,
+    hit: ` \\|/
+(>.<)`,
+  },
+  aqua: {
+    blink: ` · ·
+>(-)>`,
+    speak: ` · ·
+>(O)>`,
+    hit: ` · ·
+>(x)>`,
+  },
+  fluff: {
+    blink: `((-.-))`,
+    speak: `((^o^))`,
+    hit: `((>.<))`,
+  },
+};
+
 /* ---- Mystical / cosmos name pool. 'Sable' excluded: reserved rival name. ---- */
 export const MASCOT_NAMES = [
   // soft / cute
@@ -113,25 +207,49 @@ export const MASCOT_NAMES = [
   "Lumi", "Glim", "Mira", "Vega", "Lyra", "Caelum", "Orin",
   // mystical / arcane (a couple of softly-shadowed names hint the corruption route)
   "Tindra", "Runa", "Faye", "Zephyr", "Eir", "Selene", "Ondine", "Eos", "Iri", "Lune", "Nyx",
+  // more soft / cute
+  "Momo", "Tofu", "Pudding", "Mochi", "Dotty", "Pebble", "Clover", "Biscuit", "Niko", "Poppy",
+  "Tama", "Coco", "Yuki", "Mimi", "Bao", "Plum", "Bramble", "Maple", "Twig", "Sprout",
+  // more cosmos / celestial
+  "Echo", "Solis", "Polaris", "Nebula", "Sirius", "Vela", "Rigel", "Estel", "Cielo", "Dawn",
+  "Zenith", "Stardust", "Cosmo", "Selena", "Astrid",
+  // more mystical / arcane
+  "Sol", "Wren", "Onyx", "Mistral", "Brume", "Sylph", "Indra", "Calyx", "Vesna", "Yara",
 ];
 
 /* ---- Fusion: animal -> base style (mascots.md fusion rules) ---- */
 const ANIMAL_BASE = {
   // round / soft -> blob
-  rabbit: "blob", bear: "blob", panda: "blob", pig: "blob", sheep: "blob",
-  koala: "blob", hippo: "blob",
+  rabbit: "blob", bear: "blob", panda: "blob", pig: "blob", koala: "blob",
+  hippo: "blob", wombat: "blob", quokka: "blob", chinchilla: "blob",
   // tailed / eared -> catflick
   cat: "catflick", fox: "catflick", wolf: "catflick", dog: "catflick",
   weasel: "catflick", tiger: "catflick", lion: "catflick", squirrel: "catflick",
+  ferret: "catflick", lynx: "catflick", leopard: "catflick", cheetah: "catflick",
+  coyote: "catflick", husky: "catflick", shiba: "catflick", corgi: "catflick",
   // shy / curious -> peek
-  mouse: "peek", owl: "peek", otter: "peek", raccoon: "peek", deer: "peek", rat: "peek",
+  mouse: "peek", owl: "peek", otter: "peek", raccoon: "peek", rat: "peek",
+  chipmunk: "peek", lemur: "peek", meerkat: "peek", possum: "peek", gerbil: "peek",
   // tiny / content -> bean
   chick: "bean", frog: "bean", bunny: "bean", duckling: "bean", bee: "bean",
+  duck: "bean", gosling: "bean", tadpole: "bean", ladybug: "bean", cricket: "bean",
   // winged -> wing
   moth: "wing", butterfly: "wing", bird: "wing", dragonfly: "wing", bat: "wing",
-  sparrow: "wing", robin: "wing", crow: "wing", dove: "wing",
+  sparrow: "wing", robin: "wing", crow: "wing", dove: "wing", swallow: "wing",
+  finch: "wing", magpie: "wing", hawk: "wing", eagle: "wing", parrot: "wing",
+  swan: "wing", goose: "wing", falcon: "wing", wren: "wing", hummingbird: "wing",
   // round-loafing -> loaf
   hamster: "loaf", seal: "loaf", hedgehog: "loaf", penguin: "loaf", capybara: "loaf",
+  "guinea pig": "loaf", quail: "loaf", pufferfish: "loaf",
+  // antlered / horned -> deer
+  deer: "deer", goat: "deer", elk: "deer", reindeer: "deer", moose: "deer",
+  cow: "deer", antelope: "deer", gazelle: "deer", ram: "deer", stag: "deer",
+  // aquatic -> aqua
+  fish: "aqua", axolotl: "aqua", dolphin: "aqua", whale: "aqua", shark: "aqua",
+  octopus: "aqua", seahorse: "aqua", jellyfish: "aqua", turtle: "aqua", crab: "aqua",
+  koi: "aqua", goldfish: "aqua", manatee: "aqua", narwhal: "aqua",
+  // very round + fuzzy -> fluff
+  sheep: "fluff", lamb: "fluff", alpaca: "fluff", llama: "fluff", poodle: "fluff",
 };
 
 /* ---- Animal -> a one-word vibe, for the mascot voice ---- */
@@ -141,6 +259,20 @@ const ANIMAL_VIBE = {
   moth: "dreamy", butterfly: "whimsical", bird: "bright", dragonfly: "quick",
   hamster: "cozy", seal: "mellow", frog: "cheerful", chick: "sweet", raccoon: "mischievous",
   hedgehog: "guarded", penguin: "steadfast", bee: "busy", bat: "secretive",
+  // expanded roster
+  tiger: "bold", lion: "proud", squirrel: "scrappy", weasel: "sly", ferret: "impish",
+  lynx: "watchful", leopard: "sleek", cheetah: "swift", corgi: "sunny", husky: "spirited",
+  panda: "easygoing", koala: "sleepy", pig: "good-natured", hippo: "unbothered",
+  wombat: "sturdy", quokka: "beaming", chinchilla: "soft-hearted",
+  chipmunk: "chattery", lemur: "wide-eyed", meerkat: "alert", possum: "quirky",
+  duck: "unflappable", tadpole: "hopeful", ladybug: "lucky", cricket: "musical",
+  sparrow: "plucky", robin: "kindly", crow: "knowing", dove: "tender", swan: "serene",
+  goose: "feisty", hawk: "keen", eagle: "valiant", parrot: "talkative", hummingbird: "restless",
+  goat: "stubborn", elk: "noble", reindeer: "merry", moose: "gentle-giant", cow: "placid",
+  fish: "calm", axolotl: "guileless", dolphin: "joyful", whale: "old-souled", turtle: "patient",
+  octopus: "ingenious", crab: "prickly", koi: "serene", narwhal: "wondrous",
+  sheep: "soft", lamb: "innocent", alpaca: "goofy", llama: "aloof", poodle: "prim",
+  capybara: "unflappable", "guinea pig": "squeaky", quail: "homey",
 };
 
 const norm = (a) => String(a || "").trim().toLowerCase().replace(/s$/, "");

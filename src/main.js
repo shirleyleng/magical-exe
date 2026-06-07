@@ -10,6 +10,7 @@
 import { createState } from "./state.js";
 import { update } from "./update.js";
 import { render, initDom } from "./render.js";
+import { initMascotAnim } from "./mascotAnim.js";
 import { saveModel, loadActive, loadSlot } from "./persist.js";
 import { callAI, setCaptchaProvider } from "./ai.js";
 import { getCaptchaToken } from "./captcha.js";
@@ -86,6 +87,8 @@ function makeCaptchaProvider() {
 
 function boot() {
   initDom();
+  // Start the HUD mascot animator (single interval; targets the live <pre>).
+  initMascotAnim(() => document.querySelector("#mascot-panel .mascot-art"));
   setCaptchaProvider(makeCaptchaProvider());
   applyTheme(getStoredTheme()); // restore the saved palette before first paint
 

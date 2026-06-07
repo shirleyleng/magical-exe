@@ -12,6 +12,7 @@
 
 import { exampleFor } from "./prompts.js";
 import { ART } from "./mascot.js";
+import { syncMascot, reactMascot, idleFrame } from "./mascotAnim.js";
 import { CONFIG } from "../config.js";
 import { slotsUsed } from "./hub.js";
 import { effectiveStats, isWarped, isGraced } from "./alignment.js";
@@ -42,7 +43,19 @@ export function render(state) {
   renderExample(state.model, state.ui);
   renderStats(state.model);
   renderMascot(state.model);
+  consumeMascotReactions(state.ui);
   scrollToBottom();
+}
+
+/* Fire any one-shot mascot reaction requested this turn (transient ui flags set
+   by combat/progress/pushLine). Priority: a happy beat beats a hit beats speech. */
+function consumeMascotReactions(ui) {
+  if (!ui) return;
+  if (ui.mascotReact === "happy") reactMascot("happy");
+  else if (ui.mascotReact === "hit") reactMascot("hit");
+  else if (ui.mascotSpoke) reactMascot("speak");
+  ui.mascotReact = null;
+  ui.mascotSpoke = false;
 }
 
 /* ---- HUD reveal: show STATUS + MASCOT once the player has met their mascot.
@@ -253,24 +266,37 @@ function renderMascot(model) {
   const caption = document.createElement("p");
   caption.className = "panel__body--muted";
 
+  // Base style key (e.g. "catflick") drives which animation frames apply.
+  const base = baseOf(model.mascot);
+
   if (model.mascot && model.mascot.name && model.mascot.present === false) {
     // T17: injured and gone (Knight->Awakened low point). An empty perch.
     pre.classList.add("mascot-art--gone");
     pre.textContent = ART.gone_small || "   .  ·  .\n   ·     ·\n  (   …   )\n   `-----'";
     caption.textContent = `${model.mascot.name} — missing`;
+    syncMascot({ base, status: "gone" }); // somber; animator stays out
   } else if (model.mascot && model.mascot.name && model.mascot.dimmed) {
     // T19: Dark Ascension — present but bound, its light guttered down.
     pre.classList.add("mascot-art--dimmed");
     pre.textContent = ART[model.mascot.artKeySmall] || ART.blob_small;
     caption.textContent = `${model.mascot.name} — bound`;
+    syncMascot({ base, status: "dimmed" }); // bound; no perky motion
   } else if (model.mascot && model.mascot.name) {
-    pre.textContent = ART[model.mascot.artKeySmall] || ART.blob_small;
+    pre.textContent = idleFrame(base); // animator's geometry; it takes over live
     caption.textContent = model.mascot.name;
+    syncMascot({ base, status: "present" });
   } else {
     pre.textContent = ART.blob_small;
     caption.textContent = "awaiting fusion…";
+    syncMascot({ base: "blob", status: "none" });
   }
 
   els.mascot.appendChild(pre);
   els.mascot.appendChild(caption);
+}
+
+/** The base style id from a mascot's artKeySmall (e.g. "catflick_small" -> "catflick"). */
+function baseOf(mascot) {
+  if (mascot && mascot.artKeySmall) return mascot.artKeySmall.replace(/_small$/, "");
+  return "blob";
 }

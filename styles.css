@@ -376,6 +376,9 @@ body {
   color: var(--lilac);
   text-shadow: 0 0 14px rgba(205, 169, 255, 0.3);
   text-align: center;
+  /* Reserve the animator's fixed 4-line box so blink/bob/sparkle and the
+     gone/dimmed states never reflow the panel (4 lines x 1.35 line-height). */
+  min-height: 5.4em;
 }
 
 /* T17: the mascot is injured and gone — dim the empty perch. */

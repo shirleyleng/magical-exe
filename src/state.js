@@ -20,6 +20,8 @@ export function pushLine(state, text = "", kind = "system") {
   if (state.log.length > MAX_LOG) {
     state.log.splice(0, state.log.length - MAX_LOG);
   }
+  // Let the HUD mascot mouth along when it speaks (consumed once in render).
+  if (kind === "mascot" && state.ui) state.ui.mascotSpoke = true;
 }
 
 /** Derive pronouns from a gender presentation. */
