@@ -21,6 +21,7 @@ import { THEMES, themeName } from "./theme.js";
 import {
   refreshSlotsMax, trainCommand, openTrainMenu, openShopMenu,
   sellCommand, useItem, doRest, handleHubMenu, slotsFree,
+  doLieLow, doMisdirect,
 } from "./hub.js";
 import { enterDungeon, moveDir, lookRoom, takeItem, retreat, explorationEntities } from "./explore.js";
 import {
@@ -559,6 +560,10 @@ function routeHub(s, cmd) {
       return target ? trainCommand(s, target) : openTrainMenu(s);
     case "rest":
       return doRest(s);
+    case "lielow":
+      return doLieLow(s);
+    case "misdirect":
+      return doMisdirect(s);
     case "shop":
     case "buy":
       return openShopMenu(s);
@@ -571,6 +576,10 @@ function routeHub(s, cmd) {
 
     case "attack": {
       // A hub-area skirmish for loot — costs a combat slot.
+      if (s.model.character.mustLieLow) {
+        pushLine(s, "Not in public — your cover is too hot right now. Lie low or run a misdirection errand first.", "system");
+        return s;
+      }
       if (slotsFree(s.model) <= 0) {
         pushLine(s, "You're out of activity slots for today. Rest first.", "system");
         return s;

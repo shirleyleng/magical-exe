@@ -16,7 +16,7 @@ import { DUNGEONS } from "./dungeons.js";
 import { useItem } from "./hub.js";
 import { requestNarration } from "./narrate.js";
 import { adjustAlignment, effectiveStats, fizzleChance, healMultiplier, derivePath } from "./alignment.js";
-import { adjustVisibility } from "./visibility.js";
+import { adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
 import { getAbility } from "./abilities.js";
 
 const coin = () => CONFIG.economy.currencySymbol;
@@ -495,6 +495,7 @@ function grantWinVisibility(state, c, ch) {
   if (d.fame) parts.push(`+${d.fame} Fame`);
   if (d.unmasking) parts.push(`+${d.unmasking} Unmasking`);
   if (parts.length) pushLine(state, `Word spreads through the city. (${parts.join(" · ")})`, "system");
+  if (d.unmasking > 0) checkUnmaskingEvents(state); // an escalating threshold may have just been crossed
 }
 
 /* ---- resolution ---- */

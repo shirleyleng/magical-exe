@@ -51,6 +51,8 @@ function freshCharacter() {
     purity: CONFIG.startingMeters.purity,
     fame: CONFIG.startingMeters.fame,
     unmasking: CONFIG.startingMeters.unmasking,
+    unmaskingTierSeen: "none",      // highest Unmasking event tier already fired (T15)
+    mustLieLow: false,              // high-threshold lock: no public skirmishes until heat drops (T15)
     hopeTally: CONFIG.startingMeters.hopeTally,
     inventory: [],
     abilities: ["light bolt", "guard"],
@@ -73,6 +75,7 @@ export function freshModel(opts = {}) {
     hub: {
       slotsMax: CONFIG.hub.startingSlots,
       slotsUsedToday: { training: 0, combat: 0, errand: 0, sparring: 0 },
+      pendingDamageControl: false,    // T15: a mid-tier investigator costs a slot next day
     },
     world: {
       currentLocation: "homebase",
@@ -96,7 +99,12 @@ export function createState(model) {
   const m = model || freshModel();
   // `path` is derived from the slider; recompute on entry so loaded/older saves are correct
   // (during play, adjustAlignment keeps it fresh).
-  if (m.character) m.character.path = derivePath(m.character);
+  if (m.character) {
+    m.character.path = derivePath(m.character);
+    // Backfill T15 fields for older saves so events/locks read correctly.
+    if (m.character.unmaskingTierSeen === undefined) m.character.unmaskingTierSeen = "none";
+    if (m.character.mustLieLow === undefined) m.character.mustLieLow = false;
+  }
   return {
     model: m,
     log: [],                        // [{ text, kind }]

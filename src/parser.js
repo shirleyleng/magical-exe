@@ -41,6 +41,8 @@ const VERBS = {
   // hub
   train: "train", practice: "train",
   rest: "rest", sleep: "rest",
+  lielow: "lielow", lie: "lielow", hide: "lielow", laylow: "lielow", lay: "lielow",
+  misdirect: "misdirect", misdirection: "misdirect", decoy: "misdirect", cover: "misdirect",
   shop: "shop", store: "shop",
   buy: "buy", purchase: "buy",
   sell: "sell",
@@ -101,6 +103,7 @@ export const HELP = [
   "  Items:   take <item> · drop <item> · use <item> · inventory (i)",
   "  Combat:  attack · guard · burst · use <ability> · spare",
   "  Hub:     train <stat> · rest · shop · buy <item> · sell <item> · explore",
+  "  Lay low: lie low · misdirection   (cool your Unmasking when the heat rises)",
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",
   "  Settings: settings  (theme / color palette · about & credits)",

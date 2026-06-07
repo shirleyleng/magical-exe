@@ -12,7 +12,7 @@
 import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { getAbility, meetsLearnReq, learnableAbilities } from "./abilities.js";
-import { coolUnmasking } from "./visibility.js";
+import { coolUnmasking, relaxUnmasking, recapHeat } from "./visibility.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -242,20 +242,77 @@ export function useItem(state, target) {
   return state;
 }
 
-/* ---- rest ---- */
-export function doRest(state) {
+/* ---- day rollover (shared by rest + lie low) ---- */
+function beginDay(state) {
   const model = state.model;
-  const stats = model.character.stats;
   model.day += 1;
   model.hub.slotsUsedToday = { training: 0, combat: 0, errand: 0, sparring: 0 };
   refreshSlotsMax(model);
+  // A mid-tier investigator eats part of the morning (T15 damage-control).
+  if (model.hub.pendingDamageControl) {
+    model.hub.slotsMax = Math.max(1, model.hub.slotsMax - 1);
+    model.hub.pendingDamageControl = false;
+    pushLine(state, "You spend the morning covering your tracks from a snooping investigator. (-1 slot today)", "system");
+  }
   // A night's rest restores HP and Stamina (and prevents exploration soft-locks).
+  const stats = model.character.stats;
   stats.hp = stats.maxHp;
   stats.stamina = stats.maxStamina;
+}
+
+/* ---- rest ---- */
+export function doRest(state) {
+  const model = state.model;
+  beginDay(state);
   pushLine(state, `You rest. Day ${model.day} dawns; your ${model.hub.slotsMax} slots are fresh and you feel restored.`, "system");
   // The public eye cools a little overnight (T15) — but never fully forgets.
   const cooled = coolUnmasking(model.character);
   if (cooled > 0) pushLine(state, `The talk dies down a little. (-${cooled} Unmasking)`, "hint");
+  relaxUnmasking(state);
+  recapHeat(state);
+  return state;
+}
+
+/* ---- lowering methods (T15) ---- */
+
+/** Lie low: spend the whole day out of sight — a big Unmasking drop, day advances. */
+export function doLieLow(state) {
+  const model = state.model;
+  const ch = model.character;
+  const ax = CONFIG.axes.unmasking;
+  if ((ch.unmasking || 0) <= 0) {
+    pushLine(state, "No one's looking your way — there's nothing to lie low from.", "system");
+    return state;
+  }
+  beginDay(state);
+  const before = ch.unmasking;
+  const floor = (ch.fame || 0) > 0 ? ax.residualFloor : 0;
+  ch.unmasking = Math.max(floor, before - ax.lieLowReduction);
+  pushLine(state, `You keep your head down — no public magic, no heroics. Day ${model.day} dawns quietly. (-${before - ch.unmasking} Unmasking)`, "system");
+  relaxUnmasking(state);
+  recapHeat(state);
+  return state;
+}
+
+/** Misdirection errand: plant a false lead — moderate Unmasking drop, costs a slot, no day. */
+export function doMisdirect(state) {
+  const model = state.model;
+  const ch = model.character;
+  const ax = CONFIG.axes.unmasking;
+  if ((ch.unmasking || 0) <= 0) {
+    pushLine(state, "There's no heat to misdirect right now.", "system");
+    return state;
+  }
+  if (slotsFree(model) <= 0) {
+    pushLine(state, "You're out of activity slots for today. Rest first.", "system");
+    return state;
+  }
+  model.hub.slotsUsedToday.errand += 1;
+  const before = ch.unmasking;
+  const floor = (ch.fame || 0) > 0 ? ax.residualFloor : 0;
+  ch.unmasking = Math.max(floor, before - ax.misdirectionReduction);
+  pushLine(state, `You plant a false lead — a staged sighting clear across town. (-${before - ch.unmasking} Unmasking · 1 slot)`, "system");
+  relaxUnmasking(state);
   return state;
 }
 
