@@ -15,7 +15,7 @@ import { getEnemy } from "./enemies.js";
 import { DUNGEONS } from "./dungeons.js";
 import { useItem } from "./hub.js";
 import { requestNarration } from "./narrate.js";
-import { adjustAlignment, effectiveStats, fizzleChance } from "./alignment.js";
+import { adjustAlignment, effectiveStats, fizzleChance, healMultiplier, derivePath } from "./alignment.js";
 import { getAbility } from "./abilities.js";
 
 const coin = () => CONFIG.economy.currencySymbol;
@@ -96,6 +96,27 @@ function takeFx(c, kind) {
 }
 function hasFx(c, kind) {
   return !!(c.fx && c.fx[kind]);
+}
+
+/* Install a status effect by kind + magnitude, pulling real numbers from CONFIG.combat.judge.
+   Shared by the AI judge (T13) and the pure ability kit (T14.5) so both stay config-driven. */
+function installEffect(c, effect, magnitude, turns) {
+  const J = CONFIG.combat.judge;
+  const mag = magnitude === "moderate" ? "moderate" : "minor";
+  const pick = (table) => table[mag] ?? table.minor;
+  const t = Math.min(J.maxTurns, Math.max(1, turns || 1));
+  switch (effect) {
+    case "blind":
+    case "distract": setFx(c, "blind", pick(J.missChance), t); break;
+    case "slow":     setFx(c, "slow", pick(J.powerDownPct), t); break;
+    case "expose":   setFx(c, "expose", pick(J.defenseDownPct), t); break;
+    case "defend":   setFx(c, "defend", pick(J.dmgReduction), t); break;
+    case "burn":     setFx(c, "burn", pick(J.burnDamage), t); break;
+    case "stagger":  setFx(c, "stagger", 1, t); break;
+    case "douse":    if (hasFx(c, "burn")) delete c.fx.burn; break;
+    case "none":
+    default: break;
+  }
 }
 
 /* ---- start ---- */
@@ -215,12 +236,12 @@ export function playerAbility(state, name) {
     return state;
   }
   stats.spirit -= ab.spirit;
-  const eff = effectiveStats(ch);   // corruption warp: amplified Power, lowered max HP
+  const eff = effectiveStats(ch);   // warp: Power up / HP down · grace: Defense up
   const e = c.enemy;
 
-  // Soft-fizzle: an opposed-alignment move can falter when you've drifted the other way.
-  // Chance scales with how far you've strayed (alignment.js). It still costs Spirit + the turn.
-  if (rolls(fizzleChance(ch, ab.align))) {
+  // Soft-fizzle: an opposed-alignment move can falter when you've drifted the other way. Chance
+  // scales with how far you've strayed (alignment.js). purify is exempt — it's how you climb back.
+  if (ab.kind !== "purify" && rolls(fizzleChance(ch, ab.align))) {
     const why = ab.align === "pure"
       ? "the light gutters out — your heart is too shadowed"
       : "the dark power slips your grasp — too much light in you";
@@ -229,9 +250,10 @@ export function playerAbility(state, name) {
   }
 
   if (ab.kind === "heal") {
-    const heal = Math.max(1, Math.round(eff.maxHp * (ab.healPct || 0.3)));
+    const heal = Math.max(1, Math.round(eff.maxHp * (ab.healPct || 0.3) * healMultiplier(ch)));
     stats.hp = Math.min(eff.maxHp, stats.hp + heal);
     pushLine(state, `You ${ab.verb}; ${heal} HP returns. (-${ab.spirit} Spirit)`, "system");
+
   } else if (ab.kind === "lifesteal") {
     if (rolls(dodgeChance(e.dodge))) {
       pushLine(state, `You reach for the ${e.name}, but it slips away!`, "system");
@@ -242,17 +264,43 @@ export function playerAbility(state, name) {
       stats.hp = Math.min(eff.maxHp, stats.hp + heal);
       pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}, drawing ${heal} back into yourself. (-${ab.spirit} Spirit)`, "system");
     }
-  } else { // damage
+
+  } else if (ab.kind === "buff") {
+    if (ab.applyFx) installEffect(c, ab.applyFx.kind, ab.applyFx.magnitude, ab.applyFx.turns);
+    pushLine(state, `You ${ab.verb}. (-${ab.spirit} Spirit)`, "system");
+
+  } else if (ab.kind === "purify") {
+    if (hasFx(c, "burn")) delete c.fx.burn; // cleanse a lingering burn on yourself
+    const parts = [];
+    if (ab.shedCorruption) {
+      const before = ch.corruption || 0;
+      ch.corruption = Math.max(0, before - ab.shedCorruption);
+      ch.path = derivePath(ch);
+      if (before - ch.corruption > 0) parts.push(`-${before - ch.corruption} Corruption`);
+    }
+    if (ab.healPct) {
+      const heal = Math.max(1, Math.round(eff.maxHp * ab.healPct * healMultiplier(ch)));
+      stats.hp = Math.min(eff.maxHp, stats.hp + heal);
+      parts.push(`+${heal} HP`);
+    }
+    pushLine(state, `You ${ab.verb}; the shadow in you thins.${parts.length ? ` (${parts.join(", ")})` : ""} (-${ab.spirit} Spirit)`, "system");
+
+  } else { // damage (with optional applyFx, e.g. radiance's dazzle)
     if (rolls(dodgeChance(e.dodge))) {
       pushLine(state, `You ${ab.verb} the ${e.name}, but it evades!`, "system");
     } else {
       const dmg = damageAfterDefense(Math.round(eff.power * (ab.mult || 1)), exposedDefense(c, e));
       e.hp = Math.max(0, e.hp - dmg);
-      pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}! (-${ab.spirit} Spirit)`, "system");
+      let extra = "";
+      if (ab.applyFx && e.hp > 0) {
+        installEffect(c, ab.applyFx.kind, ab.applyFx.magnitude, ab.applyFx.turns);
+        extra = " The light leaves it reeling.";
+      }
+      pushLine(state, `You ${ab.verb} the ${e.name} for ${dmg}!${extra} (-${ab.spirit} Spirit)`, "system");
     }
   }
 
-  // Leaning on a path ability nudges the slider that way (coupled).
+  // Leaning on a path ability nudges the slider that way (coupled). purify already shed above.
   if (ab.nudge) { adjustAlignment(ch, ab.nudge); clampHpToWarp(ch); }
   return afterPlayerAction(state);
 }
@@ -309,7 +357,6 @@ function activeFxSummary(c) {
 export function applyJudgedAction(state, verdict) {
   const c = state.model.combat;
   if (!c) return state;
-  const J = CONFIG.combat.judge;
 
   // Forbidden/dark improvisation stains you — a coupled corruption gain (drains purity,
   // updates path, may deepen the stat-warp). Re-clamp HP in case max HP just shrank.
@@ -320,31 +367,7 @@ export function applyJudgedAction(state, verdict) {
     pushLine(state, `Shadow coils into you. (+${verdict.corruptionCost} Corruption)`, "system");
   }
 
-  const turns = Math.min(J.maxTurns, Math.max(1, verdict.turns || 1));
-  const mag = verdict.magnitude === "moderate" ? "moderate" : "minor";
-  const pick = (table) => table[mag] ?? table.minor;
-
-  switch (verdict.effect) {
-    case "blind":
-    case "distract":
-      setFx(c, "blind", pick(J.missChance), turns); break;
-    case "slow":
-      setFx(c, "slow", pick(J.powerDownPct), turns); break;
-    case "expose":
-      setFx(c, "expose", pick(J.defenseDownPct), turns); break;
-    case "defend":
-      setFx(c, "defend", pick(J.dmgReduction), turns); break;
-    case "burn":
-      setFx(c, "burn", pick(J.burnDamage), turns); break;
-    case "stagger":
-      setFx(c, "stagger", 1, turns); break;
-    case "douse":
-      if (hasFx(c, "burn")) delete c.fx.burn; break; // counter to flame; else pure flavor
-    case "none":
-    default:
-      break; // approved but no mechanical effect — still costs the turn
-  }
-
+  installEffect(c, verdict.effect, verdict.magnitude, verdict.turns);
   return afterPlayerAction(state); // the improvisation was the player's move
 }
 
@@ -417,7 +440,7 @@ function enemyTurn(state) {
       : `The ${e.name} lunges — you dodge!`, "system");
   } else {
     let raw = e.power * e.damageMult * (1 - slow);
-    let dmg = damageAfterDefense(raw, stats.defense);
+    let dmg = damageAfterDefense(raw, effectiveStats(state.model.character).defense); // grace boon raises Defense
     if (c.playerGuard) dmg = Math.max(1, Math.round(dmg * CONFIG.combat.guardMitigation));
     if (defend > 0) dmg = Math.max(1, Math.round(dmg * (1 - defend)));
     stats.hp = Math.max(0, stats.hp - dmg);

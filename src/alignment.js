@@ -49,23 +49,45 @@ export function warpFor(corruption) {
   return w;
 }
 
+/** The active "grace" boon for a purity level (mirror of the warp; highest threshold wins). */
+export function graceFor(purity) {
+  let g = { defenseMult: 1, healMult: 1 };
+  for (const th of (CONFIG.axes.purity && CONFIG.axes.purity.graceThresholds) || []) {
+    if ((purity || 0) >= th.at) g = th;
+  }
+  return g;
+}
+
+/** Healing-potency multiplier from the purity grace boon (pure builds heal harder). */
+export function healMultiplier(ch) {
+  return graceFor(ch.purity).healMult || 1;
+}
+
 /** True if corruption is high enough to be warping stats (drives a HUD marker). */
 export function isWarped(ch) {
   const w = warpFor(ch.corruption);
   return w.powerMult !== 1 || w.hpMult !== 1;
 }
 
+/** True if purity is high enough that the grace boon is active (drives a HUD marker). */
+export function isGraced(ch) {
+  const g = graceFor(ch.purity);
+  return g.defenseMult !== 1 || g.healMult !== 1;
+}
+
 /**
- * Combat-effective stats after the corruption warp (non-destructive — base stats are
- * untouched). Power is amplified, max HP decays. Spirit warp is reserved for later.
+ * Combat-effective stats (non-destructive — base stats untouched). Corruption warp amplifies
+ * Power and decays max HP; the purity grace boon raises Defense. Spirit warp is reserved.
  */
 export function effectiveStats(ch) {
   const s = ch.stats;
   const w = warpFor(ch.corruption);
+  const g = graceFor(ch.purity);
   return {
     ...s,
     power: Math.max(1, Math.round(s.power * w.powerMult)),
     maxHp: Math.max(1, Math.round(s.maxHp * w.hpMult)),
+    defense: Math.max(0, Math.round(s.defense * g.defenseMult)),
   };
 }
 

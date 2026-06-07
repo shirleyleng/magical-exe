@@ -96,6 +96,15 @@ export const CONFIG = {
         { at: 70, powerMult: 1.25, hpMult: 0.85, spiritMult: 0.85 },
       ],
     },
+    // high PURITY warps the OTHER way — a "grace" boon: resilient support (Defense up, healing
+    // up), mirroring the corruption warp. Since the two ends are coupled, only one side is ever
+    // active. This is what makes committing PURE pay off structurally, not just via abilities.
+    purity: {
+      graceThresholds: [
+        { at: 40, defenseMult: 1.15, healMult: 1.15 },
+        { at: 70, defenseMult: 1.35, healMult: 1.30 },
+      ],
+    },
     // Purity & Corruption read as ONE coupled slider: gaining one end drains the other by
     // `couplingDrain` * the gain. `path` (pure/balanced/corrupt) comes from the gap between them.
     alignment: {
@@ -138,6 +147,22 @@ export const CONFIG = {
                     verb: "siphon the living warmth out of",
                     nudge: { corruption: 4 },
                     learn: { reqTier: "novice", reqCorruption: 40, slotCost: 1, blurb: "a life-siphon (Corrupt)" } },
+    // Pure kit: corruption tempts with raw burst damage; purity rewards control + safety + sustain.
+    // applyFx installs a status effect (same magnitudes as combat.judge); reuses the T13 fx engine.
+    "radiance":   { align: "pure", spirit: 5, kind: "damage", mult: 1.3,
+                    verb: "call down a lance of radiance on",
+                    applyFx: { kind: "blind", magnitude: "moderate", turns: 1 }, // dazzles -> it misses
+                    nudge: { purity: 4 },
+                    learn: { reqTier: "novice", reqGapPure: 15, slotCost: 1, blurb: "a dazzling light strike (Pure)" } },
+    "ward":       { align: "pure", spirit: 4, kind: "buff",
+                    verb: "wreathe yourself in warding light",
+                    applyFx: { kind: "defend", magnitude: "moderate", turns: 2 }, // incoming damage cut
+                    nudge: { purity: 3 },
+                    learn: { reqTier: "novice", reqGapPure: 30, slotCost: 1, blurb: "a protective ward (Pure)" } },
+    "purify":     { align: "pure", spirit: 4, kind: "purify",
+                    verb: "breathe out a cleansing light",
+                    shedCorruption: 10, healPct: 0.10, // climb back from the brink (fizzle-exempt)
+                    learn: { reqTier: "novice", reqCorruption: 10, slotCost: 1, blurb: "cleanse + shed Corruption (Pure)" } },
   },
 
   // ---- transformation tiers ----

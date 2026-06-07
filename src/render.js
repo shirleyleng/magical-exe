@@ -14,7 +14,7 @@ import { exampleFor } from "./prompts.js";
 import { ART } from "./mascot.js";
 import { CONFIG } from "../config.js";
 import { slotsUsed } from "./hub.js";
-import { effectiveStats, isWarped } from "./alignment.js";
+import { effectiveStats, isWarped, isGraced } from "./alignment.js";
 
 let els = null;
 let renderedCount = 0;
@@ -162,8 +162,8 @@ function alignmentBar(c) {
 function renderStats(model) {
   const c = model.character;
   const s = c.stats;
-  const eff = effectiveStats(c);          // corruption warp: Power up, max HP down
-  const warped = isWarped(c);
+  const eff = effectiveStats(c);          // warp: Power up / HP down · grace: Defense up
+  const mark = isWarped(c) ? "  ⚠" : isGraced(c) ? "  ✦" : "";
   const pad = (n, w = 3) => String(n).padEnd(w);
 
   const statusLine =
@@ -180,11 +180,11 @@ function renderStats(model) {
     ``,
     `HP    ${s.hp}/${eff.maxHp}`,
     `PWR ${pad(eff.power)} SPR ${pad(s.spirit)}`,
-    `DEF ${pad(s.defense)} SPD ${pad(s.speed)}`,
+    `DEF ${pad(eff.defense)} SPD ${pad(s.speed)}`,
     `DODGE ${s.dodge}`,
     `STA   ${s.stamina}/${s.maxStamina}`,
     `──────────────`,
-    `Pure ${alignmentBar(c)} Corr${warped ? "  ⚠" : ""}`,
+    `Pure ${alignmentBar(c)} Corr${mark}`,
     `Fame ${c.fame}  Unmask ${c.unmasking}`,
     `Coins ${CONFIG.economy.currencySymbol}${c.coins ?? 0}`,
   ].join("\n");
