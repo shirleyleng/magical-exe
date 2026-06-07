@@ -62,9 +62,20 @@ function statLabel(key) {
   return key === "maxHp" ? "max HP" : key === "maxStamina" ? "max Stamina" : key;
 }
 
+const rivalName = (model) => (model.rivals && model.rivals[0] && model.rivals[0].name) || "your rival";
+
+/** T17: the mascot ran your training; once it's gone, training is closed and
+    Sparring takes its place. Returns true (and prints a redirect) if blocked. */
+function trainingClosed(state) {
+  if (!state.model.world.flags.mascotGone) return false;
+  pushLine(state, `There's no one to train you now — your mascot is gone. Spar with ${rivalName(state.model)} instead. (type spar)`, "system");
+  return true;
+}
+
 /* ---- training ---- */
 export function trainDirect(state, statKey) {
   const model = state.model;
+  if (trainingClosed(state)) return state;
   if (slotsFree(model) <= 0) {
     pushLine(state, "You're out of activity slots for today. Type rest to begin a new day.", "system");
     return state;
@@ -90,6 +101,7 @@ export function trainDirect(state, statKey) {
 
 /** `train <stat>` from the command parser. */
 export function trainCommand(state, target) {
+  if (trainingClosed(state)) return state;
   const key = resolveStat(target);
   if (!key) {
     pushLine(state, "Train what? Try: power, spirit, defense, speed, dodge, hp, stamina.", "system");
@@ -100,6 +112,7 @@ export function trainCommand(state, target) {
 
 /** `train` with no argument -> a selection menu. */
 export function openTrainMenu(state) {
+  if (trainingClosed(state)) return state;
   if (slotsFree(state.model) <= 0) {
     pushLine(state, "You're out of activity slots for today. Type rest to begin a new day.", "system");
     return state;

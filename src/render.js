@@ -243,7 +243,12 @@ function renderMascot(model) {
   const caption = document.createElement("p");
   caption.className = "panel__body--muted";
 
-  if (model.mascot && model.mascot.name) {
+  if (model.mascot && model.mascot.name && model.mascot.present === false) {
+    // T17: injured and gone (Knight->Awakened low point). An empty perch.
+    pre.classList.add("mascot-art--gone");
+    pre.textContent = ART.gone_small || "   .  ·  .\n   ·     ·\n  (   …   )\n   `-----'";
+    caption.textContent = `${model.mascot.name} — missing`;
+  } else if (model.mascot && model.mascot.name) {
     pre.textContent = ART[model.mascot.artKeySmall] || ART.blob_small;
     caption.textContent = model.mascot.name;
   } else {

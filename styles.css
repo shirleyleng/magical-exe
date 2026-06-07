@@ -369,6 +369,13 @@ body {
   text-align: center;
 }
 
+/* T17: the mascot is injured and gone — dim the empty perch. */
+.mascot-art--gone {
+  color: var(--muted, #8a8597);
+  opacity: 0.55;
+  text-shadow: none;
+}
+
 /* ---- Responsive: stack everything in one column on narrow screens ---- */
 @media (max-width: 720px) {
   body {
