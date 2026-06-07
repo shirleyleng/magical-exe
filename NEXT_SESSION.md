@@ -1,63 +1,67 @@
-# NEXT SESSION — T17: Boss #4 story-loss + mascot injury + sparring
+# NEXT SESSION — T18: Secret-place dungeon + magical weapon + Knight→Awakened
 
 > Kickoff notes for the next session. Read `MEMORY.md` + `memory/v1-slice-status.md` first
-> for full status. Delete/replace this file when T17 is underway.
+> for full status. Delete/replace this file when T18 is underway.
 
-## Where things stand (as of 2026-06-06)
+## Where things stand (as of 2026-06-07)
 
-Done & verified live: T1–T13 (slice + AI layer), **T11b** (Turnstile spend-gate), **T14 + T14.5**
-(Purity/Corruption axis), **T15** (Fame/Unmasking axis), and now **T16** (Bosses #2/#3 + the
-`explore` chooser + Soldier→Knight tier-up + corruption story beats + the rival Sable arc:
-scheduled challenge duel + post-boss3 return). Everything committed; `config.js` stays uncommitted.
+Done & verified: T1–T16 (slice + AI layer + Purity/Corruption + Fame/Unmasking + bosses #2/#3
++ Soldier→Knight + rival arc) and now **T17** (Boss #4 scripted story-loss + mascot injury/
+disappearance + Sparring). Everything committed; `config.js` stays uncommitted (sparring block
+added there + synced to `docs/config.example.js`).
 
-T16 DEFERRED (clean follow-ups, see `docs/TASKS.md` T16):
-- Knight-tier ability kit — all abilities are still gated to `novice` (`config.abilities`);
-  Knight currently grants +1 slot + flavor only. Add knight-gated abilities when desired.
-- The rival's recurring-challenge loop — the return scene just sets `disposition: "respectful"`;
-  Sable doesn't yet re-challenge on a recurring cadence.
+T17 left these explicit hooks for T18:
+- `model.world.flags.boss4Attempted` is set but **unused** until now — it marks that the Spire
+  loss has happened.
+- `model.world.flags.mascotGone` is true; `model.mascot.present=false` / `injured=true`.
+- `model.character.magicalWeapon = { fromToy, object, found:false }` (set at creation) — T18
+  flips `found:true`.
+- The Spire (`spire` dungeon, boss `boss4` = Grief Herald) is **already coded to become a normal
+  winnable fight the moment `magicalWeapon.found` is true** (explore.js gates `storyLoss` on
+  `!found`). So once the weapon is found + Awakened activates, returning to the Spire apex is a
+  real fight — no combat changes needed for the rematch itself.
+- `config.tiers.awakened = { reqBoss:"secretPlace", reqWeaponFound:true }` already exists, and
+  `progress.js handleBossDefeat` already checks `reqs.reqWeaponFound && !ch.magicalWeapon.found`.
 
-## What's next: T17 — Boss #4 scripted story-loss + mascot injury + sparring (DESIGN §8)
+## What's next: T18 — Secret-place dungeon + weapon + Awakened (DESIGN §8, TASKS T18)
 
-The Knight→Awakened low point. This is the first **scripted, unwinnable** fight.
-
-- **Scripted story-loss Boss #4:** telegraphed so it never reads as a bug or cheap skill failure
-  — mascot warns up front, boss HP barely moves, narrative loss at a turn cap. Config already
-  exists: `config.combat.storyLoss` (`enabled`, `maxPlayerTurnsBeforeIntervene: 5`,
-  `bossHpVisibleDrainPerHit: 0.01`). Implement as a scripted story-battle, NOT normal combat —
-  likely a distinct path in `combat.js` (or a guard in `endCombat`/`enemyTurn`) that intervenes
-  at the turn cap regardless of damage.
-- **Mascot injured + disappears:** after the loss, the mascot is hurt and leaves. Mascot lives in
-  `model.mascot`; the HUD MASCOT panel + `progress.js` reveals reference it. Need a "mascot gone"
-  state the HUD + training respect.
-- **Sparring unlocks (rival):** Sable's training role replaces the mascot's. `DESIGN` §2/§7:
-  Sparring is an activity that takes the mascot's training slot-role after the injury. The rival
-  arc (T16, `src/rival.js`, `model.rivals[0]`) and the hub activity-slot system (`hub.js`,
-  `slotsUsedToday.sparring` already exists as a key) are the hooks.
+- **Misted secret-place dungeon** themed on hopelessness + childhood memories of the mascot's
+  training, with hints of the toy. The secret place + toy were chosen at character creation
+  (`character.secretPlace`, `character.magicalWeapon.fromToy/object`) — weave those in.
+- **Find the magical weapon:** the mascot is sleeping with it. Recovering the weapon should set
+  `magicalWeapon.found = true` and **recover the mascot** (`mascot.present=true`, `injured=false`,
+  clear `flags.mascotGone` so training reopens / spar becomes optional).
+- **Activate Awakened tier:** gate `secretPlace` as a "boss" id that, once cleared with the weapon
+  found, advances the tier via the existing `handleBossDefeat` path (TIER_REVEAL.awakened — needs
+  writing in progress.js, mirror knight). Awakened grants +1 slot (already in `hub.slotUnlocks`).
+- **Return + defeat Boss #4:** with the weapon found the Spire is winnable; beating boss4 should
+  fire its own beat (rival congratulates + resumes challenging with respect — Sable arc advance).
 
 ## Likely open design calls to workshop first (don't code until decided)
 
-1. Where does Boss #4 live — a new dungeon, or a forced hub/story encounter? How is it reached
-   (gated by Knight tier + a story flag)?
-2. How is the scripted loss implemented — a separate `startStoryLoss` flow, or normal `startCombat`
-   with a `storyLoss` flag that forces the intervention at the turn cap?
-3. Mascot-gone: does training fully disable (forcing Sparring), or just reflavor? HUD treatment for
-   the empty MASCOT panel?
-4. Sparring mechanics — same as training (direct stat growth) but via the rival, or its own
-   risk/reward (e.g. a spar that can also teach an ability)?
+1. How is the secret place reached/unlocked — a new entry in the explore chooser gated on
+   `boss4Attempted` (+ alliance visit?), or a special prompt after the T17 aftermath?
+2. Is `secretPlace` a real dungeon with a boss room (a memory/doubt "boss" themed on
+   hopelessness), or a no-combat exploratory dungeon where the climax is *finding* the weapon
+   (the "boss" being the act of recovery)? `config.tiers.awakened.reqBoss="secretPlace"` implies
+   something pushes a bossId — decide what.
+3. Does recovering the mascot make Sparring go away (back to training) or keep both available?
+4. Knight/Awakened ability kit — still all-novice-gated (`config.abilities`). Add an Awakened
+   ability or the magical-weapon attack now, or defer again?
 
 ## Working notes / conventions
 
 - All balance in `config.js` (gitignored, holds live keys); keep `docs/config.example.js` in sync.
   **Don't commit `config.js`.**
-- Verify with the preview (`.claude/launch.json`, port 4321) + reload after every src edit. Drive
-  deterministic logic via `preview_eval` importing modules with throwaway state objects (use
-  `st.freshModel()` + `st.createState(m)` for a valid model; note `createState` recomputes `path`
-  from the meters, so set `purity`/`corruption` to test path-flavored branches).
-- **Gotchas:** (1) async victory narration sets `ui.busy` (input lock) — pace scripted combat
-  drives. (2) The shell eats backticks in `git commit -m` — avoid them. (3) Don't bulk
-  string-replace template fragments like `the ${e.name}` across a file — it clobbered the
-  eRef/ERef helper definitions in combat.js last time; prefer targeted edits.
-- Mutator pattern: `alignment.js` (`adjustAlignment`), `visibility.js` (`adjustVisibility`) are the
-  single mutators for their axes. Boss reactions flow through `progress.js handleBossDefeat`
-  (`state.ui.justDefeatedBoss`); day-cycle events tick from `update.js` after `doRest`/`doLieLow`.
+- Verify with the preview (`.claude/launch.json`, port 4321). **GOTCHA (confirmed T17):** dynamic
+  `import()` in `preview_eval` caches ES modules for the page session — you MUST full-reload the
+  page (`location.reload()` in its own eval) after each src edit before re-importing, or you test
+  stale code. Drive deterministic logic via `update(state,event)` with `st.freshModel()` +
+  `st.createState(m)`; suppress random room encounters with `m.world.cleared = { <roomId>: true }`.
+- **Other gotchas:** (1) async victory narration sets `ui.busy` (input lock) — pace scripted drives.
+  (2) The shell eats backticks in `git commit -m` — use a heredoc, no backticks. (3) Don't bulk
+  string-replace template fragments (clobbered eRef/ERef in combat.js once).
+- Mutator pattern: `alignment.js`/`visibility.js` own their axes. Boss reactions flow through
+  `progress.js handleBossDefeat` (`ui.justDefeatedBoss`); the T17 scripted loss flows through
+  `progress.js handleStoryLoss` (`ui.justLostStoryBoss`); both resolved by `update.js afterCombat`.
 - Commit per logical chunk.

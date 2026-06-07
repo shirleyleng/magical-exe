@@ -198,11 +198,27 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 - ⬜ DEFERRED: knight-tier ability kit (all abilities still gated to novice); the deeper rival
   recurring-challenge loop (return scene just sets `respectful` for now).
 
-### T17 — Boss #4 story-loss + mascot injury + sparring
+### T17 — Boss #4 story-loss + mascot injury + sparring (DONE)
 - BUILD: scripted unwinnable Boss #4 (telegraphed per `config.js > combat.storyLoss`, mascot
   warns, HP barely moves, narrative loss at turn cap). Mascot injured + disappears. Rival unlocks
   Sparring (replaces mascot's training role).
 - DONE: fight reads as scripted loss (not a bug); mascot gone; sparring available.
+- ✅ DONE (2026-06-07): chunked. (A) New tier-gated dungeon **Sorrowing Spire** (`spire`,
+  `unlockReqBoss:boss3` + new `unlockReqTier:knight`) ending at the **Grief Herald** (boss4).
+  Scripted loss = a `storyLoss` flag on normal combat (`combat.js`): player hits clamped to
+  `bossHpVisibleDrainPerHit` (HP barely moves), enemy floored from killing you, mascot intervenes
+  at `maxPlayerTurnsBeforeIntervene` — injured + gone — handing off via `ui.justLostStoryBoss`.
+  Only scripted until `magicalWeapon.found` (T18 makes it winnable). (B) **Mascot-gone:** training
+  closed (`hub.trainingClosed` on `flags.mascotGone`), HUD MASCOT panel shows a dimmed empty perch
+  + "<name> — missing" (`render.js` + `.mascot-art--gone`). (C) **Sparring** (`config.sparring`,
+  risk/reward breakthrough/solid/rough scaling the training gain, rough costs HP) via `spar`
+  verb/menu; `learnAbility` takes a `slotKey` so abilities are learnable via sparring. The
+  unlock moment (`progress.js handleStoryLoss`) plays the aftermath + Sable's pivot: ask the
+  alliance for a better way, the **Awakened** tier exists and is the only road back for your
+  mascot (the T18 hook). Verified per chunk + a full `update()` integration (explore spire → up →
+  up → scripted loss → mascot gone → train blocked → spar works); console-clean.
+- ⬜ DEFERRED: `boss4Attempted` flag is set but unused until T18; the spar menu only lists
+  learnable abilities the player already qualifies for (tier+threshold) — no knight-tier kit yet.
 
 ### T18 — Secret-place dungeon + magical weapon + Knight -> Awakened
 - BUILD: misted secret-place dungeon themed on hopelessness/childhood memories with toy hints;
