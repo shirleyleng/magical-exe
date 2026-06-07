@@ -196,6 +196,17 @@ body {
   background: rgba(255, 126, 182, 0.10);
   font-weight: 700;
 }
+/* Non-selectable section header (e.g. "── Dark themes ──") */
+.menu__header {
+  padding: 8px 12px 2px;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: pre;
+  user-select: none;
+}
+.menu__header:first-child { padding-top: 2px; }
 
 /* ---- Rotating example prompt ---- */
 .example-prompt {

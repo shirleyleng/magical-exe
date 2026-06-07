@@ -41,8 +41,7 @@ export function update(state, event) {
     case "menuMove": {
       const m = s.ui.menu;
       if (m && m.active) {
-        const n = m.options.length;
-        m.index = (m.index + event.dir + n) % n; // wrap around
+        m.index = nextSelectable(m.options, m.index, event.dir); // wraps, skips headers
         if (m.kind === "theme") s.ui.effect = themePreviewEffect(m);
       }
       return s;
@@ -50,7 +49,8 @@ export function update(state, event) {
     case "menuJump": {
       const m = s.ui.menu;
       if (m && m.active && event.index >= 0 && event.index < m.options.length) {
-        m.index = event.index;
+        const target = m.options[event.index];
+        m.index = isSelectable(target) ? event.index : nextSelectable(m.options, event.index, 1);
         if (m.kind === "theme") s.ui.effect = themePreviewEffect(m);
       }
       return s;
@@ -58,6 +58,7 @@ export function update(state, event) {
     case "menuSelect": {
       const m = s.ui.menu;
       if (!m || !m.active) return s;
+      if (!isSelectable(m.options[m.index])) return s; // ignore section headers
       if (m.kind === "creation") return handleMenuSelect(s);
       if (m.kind === "load") {
         const opt = m.options[m.index];
@@ -217,16 +218,28 @@ function showAbout(s) {
   return s;
 }
 
-/** Theme switcher — a menu of palettes. Moving the highlight previews the theme live
-   (applied but not persisted); enter keeps it, cancel/esc reverts to where you started. */
+/** Theme switcher — palettes grouped into Dark / Light sections (non-selectable headers).
+   Moving the highlight previews the theme live (applied but not persisted); enter keeps it,
+   cancel/esc reverts to where you started. */
 function openThemeMenu(s) {
   const current = document.documentElement.dataset.theme || "lipgloss";
-  const options = THEMES.map((t) => ({
-    label: `${t.name}${t.id === current ? " (current)" : ""} — ${t.note}`,
-    value: t.id,
-  }));
+  const options = [];
+  let startIndex = -1;
+  for (const group of [
+    { mode: "dark", label: "── Dark themes ──" },
+    { mode: "light", label: "── Light themes ──" },
+  ]) {
+    options.push({ header: true, label: group.label });
+    for (const t of THEMES.filter((t) => t.mode === group.mode)) {
+      if (t.id === current) startIndex = options.length;
+      options.push({
+        label: `${t.name}${t.id === current ? " (current)" : ""} — ${t.note}`,
+        value: t.id,
+      });
+    }
+  }
   options.push({ label: "Cancel", value: "__cancel__" });
-  const startIndex = Math.max(0, THEMES.findIndex((t) => t.id === current));
+  if (startIndex < 0) startIndex = firstSelectableIndex(options);
   pushLine(s, "Choose a theme:", "system");
   pushLine(s, "(scroll to preview live · enter to keep · esc to revert)", "hint");
   // `original` lets cancel/esc revert the live preview to the palette we opened with.
@@ -234,12 +247,28 @@ function openThemeMenu(s) {
   return s;
 }
 
-/** Preview effect for the theme menu's currently-highlighted option. The Cancel row
-   previews the original (so highlighting it shows what "keep current" looks like). */
+/** Preview effect for the theme menu's currently-highlighted option. The Cancel row (and
+   any header) previews the original — so highlighting it shows what "keep current" looks like. */
 function themePreviewEffect(m) {
   const opt = m.options[m.index];
-  const id = !opt || opt.value === "__cancel__" ? m.original : opt.value;
+  const id = !opt || opt.header || opt.value === "__cancel__" ? m.original : opt.value;
   return { type: "theme", id, preview: true };
+}
+
+/* ---- menu navigation helpers (headers are non-selectable, skipped while moving) ---- */
+function isSelectable(opt) { return !!opt && !opt.header; }
+function firstSelectableIndex(options) {
+  const i = options.findIndex(isSelectable);
+  return i < 0 ? 0 : i;
+}
+function nextSelectable(options, from, dir) {
+  const n = options.length;
+  let idx = from;
+  for (let k = 0; k < n; k++) {
+    idx = (idx + dir + n) % n;
+    if (isSelectable(options[idx])) return idx;
+  }
+  return from;
 }
 
 /** Request a slot load — the actual model swap is an effect main.js runs. */

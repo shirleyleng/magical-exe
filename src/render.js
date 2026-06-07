@@ -82,6 +82,14 @@ function renderMenu(ui) {
   els.menu.hidden = false;
   els.menu.innerHTML = "";
   m.options.forEach((opt, i) => {
+    if (opt.header) {
+      const h = document.createElement("div");
+      h.className = "menu__header";
+      h.setAttribute("role", "presentation");
+      h.textContent = opt.label;
+      els.menu.appendChild(h);
+      return;
+    }
     const row = document.createElement("div");
     const active = i === m.index;
     row.className = "menu__item" + (active ? " menu__item--active" : "");

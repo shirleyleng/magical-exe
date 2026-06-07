@@ -5,14 +5,16 @@
  * persists in its own localStorage key and applies across all save slots.
  * Credits for each palette are in themes.css and the in-game about/credits.
  */
+// `mode` ("dark" | "light") groups the palettes in the theme picker. Light themes are the
+// ones that set --terminal-veil in themes.css (lighten rather than darken the terminal).
 export const THEMES = [
-  { id: "lipgloss",     name: "Lip Gloss",      note: "Charm homage · deep purple" },
-  { id: "cottoncandy",  name: "Cotton Candy",   note: "Compute Cuter · kawaii pastel" },
-  { id: "moonlit",      name: "Moonlit",        note: "magical-girl night" },
-  { id: "matcha",       name: "Matcha",         note: "cozy cream + sage" },
-  { id: "phosphor",     name: "Phosphor",       note: "retro green CRT" },
-  { id: "rosepine",     name: "Rosé Pine",      note: "rosepinetheme.com · dark" },
-  { id: "rosepinedawn", name: "Rosé Pine Dawn", note: "rosepinetheme.com · light" },
+  { id: "lipgloss",     name: "Lip Gloss",      note: "Charm homage · deep purple", mode: "dark" },
+  { id: "moonlit",      name: "Moonlit",        note: "magical-girl night",         mode: "dark" },
+  { id: "phosphor",     name: "Phosphor",       note: "retro green CRT",            mode: "dark" },
+  { id: "rosepine",     name: "Rosé Pine",      note: "rosepinetheme.com",          mode: "dark" },
+  { id: "cottoncandy",  name: "Cotton Candy",   note: "Compute Cuter · kawaii pastel", mode: "light" },
+  { id: "matcha",       name: "Matcha",         note: "cozy cream + sage",          mode: "light" },
+  { id: "rosepinedawn", name: "Rosé Pine Dawn", note: "rosepinetheme.com",          mode: "light" },
 ];
 
 const KEY = "magicalexe.theme";
