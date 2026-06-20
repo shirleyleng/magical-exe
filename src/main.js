@@ -172,6 +172,12 @@ function boot() {
   // Start the HUD mascot animator (single interval; targets the live <pre>).
   initMascotAnim(() => document.querySelector("#mascot-panel .mascot-art"));
   initMusicControls();
+  // Settings cog — dispatches the same "settings" command typing would.
+  const settingsBtn = document.getElementById("settings-btn");
+  if (settingsBtn) settingsBtn.addEventListener("click", () => {
+    if (state.ui.busy || (state.ui.menu && state.ui.menu.active)) return;
+    dispatch({ type: "input", text: "settings" });
+  });
   setCaptchaProvider(makeCaptchaProvider());
   applyTheme(getStoredTheme()); // restore the saved palette before first paint
 

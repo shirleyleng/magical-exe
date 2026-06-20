@@ -18,6 +18,7 @@ import { parse, HELP } from "./parser.js";
 import { beginCreation, handleCreationInput, handleMenuSelect } from "./creation.js";
 import { aiAvailable, parseAIJson } from "./ai.js";
 import { THEMES, themeName, TEXT_SPEEDS, textSpeedName, getStoredTextSpeed } from "./theme.js";
+import { getMusicState, setEnabled as setMusicEnabled, setVolume as setMusicVolume } from "./music.js";
 import { getAbility } from "./abilities.js";
 import { versionLabel, buildStamp, REPO_URL } from "./version.js";
 import {
@@ -98,7 +99,25 @@ export function update(state, event) {
         if (opt.value === "theme") return openThemeMenu(s);
         if (opt.value === "difficulty") return openDifficultyMenu(s);
         if (opt.value === "textspeed") return openTextSpeedMenu(s);
+        if (opt.value === "music") return openMusicMenu(s);
         if (opt.value === "about") return showAbout(s);
+        return s;
+      }
+      if (m.kind === "music") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") return openSettingsMenu(s);
+        if (opt.value === "toggle") {
+          const next = !getMusicState().enabled;
+          setMusicEnabled(next);
+          pushLine(s, next ? "Music: on." : "Music: muted.", "system");
+        } else if (opt.value && opt.value[0] === "v") {
+          const v = Number(opt.value.slice(1)) / 100;
+          setMusicVolume(v);
+          if (!getMusicState().enabled) setMusicEnabled(true); // picking a level unmutes
+          pushLine(s, `Music volume: ${Math.round(v * 100)}%.`, "system");
+        }
         return s;
       }
       if (m.kind === "textspeed") {
@@ -328,15 +347,39 @@ function openLoadMenu(s) {
 /** Settings home — a discoverable menu of player preferences (theme · difficulty · about). */
 function openSettingsMenu(s) {
   const current = document.documentElement.dataset.theme || "lipgloss";
+  const music = getMusicState();
+  const musicLabel = music.enabled ? `on (${Math.round(music.volume * 100)}%)` : "muted";
   const options = [
     { label: `Theme — ${themeName(current)}`, value: "theme" },
-    { label: `Difficulty — ${difficultyLabel(s.model.difficulty)}`, value: "difficulty" },
     { label: `Text speed — ${textSpeedName(getStoredTextSpeed())}`, value: "textspeed" },
+    { label: `Music — ${musicLabel}`, value: "music" },
+    { label: `Difficulty — ${difficultyLabel(s.model.difficulty)}`, value: "difficulty" },
     { label: "About & credits", value: "about" },
     { label: "Close", value: "__cancel__" },
   ];
   pushLine(s, "Settings:", "system");
   s.ui.menu = { active: true, kind: "settings", options, index: 0 };
+  return s;
+}
+
+/* Music sub-menu — mute toggle + volume in 25% steps. Parity with the titlebar
+   control, and the only way to set volume on mobile (slider is hidden there). */
+function openMusicMenu(s) {
+  const m = getMusicState();
+  const vol = Math.round(m.volume * 100);
+  const options = [
+    { label: m.enabled ? "Mute music" : "Unmute music", value: "toggle" },
+    { header: true, label: "── Volume ──" },
+    { label: `25%${vol === 25 ? " (current)" : ""}`, value: "v25" },
+    { label: `50%${vol === 50 ? " (current)" : ""}`, value: "v50" },
+    { label: `75%${vol === 75 ? " (current)" : ""}`, value: "v75" },
+    { label: `100%${vol === 100 ? " (current)" : ""}`, value: "v100" },
+    { label: "Back", value: "__cancel__" },
+  ];
+  pushLine(s, m.enabled
+    ? `Music: on at ${vol}%. Pick a level, or mute.`
+    : "Music: muted. Unmute, or pick a level.", "system");
+  s.ui.menu = { active: true, kind: "music", options, index: m.enabled ? 0 : 0 };
   return s;
 }
 
@@ -414,17 +457,21 @@ function showAbout(s) {
   const build = buildStamp();
   const lines = [
     `MAGICAL.EXE  ${versionLabel()}${build ? `  ·  build ${build}` : "  ·  dev build"}`,
-    "A cozy terminal magical-coming-of-age game — made with love by Red Mint Studio.",
+    "A cozy terminal magical-coming-of-age game — a Red Mint Studio game.",
+    "Designed & vibe-coded by Shirley Leng.",
+    "Original soundtrack generated with Suno.",
+    "",
+    "Made with: Claude Code · Suno · JetBrains Mono · Cloudflare Pages.",
     `Source: ${REPO_URL}`,
     "Enjoying it? Support development → https://ko-fi.com/shirleyleng ♥",
     "",
-    "Aesthetic homage only — no vendored code:",
+    "Theme homages (aesthetic only — no vendored code):",
     "  · Lip Gloss / Charm — https://charm.sh",
     "  · Cotton Candy / Compute Cuter — sailorhg, https://computecuter.com",
     "  · Rosé Pine — https://rosepinetheme.com",
     "",
-    "Font: JetBrains Mono. Narration by Claude (Anthropic); the game engine is",
-    "fully deterministic and client-side — the AI only narrates and parses.",
+    "The game engine is fully deterministic and client-side; AI is used only for",
+    "optional narration and natural-language command parsing.",
   ];
   lines.forEach((l) => pushLine(s, l, "system"));
   return s;
