@@ -121,9 +121,11 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
 - DONE/VERIFIED LIVE: first paid call renders widget → token → verified → `ok:true`; second call
   skips the widget (verified-skip); blocked Turnstile → `{ok:false,reason:"captcha"}`, no throw,
   game continues deterministic-only.
-- SHIP TODO (before real players): swap Cloudflare's always-pass TEST keys for real ones —
-  `config.turnstile.siteKey` (public; allowlist domains incl. localhost) + the matching secret
-  via `supabase secrets set CLOUDFLARE_TURNSTILE_SECRET=...`.
+- SHIPPED (✅ 2026-06-20): real Cloudflare Turnstile keys are live on production. The deploy
+  build pulls the real `TURNSTILE_SITE_KEY` (starts `0x4AAAAA…`) from Cloudflare Pages env vars
+  (allowlist includes `magical-exe.redmint.studio`); the matching `CLOUDFLARE_TURNSTILE_SECRET`
+  is set on the Supabase Edge Function. Local dev still uses the always-pass test key
+  `1x00000000000000000000AA` in `config.js` — see `docs/DEPLOY.md` for the full key table.
 - FOLLOW-UP (Option A, optional): if anon `auth.users` bloat ever becomes a real problem (it's
   free $-wise + Supabase rate-limits anon sign-in per IP), additionally enable the project-global
   Supabase Auth CAPTCHA so bots can't even mint a JWT. Composes with B; pass the same token on
@@ -310,8 +312,8 @@ Convention: each task lists a GOAL, what to BUILD, and a DONE check (how you kno
   homages + the deterministic-engine note; titlebar stamped from version. `_headers` pins
   code+config to `no-cache` (ETag revalidation) so deploys aren't masked by stale ES-module caches.
   `404.html` themed not-found page (keep the Cloudflare SPA catch-all OFF). Verified in preview;
-  console-clean. REMAINING (optional polish, not blocking): real Turnstile site key swap; README
-  refresh; the four deferred flavour task chips.
+  console-clean. REMAINING (optional polish, not blocking): README refresh; the four deferred
+  flavour task chips. (Real Turnstile site key swap is now ✅ done — see the SHIPPED note above.)
 
 ---
 
