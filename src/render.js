@@ -30,6 +30,9 @@ let currentCps = Infinity;
 let typeQueue = [];
 let typing = false;
 let typeGen = 0;
+// Scroll policy (see anchorScroll): true = follow new output down to the bottom;
+// false = the reader has parked above and we leave their position alone.
+let stickBottom = true;
 
 export function initDom() {
   els = {
@@ -48,6 +51,14 @@ export function initDom() {
   typeQueue = [];
   typing = false;
   typeGen++;
+  stickBottom = true;
+  // Re-engage / disengage the auto-follow as the reader scrolls (chat-style):
+  // scroll to the bottom and new output keeps following; scroll up to read and it
+  // stops yanking you down. Bound once.
+  if (!els.output.dataset.scrollBound) {
+    els.output.dataset.scrollBound = "1";
+    els.output.addEventListener("scroll", () => { stickBottom = isPinnedToBottom(); }, { passive: true });
+  }
 }
 
 /** Live-update the reveal speed (settings change). Switching to instant flushes anything mid-type. */
@@ -60,9 +71,9 @@ export function setRenderSpeed(id) {
 export function finishTyping() {
   typeGen++;                 // invalidate any running loop
   typing = false;
-  for (const job of typeQueue) job.el.textContent = job.text;
+  for (const job of typeQueue) { job.shownSpan.textContent = job.text; job.restSpan.remove(); }
   typeQueue = [];
-  if (els && els.output) els.output.scrollTop = els.output.scrollHeight;
+  if (stickBottom && els && els.output) els.output.scrollTop = els.output.scrollHeight;
 }
 
 /* Drive the reveal with setTimeout (not rAF): it keeps ticking even in a backgrounded/
@@ -88,10 +99,13 @@ function startTyping() {
         const job = typeQueue[0];
         const n = Math.min(job.text.length - job.shown, take);
         job.shown += n; take -= n;
-        job.el.textContent = job.text.slice(0, job.shown);
-        if (job.shown >= job.text.length) typeQueue.shift();
+        // Move characters from the invisible remainder into the shown span. Total
+        // text is unchanged, so the line never reflows and the scroll anchor holds.
+        job.shownSpan.textContent = job.text.slice(0, job.shown);
+        job.restSpan.textContent = job.text.slice(job.shown);
+        if (job.shown >= job.text.length) { job.restSpan.remove(); typeQueue.shift(); }
       }
-      els.output.scrollTop = els.output.scrollHeight;
+      if (stickBottom) els.output.scrollTop = els.output.scrollHeight;
     }
     if (typeQueue.length) setTimeout(tick, TYPE_TICK_MS);
     else typing = false;
@@ -123,7 +137,11 @@ export function render(state) {
   renderStats(state.model);
   renderMascot(state.model);
   consumeMascotReactions(state.ui);
-  scrollToBottom();
+  // Re-pin after layout settles (fonts, menu toggling the input height) — but only
+  // when the reader is already following at the bottom; otherwise leave them be.
+  requestAnimationFrame(() => {
+    if (els && stickBottom) els.output.scrollTop = els.output.scrollHeight;
+  });
 }
 
 /* Fire any one-shot mascot reaction requested this turn (transient ui flags set
@@ -153,13 +171,30 @@ function renderHud(model) {
   }
 }
 
-/* ---- always keep the newest line in view ---- */
-function scrollToBottom() {
-  els.output.scrollTop = els.output.scrollHeight;
-  // ...and again after layout settles (fonts, menu toggling form height).
-  requestAnimationFrame(() => {
-    els.output.scrollTop = els.output.scrollHeight;
-  });
+/* ---- scroll policy ----
+   New output parks its FIRST line at the top of the viewport so the reader can move
+   down at their own pace — capped at the bottom, so short turns (combat, one-liners)
+   still settle fully in view. We only auto-follow the typewriter to the bottom when
+   the reader is already pinned there; scrolling up to re-read disengages the follow. */
+const BOTTOM_SLACK = 24; // px tolerance for "counts as at the bottom"
+
+function isPinnedToBottom() {
+  const o = els.output;
+  return o.scrollHeight - o.scrollTop - o.clientHeight <= BOTTOM_SLACK;
+}
+
+function anchorScroll(firstNewEl, repainted) {
+  const o = els.output;
+  const maxScroll = Math.max(0, o.scrollHeight - o.clientHeight);
+  if (repainted || !firstNewEl) {      // load/reset, or a no-new-lines re-render → newest in view
+    o.scrollTop = maxScroll;
+    stickBottom = true;
+    return;
+  }
+  // Top of the new block, but never past the bottom of the scroll range.
+  const target = Math.min(firstNewEl.offsetTop, maxScroll);
+  o.scrollTop = target;
+  stickBottom = maxScroll - target <= BOTTOM_SLACK; // short turn landed at the bottom → keep following
 }
 
 /* ---- huh-style selection menu ---- */
@@ -223,25 +258,37 @@ function renderExample(model, ui) {
 
 /* ---- scrollback (append-only reconciliation) ---- */
 function renderLog(log) {
+  let repainted = false;
   if (log.length < renderedCount) {
     // log shrank (reset/load) -> repaint from scratch
     finishTyping(); // any in-flight reveal belongs to a now-discarded log
     els.output.innerHTML = "";
     renderedCount = 0;
+    repainted = true;
   }
+  let firstNewEl = null;
   for (let i = renderedCount; i < log.length; i++) {
     const entry = log[i];
     const el = lineEl(entry);
     els.output.appendChild(el);
+    if (!firstNewEl) firstNewEl = el;
     // Typewriter: reveal new prose char-by-char. Echo lines (the player's own command)
     // appear instantly, as does everything when speed is "instant" or reduce-motion is on.
+    // The full text is laid out from the start (a shown span + an invisible remainder),
+    // so the line never reflows as it types and the scroll anchor stays put.
     if (Number.isFinite(currentCps) && !prefersReducedMotion() && entry.kind !== "echo" && entry.text) {
       el.textContent = "";
-      typeQueue.push({ el, text: entry.text, shown: 0 });
+      const shownSpan = document.createElement("span");
+      const restSpan = document.createElement("span");
+      restSpan.className = "tw-rest";
+      restSpan.textContent = entry.text;
+      el.appendChild(shownSpan);
+      el.appendChild(restSpan);
+      typeQueue.push({ shownSpan, restSpan, text: entry.text, shown: 0 });
     }
   }
   renderedCount = log.length;
-  els.output.scrollTop = els.output.scrollHeight;
+  anchorScroll(firstNewEl, repainted);
   if (typeQueue.length) startTyping();
 }
 

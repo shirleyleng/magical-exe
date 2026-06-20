@@ -15,6 +15,7 @@
 import { CONFIG } from "../config.js";
 import { pushLine } from "./state.js";
 import { startCombat } from "./combat.js";
+import { beginRivalTalk } from "./rivaltalk.js";
 
 const rivalOf = (model) => (model.rivals && model.rivals[0]) || { name: "Sable" };
 
@@ -60,7 +61,7 @@ export function tickRival(state) {
     pushLine(state, `"You've gotten strong. Properly strong — strong enough that I'll trust you with something I shouldn't. Not everything about the corruption is the way your mascot tells it. They're not lying to you. They just don't have the whole shape of it either."`, "mascot");
     pushLine(state, `"I'm still alliance, before you ask. But I've seen things the people higher up don't put in the briefings. Keep winning. And for both our sakes — keep your eyes open while you do it."`, "mascot");
     pushLine(state, `"…And I'll keep coming for you. Somebody's got to keep you sharp, and clearly it's going to have to be me." They almost smile. It's a near thing.`, "mascot");
-    return state;
+    return beginRivalTalk(state, "return"); // she lingers — you can talk to her now
   }
 
   return state;

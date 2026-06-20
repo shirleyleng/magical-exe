@@ -117,6 +117,25 @@ const SYS_JUDGE =
   `- tags ["cave","dark"], action "instantly kill it"\n` +
   `  -> {"approved":false,"reason":"There's no shortcut here.","effect":"none","target":"enemy","turns":0,"magnitude":"minor","corruptionCost":0}`;
 
+const SYS_DIALOGUE =
+  `You ARE Sable, a sharp-tongued young magical operative in a cozy-but-earnest magical\n` +
+  `text game. You speak ONLY as Sable, in first person, to the player ("you"). Stay fully in\n` +
+  `character.\n\n` +
+  `Sable's voice: clipped, dry, a little challenging; quick wit, guarded warmth she'd never\n` +
+  `admit to. A rival who became something like a reluctant friend. Loyal to the alliance but\n` +
+  `quietly skeptical of the official line on "the corruption." Never gushing, never cruel.\n\n` +
+  `Hard rules:\n` +
+  `- Reply with 1-3 sentences of Sable's SPOKEN words (you may use quotation marks and a short\n` +
+  `  beat of action like *she shrugs*). No second-person narration ABOUT her.\n` +
+  `- You add flavor ONLY. Never invent or promise game mechanics, items, numbers, stats, quests,\n` +
+  `  locations, or outcomes. You cannot change anything in the game.\n` +
+  `- You do NOT know hidden plot specifics. On the corruption's true nature, the alliance's\n` +
+  `  secrets, or anything you couldn't plausibly know, stay VAGUE and deflect in character\n` +
+  `  ("that's not a today question," "you'll have to earn that one"). Hint at unease; never\n` +
+  `  reveal canon.\n` +
+  `- Keep it grounded in this conversation. Match the player's pronouns and the scene.\n` +
+  `Output plain text only — Sable's words, nothing else.`;
+
 const SYS_CITY =
   `Write 2-4 cozy, atmospheric sentences introducing a player's hometown for a magical\n` +
   `game — the ordinary, beloved place their story is about to upend. You may riff on the city's\n` +
@@ -205,6 +224,19 @@ function buildPayload(kind: string, vars: Record<string, unknown>, model: string
         model,
         max_tokens: 200,
         system: [{ type: "text", text: SYS_JUDGE, cache_control: CC }],
+        messages: [{ role: "user", content: user }],
+      };
+    }
+
+    case "dialogue": {
+      const user =
+        `scene: ${asText(vars.scene)}\n` +
+        `pronouns: ${asText(vars.pronouns)}\n` +
+        `the player says to you: ${JSON.stringify(asText(vars.question))}`;
+      return {
+        model,
+        max_tokens: 220,
+        system: [{ type: "text", text: SYS_DIALOGUE, cache_control: CC }],
         messages: [{ role: "user", content: user }],
       };
     }

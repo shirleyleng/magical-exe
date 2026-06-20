@@ -100,6 +100,7 @@ export function freshModel(opts = {}) {
       },
     },
     combat: null,      // active fight state, or null (set by combat.js)
+    rivalTalk: null,   // T20: an open Sable conversation { active, scene, asked } or null
     rivals: [
       { name: "Sable", power: 14, corruption: 50, scheduleState: "dormant", disposition: "unmet" },
     ],

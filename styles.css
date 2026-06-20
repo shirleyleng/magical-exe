@@ -176,6 +176,9 @@ body {
 .line--banner { color: var(--pink); }
 /* "last time" recap replayed on load — dim + italic so it reads as a memory, not live play */
 .line--recap  { color: var(--text-muted); font-style: italic; opacity: 0.8; }
+/* Typewriter: the not-yet-revealed remainder of a line. Invisible but still laid out,
+   so the line occupies its final size from the start and never reflows as it types. */
+.tw-rest { opacity: 0; }
 
 /* ---- huh-style selection menu ---- */
 .menu {

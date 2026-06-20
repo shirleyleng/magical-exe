@@ -18,6 +18,7 @@ import { requestNarration } from "./narrate.js";
 import { adjustAlignment, effectiveStats, fizzleChance, healMultiplier, derivePath } from "./alignment.js";
 import { adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
 import { getAbility } from "./abilities.js";
+import { beginRivalTalk } from "./rivaltalk.js";
 
 /* A named rival takes no article ("Sable hits you", not "the Sable hits you");
    a boss whose name already begins with "the" (e.g. "the Grey Sovereign") keeps its
@@ -690,6 +691,11 @@ function endRivalDuel(state, c, ch, outcome) {
   model.mode = "hub";
   model.world.currentLocation = "homebase";
   model.world.currentRoom = null;
+  // After a real bout (a win, or her sparing you), Sable sticks around — you can
+  // talk to her. A flee means she let you go without a word; no lingering then.
+  if (outcome === "victory" || outcome === "mercy" || outcome === "defeat") {
+    return beginRivalTalk(state, "challenge");
+  }
   return state;
 }
 

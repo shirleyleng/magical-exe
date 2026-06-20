@@ -65,6 +65,7 @@ const DILEMMAS = [
 export function maybeDilemma(state) {
   const model = state.model;
   if (model.mode !== "hub") return state;                 // rival duel etc. took the turn
+  if (model.rivalTalk && model.rivalTalk.active) return state; // mid-conversation with Sable
   if (state.ui.menu && state.ui.menu.active) return state; // a menu is already up
   const cfg = CONFIG.dilemmas || {};
   if ((model.day || 1) < (cfg.minDay || 1)) return state;

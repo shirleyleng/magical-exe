@@ -40,6 +40,7 @@ export function maybeUnmaskingCrisis(state) {
   const ch = model.character;
   if (!ch.pendingUnmaskingCrisis) return state;
   if (model.mode !== "hub") return state;                  // never mid-combat / mid-dungeon
+  if (model.rivalTalk && model.rivalTalk.active) return state; // wait out a Sable conversation
   if (state.ui.menu && state.ui.menu.active) return state; // wait for an open menu (e.g. a dilemma) to clear
   // Already resolved once? (belt-and-suspenders) — drop the stale arm and move on.
   if (model.world.flags.unmaskingCrisisSeen) { ch.pendingUnmaskingCrisis = false; return state; }

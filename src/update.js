@@ -31,6 +31,7 @@ import { unlockedDungeons, resolveDungeon, DUNGEONS } from "./dungeons.js";
 import { tickRival } from "./rival.js";
 import { maybeDilemma, resolveDilemma } from "./dilemmas.js";
 import { maybeUnmaskingCrisis, resolveUnmaskingCrisis } from "./unmaskingcrisis.js";
+import { handleRivalTalk, endRivalTalk, isRivalTalkExit } from "./rivaltalk.js";
 import {
   startCombat, playerAttack, playerGuard, playerBurst, playerSpare, combatUse, combatLook, playerFlee,
   applyJudgedAction,
@@ -267,6 +268,17 @@ function onInput(s, event) {
   }
 
   const cmd = parse(raw);
+
+  // Talking with Sable (T20): while a Sable scene lingers, input is dialogue —
+  // until you say "leave" (ends it) or type a real command (breaks off to do it).
+  if (s.model.rivalTalk && s.model.rivalTalk.active) {
+    if (isRivalTalkExit(raw, cmd)) return endRivalTalk(s);
+    if (!cmd.matched) return handleRivalTalk(s, raw); // a topic, or a bounded-AI reply
+    endRivalTalk(s, { silent: true });
+    pushLine(s, "(You let the moment pass; Sable slips off into the dark.)", "hint");
+    // ...and fall through to run the command the player typed.
+  }
+
   if (!cmd.matched) {
     // Deterministic parser missed. Fall back to AI if available; otherwise nudge.
     // In a fight the fallback is the plausibility JUDGE (freeform creative actions,
@@ -591,6 +603,14 @@ function onAIResult(s, event) {
     const tone = (vars && vars.tone) || "mascot";
     if (text) pushLine(s, text, tone);
     else if (vars && vars.fallback) pushLine(s, vars.fallback, tone); // AI down → curated line
+    return s;
+  }
+
+  if (kind === "dialogue") {
+    // Sable's spoken reply (T20). Bounded persona; flavor only. Stays in talk mode
+    // so the conversation continues. Garbled/unavailable → a curated deflection.
+    const text = res && res.ok ? cleanProse(res.text) : "";
+    pushLine(s, text || (vars && vars.fallback) || "She just looks at you, and says nothing.", "mascot");
     return s;
   }
 
