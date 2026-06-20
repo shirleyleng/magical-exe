@@ -66,8 +66,37 @@ const DUNGEON_COMBAT = {
 
 const ENABLED_KEY = "magicalexe.music.enabled";
 const VOLUME_KEY  = "magicalexe.music.volume";
-const FADE_MS = 700;        // crossfade / fade-out duration
-const DEFAULT_VOLUME = 0.5; // background-friendly
+const DEFAULT_FADE_MS = 1100; // default crossfade duration
+const DEFAULT_VOLUME = 0.5;   // background-friendly
+
+/* Per-transition fade duration. Combat snaps in fast (it should hit); endings,
+   reunions, and grief shifts breathe; everything else uses the default. Keys
+   are "from→to" scene names or "*→to" wildcards; the table is read by
+   fadeMsFor() with sensible fallbacks. */
+const FADE_TABLE = {
+  // Snap into combat — the music should bite as the fight starts.
+  "hub→combat": 350, "explore→combat": 350,
+  "hub→boss": 350, "explore→boss": 350,
+  "hub→finale": 600, "explore→finale": 600,
+  "hub→combat-forest": 350, "hub→combat-harbor": 350, "hub→combat-clocktower": 350,
+  "explore→combat-forest": 350, "explore→combat-harbor": 350,
+  "explore→combat-clocktower": 350, "explore→combat-secret": 350,
+  // Release after combat — let it breathe.
+  "combat→hub": 1500, "combat→explore": 1500,
+  "boss→hub": 1500, "boss→explore": 1500,
+  "combat-forest→explore": 1500, "combat-harbor→explore": 1500,
+  "combat-clocktower→explore": 1500, "combat-secret→explore": 1500,
+  // Emotional / dramatic shifts — long enough to register as a turn of the page.
+  "hub→hub-gone": 2000, "hub-gone→hub": 2000,
+  "misted-place→reunion": 2200,
+  "finale→hub": 2500, "finale-dark→hub": 2500,
+  // Leaving creation.
+  "title→hub": 1400,
+};
+function fadeMsFor(from, to) {
+  if (!from) return DEFAULT_FADE_MS;
+  return FADE_TABLE[`${from}→${to}`] ?? FADE_TABLE[`*→${to}`] ?? DEFAULT_FADE_MS;
+}
 
 /* ---- runtime state ---- */
 let els = null;        // [audioA, audioB]
@@ -132,26 +161,47 @@ export function sceneForModel(model) {
   return "hub";
 }
 
-/* ---- crossfade engine ---- */
-function fadeTo(jobs, onDone) {
+/* ---- crossfade engine ----
+   Equal-power crossfade (sin/cos curves) instead of linear: human hearing is
+   logarithmic, and an equal-power curve keeps perceived loudness ~constant
+   through the crossover so neither track "dips" in the middle. `xfade=true`
+   uses sin/cos on the pair; a solo fade-out (mute) uses cos alone. */
+function fadeTo(jobs, durationMs, opts = {}) {
   if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
-  const steps = 24;
+  const stepMs = 30;
+  const steps = Math.max(4, Math.round(durationMs / stepMs));
   const starts = jobs.map((j) => j.el.volume);
+  const xfade = !!opts.xfade;
   let i = 0;
   fadeTimer = setInterval(() => {
     i++;
-    const k = i / steps;
-    jobs.forEach((j, idx) => { j.el.volume = clamp01(starts[idx] + (j.to - starts[idx]) * k); });
+    const k = Math.min(1, i / steps);
+    jobs.forEach((j, idx) => {
+      if (xfade) {
+        // equal-power: outgoing → cos(k·π/2)·start, incoming → sin(k·π/2)·target
+        const v = j.to > starts[idx]
+          ? Math.sin(k * Math.PI / 2) * j.to
+          : Math.cos(k * Math.PI / 2) * starts[idx];
+        j.el.volume = clamp01(v);
+      } else {
+        // single-target fade (mute/unmute): cosine ease so the tail isn't abrupt
+        const eased = j.to > starts[idx]
+          ? starts[idx] + (j.to - starts[idx]) * (1 - Math.cos(k * Math.PI / 2))
+          : starts[idx] * Math.cos(k * Math.PI / 2);
+        j.el.volume = clamp01(eased);
+      }
+    });
     if (i >= steps) {
       clearInterval(fadeTimer); fadeTimer = null;
       jobs.forEach((j) => { if (j.to === 0) { try { j.el.pause(); } catch {} } });
-      if (onDone) onDone();
     }
-  }, FADE_MS / steps);
+  }, stepMs);
 }
 
-/* Crossfade from the foreground element to `trackName` on the other element. */
-function crossfadeTo(trackName) {
+/* Crossfade from the foreground element to `trackName` on the other element.
+   `fromScene`/`toScene` pick the right duration via FADE_TABLE; an initial
+   start-up fade (no scene yet) uses the default. */
+function crossfadeTo(trackName, fromScene, toScene) {
   if (!els || !trackName) return;
   const cur = els[activeIdx];
   const next = els[1 - activeIdx];
@@ -160,7 +210,8 @@ function crossfadeTo(trackName) {
   next.volume = 0;
   try { next.currentTime = 0; } catch {}
   next.play().catch(() => { /* still locked; a later gesture will retry */ });
-  fadeTo([{ el: next, to: volume }, { el: cur, to: 0 }]);
+  const dur = fadeMsFor(fromScene, toScene);
+  fadeTo([{ el: next, to: volume }, { el: cur, to: 0 }], dur, { xfade: true });
   activeIdx = 1 - activeIdx;
   curTrack = trackName;
   syncUI(); // refresh the now-playing marquee
@@ -198,7 +249,7 @@ export function initMusic(syncCb) {
     armed = true;
     window.removeEventListener("pointerdown", arm);
     window.removeEventListener("keydown", arm);
-    if (enabled && scene && playlist.length) crossfadeTo(playlist[plPos]);
+    if (enabled && scene && playlist.length) crossfadeTo(playlist[plPos], null, scene);
   };
   window.addEventListener("pointerdown", arm);
   window.addEventListener("keydown", arm);
@@ -209,11 +260,12 @@ export function initMusic(syncCb) {
 /** Switch to the music for a scene name. No-op if already there. */
 export function setScene(name) {
   if (!name || name === scene) return; // already in this scene → keep looping its track
+  const prev = scene;
   scene = name;
   playlist = SCENES[name] || [];
   plPos = nextTrackIndex(name, playlist.length); // one track for the whole visit
   if (!enabled || !armed || !playlist.length) return; // remembered; starts when able
-  crossfadeTo(playlist[plPos]);
+  crossfadeTo(playlist[plPos], prev, name);
 }
 
 /** Turn music on/off (persisted). */
@@ -221,9 +273,9 @@ export function setEnabled(on) {
   enabled = !!on;
   persist();
   if (enabled) {
-    if (armed && playlist.length) crossfadeTo(playlist[plPos]); // crossfadeTo syncs UI
+    if (armed && playlist.length) crossfadeTo(playlist[plPos], null, scene); // crossfadeTo syncs UI
   } else if (els) {
-    fadeTo([{ el: els[activeIdx], to: 0 }]);
+    fadeTo([{ el: els[activeIdx], to: 0 }], 600); // a snappy but smooth mute
     curTrack = null;
   }
   syncUI();
