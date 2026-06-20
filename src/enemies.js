@@ -47,10 +47,11 @@ export const ENEMIES = {
     loot: ["dew vial"],
   },
   // Side-room guardian (Glass Tidepool): the harbor's own reflection, risen to keep its glass.
+  // Tuned (sim): a real gamble for a fresh Soldier (~3-22% rushed, ~81-99% with one potion).
   glass_warden: {
     id: "glass_warden",
     name: "glass warden",
-    maxHp: 48, power: 12, defense: 5, speed: 7, dodge: 4,
+    maxHp: 44, power: 10, defense: 4, speed: 7, dodge: 4,
     coins: 18,
     loot: ["moonstone shard"],
   },
@@ -81,10 +82,11 @@ export const ENEMIES = {
     loot: ["dew vial"],
   },
   // Side-room guardian (Pendulum Vault): a wound-down automaton that never got the word to stop.
+  // Tuned (sim): a coin-flip for a fresh Knight-track balanced build rushed in (~39%), safe with a potion.
   stopped_sentinel: {
     id: "stopped_sentinel",
     name: "stopped sentinel",
-    maxHp: 56, power: 14, defense: 7, speed: 4, dodge: 1,
+    maxHp: 54, power: 13, defense: 6, speed: 4, dodge: 1,
     coins: 22,
     loot: ["moonstone shard"],
   },
