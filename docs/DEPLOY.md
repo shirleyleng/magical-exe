@@ -28,9 +28,17 @@ the Turnstile *site* key are public by design; the Anthropic key and the Turnsti
 | `SUPABASE_ANON_KEY`  | the Supabase **anon** public key                            | yes (RLS-protected) |
 | `TURNSTILE_SITE_KEY` | your Cloudflare Turnstile **site** key (domains allowlisted)| yes     |
 
-> Use your REAL Turnstile site key here (with `magical-exe.redmint.studio`
-> allowlisted), not the always-pass test key `1x00000000000000000000AA` — the test
-> key offers no bot protection on the live AI spend.
+> **Status (2026-06-20): real Turnstile keys are live and verified.** The production
+> `TURNSTILE_SITE_KEY` is a real Cloudflare site key (starts `0x4AAAAA…`) with
+> `magical-exe.redmint.studio` allowlisted, paired with the matching real
+> `CLOUDFLARE_TURNSTILE_SECRET` in Supabase (see "Server side" below). Confirmed
+> end-to-end: a fresh anonymous session's first paid AI call passes the human-check.
+>
+> Do **not** revert to the always-pass test key `1x00000000000000000000AA` on
+> production — it offers no bot protection on the live AI spend. The test keys are
+> still handy for local dev / QA: always-pass site `1x00000000000000000000AA`
+> (secret `1x0000000000000000000000000000000AA`), always-block site
+> `2x00000000000000000000AB`, force-interactive site `3x00000000000000000000FF`.
 
 After setting these, trigger a redeploy. `scripts/build-config.js` runs first,
 writes `config.js` into the root, and the site boots normally. The script exits
