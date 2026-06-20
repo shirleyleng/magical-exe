@@ -104,6 +104,17 @@ function prefersReducedMotion() {
   return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
 
+/** On mobile, flip back to the Play tab so the player sees the output/menu. */
+export function switchToTerminalTab() {
+  if (!els) return;
+  const layout = els.layout;
+  if (!layout || layout.dataset.mobileTab === "terminal") return;
+  layout.dataset.mobileTab = "terminal";
+  for (const t of layout.querySelectorAll(".mobile-tabs__tab")) {
+    t.classList.toggle("mobile-tabs__tab--active", t.dataset.tab === "terminal");
+  }
+}
+
 export function render(state) {
   renderHud(state.model);
   renderLog(state.log);
@@ -160,7 +171,8 @@ function renderMenu(ui) {
     els.form.style.display = "";
     return;
   }
-  // Menu takes over: hide the text input line.
+  // Menu takes over: hide the text input line + ensure terminal tab is visible.
+  switchToTerminalTab();
   els.form.style.display = "none";
   els.menu.hidden = false;
   els.menu.innerHTML = "";
@@ -178,6 +190,7 @@ function renderMenu(ui) {
     row.className = "menu__item" + (active ? " menu__item--active" : "");
     row.setAttribute("role", "option");
     row.setAttribute("aria-selected", String(active));
+    row.dataset.index = i;
     row.textContent = (active ? "▸ " : "  ") + opt.label;
     els.menu.appendChild(row);
   });

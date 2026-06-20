@@ -9,7 +9,7 @@
 
 import { createState } from "./state.js";
 import { update } from "./update.js";
-import { render, initDom, setRenderSpeed, finishTyping } from "./render.js";
+import { render, initDom, setRenderSpeed, finishTyping, switchToTerminalTab } from "./render.js";
 import { initMascotAnim } from "./mascotAnim.js";
 import { saveModel, loadActive, loadSlot, saveRecap, loadRecap } from "./persist.js";
 import { callAI, setCaptchaProvider } from "./ai.js";
@@ -144,6 +144,25 @@ function boot() {
   dispatch({ type: "boot", loaded: !!loaded, recap: bootRecap });
   recapBaseline = state.log.length; // recap from here on reflects only this session's play
 
+  // ---- mobile tab bar ----
+  const layout = document.querySelector(".layout");
+  for (const tab of document.querySelectorAll(".mobile-tabs__tab")) {
+    tab.addEventListener("click", () => {
+      layout.dataset.mobileTab = tab.dataset.tab;
+      for (const t of document.querySelectorAll(".mobile-tabs__tab")) {
+        t.classList.toggle("mobile-tabs__tab--active", t === tab);
+      }
+    });
+  }
+
+  // ---- tap-to-select menu items (mobile) ----
+  document.getElementById("menu").addEventListener("click", (e) => {
+    const item = e.target.closest(".menu__item");
+    if (!item || item.dataset.index == null) return;
+    dispatch({ type: "menuJump", index: Number(item.dataset.index) });
+    dispatch({ type: "menuSelect" });
+  });
+
   // ---- input wiring ----
   const form = document.getElementById("input-form");
   const input = document.getElementById("input");
@@ -163,6 +182,7 @@ function boot() {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    switchToTerminalTab();
     finishTyping(); // acting completes any still-typing text from the previous turn
     if (state.ui.busy) return; // an AI call is in flight — ignore input until it resolves
     const text = input.value;

@@ -30,7 +30,14 @@
 
     <!-- hud-hidden: STATUS + MASCOT stay hidden until the player meets their
          mascot (character.created). render.js manages this class. -->
-    <div class="layout hud-hidden">
+    <div class="layout hud-hidden" data-mobile-tab="terminal">
+      <!-- Mobile tab bar (hidden on desktop; appears once HUD reveals) -->
+      <nav class="mobile-tabs" aria-label="View tabs">
+        <button class="mobile-tabs__tab mobile-tabs__tab--active" data-tab="terminal" type="button">PLAY</button>
+        <button class="mobile-tabs__tab" data-tab="status" type="button">STATUS</button>
+        <button class="mobile-tabs__tab" data-tab="mascot" type="button">MASCOT</button>
+      </nav>
+
       <!-- REGION 1: terminal (scrollback + input) -->
       <section class="terminal" aria-label="Game output">
         <div id="output" class="output" aria-live="polite" tabindex="0"></div>

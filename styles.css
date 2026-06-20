@@ -311,6 +311,11 @@ body {
 }
 .inputline__field::placeholder { color: var(--text-muted); }
 
+/* ---- Mobile tab bar ----
+   Hidden on desktop; shown on mobile once the HUD reveals. Three tabs
+   (Play / Status / Mascot) let the player flip views without scrolling. */
+.mobile-tabs { display: none; }
+
 /* ---- Side panels ---- */
 .panels {
   display: flex;
@@ -399,86 +404,168 @@ body {
   filter: grayscale(0.6);
 }
 
-/* ---- Responsive: stack everything in one column on narrow screens ----
+/* ---- Responsive: tabbed mobile layout ----
    Desktop is a fixed-size centered window; on phones the window becomes the whole
-   page: full-bleed, page-scrolling, with the terminal on top and the panels flowing
-   below it. dvh units track the mobile browser chrome + on-screen keyboard so the
-   layout doesn't jump when the address bar collapses or the keyboard opens. */
+   page: full-bleed, with a tab bar (Play / Status / Mascot) so the player can flip
+   views without scrolling. The input line stays visible on every tab.
+   dvh units track the mobile browser chrome + on-screen keyboard so the layout
+   doesn't jump when the address bar collapses or the keyboard opens. */
 @media (max-width: 720px) {
   :root {
-    --pad: 14px;                 /* tighter rhythm to reclaim space on small screens */
-    --gap: 12px;
+    --pad: 14px;
+    --gap: 10px;
   }
-  html { overflow-x: clip; }     /* the page scrolls vertically only — never sideways */
+  html { overflow-x: clip; }
   body {
     padding: 0;
-    /* Drop the desktop centering flexbox. The desktop body is a definite-height flex
-       container (height:100%), which pins the screen box to the viewport and makes the
-       stacked panels overflow it. As a normal block the body grows with its content and
-       the page scrolls naturally; the screen, then the Ko-fi pill, stack below. */
-    display: block;
-    height: auto;
-    min-height: 100dvh;
-    overflow-x: clip;            /* never expose a sideways scroll — clips the brief
-                                    translateX of the HUD reveal and any stray `pre` line */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
   .screen {
     width: 100%;
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     border-radius: 0;
     border: none;
-    box-shadow: none;            /* no floating-window glow when it's full-bleed */
-    overflow: visible;           /* let the stacked panels extend the page (it scrolls)
-                                    instead of being clipped by the desktop window */
+    box-shadow: none;
+    overflow: hidden;
   }
 
-  /* Title bar: keep the name + dots; the version/“terminal shell” hint wraps awkwardly
-     at this width and lives on the About screen anyway, so drop it here. */
   .titlebar { padding: 10px 14px; }
   .titlebar__name { letter-spacing: 0.08em; }
   .titlebar__hint { display: none; }
 
   .layout {
-    grid-template-columns: 1fr;  /* terminal, then panels, full width */
-    flex: 1 0 auto;              /* size from content (basis auto) and never shrink below
-                                    it: base `flex:1` (basis 0) lets the stacked panels
-                                    overflow the screen box, so the in-flow Ko-fi pill
-                                    anchors short and collides with the panels */
-    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: var(--gap);
+    gap: var(--gap);
   }
+
+  /* ---- Tab bar ---- */
+  .mobile-tabs {
+    display: flex;
+    gap: 4px;
+    flex: 0 0 auto;
+    order: -2;
+  }
+  .layout.hud-hidden .mobile-tabs { display: none; }
+
+  .mobile-tabs__tab {
+    flex: 1;
+    padding: 7px 0;
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    background: var(--bg-panel);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color 100ms ease, background 100ms ease, border-color 100ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-tabs__tab--active {
+    color: var(--pink);
+    background: rgba(255, 126, 182, 0.08);
+    border-color: var(--pink);
+  }
+
+  /* ---- Terminal fills available space ---- */
   .terminal {
-    min-height: 56vh;
-    min-height: 56dvh;
+    flex: 1;
+    min-height: 0;
   }
-  .panels {
-    flex-direction: column;      /* full-width panels -> mascot art renders like desktop */
+
+  /* ---- Tab content switching ---- */
+  /* Terminal tab (default): panels hidden */
+  .layout[data-mobile-tab="terminal"] .panels { display: none; }
+
+  /* Status tab: hide terminal scrollback, show status panel */
+  .layout[data-mobile-tab="status"] .output,
+  .layout[data-mobile-tab="status"] .menu,
+  .layout[data-mobile-tab="status"] .example-prompt,
+  .layout[data-mobile-tab="status"] .captcha { display: none !important; }
+  .layout[data-mobile-tab="status"] .terminal {
+    flex: 0 0 auto;
+    min-height: 0;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .layout[data-mobile-tab="status"] .terminal .inputline {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .layout[data-mobile-tab="status"] .panels {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    order: -1;
+  }
+  .layout[data-mobile-tab="status"] .panel--mascot { display: none; }
+  .layout[data-mobile-tab="status"] .panel--stats {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* Mascot tab: hide terminal scrollback, show mascot panel */
+  .layout[data-mobile-tab="mascot"] .output,
+  .layout[data-mobile-tab="mascot"] .menu,
+  .layout[data-mobile-tab="mascot"] .example-prompt,
+  .layout[data-mobile-tab="mascot"] .captcha { display: none !important; }
+  .layout[data-mobile-tab="mascot"] .terminal {
+    flex: 0 0 auto;
+    min-height: 0;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .layout[data-mobile-tab="mascot"] .terminal .inputline {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .layout[data-mobile-tab="mascot"] .panels {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    order: -1;
+  }
+  .layout[data-mobile-tab="mascot"] .panel--stats { display: none; }
+  .layout[data-mobile-tab="mascot"] .panel--mascot {
+    flex: 1;
+    min-height: 0;
   }
   .panel--mascot .panel__body { min-height: 150px; }
 
-  /* Touch input: a 16px field stops iOS Safari zooming in on focus; roomier hit areas
-     for the input line and the selection menu. */
+  /* ---- Touch UX ---- */
   .inputline { padding: 12px 14px; }
   .inputline__field { font-size: 16px; }
-  /* Bigger hit area; wrap long option text (e.g. theme descriptions) instead of letting
-     a `pre` line run wider than the viewport — which forces a page-wide horizontal scroll
-     and clips the right edge of everything. */
   .menu__item {
     padding: 9px 12px;
     white-space: pre-wrap;
     word-break: break-word;
   }
 
-  /* Ko-fi: leave the fixed overlay behind. In the column flow it sits centered at the
-     very bottom, clear of the panels, with safe-area room for the home indicator. */
+  /* Ko-fi: flow into page bottom, clear of panels, safe-area aware */
   .kofi {
     position: static;
     transform: none;
     display: block;
     width: max-content;
     max-width: 90%;
-    margin: 4px auto calc(14px + env(safe-area-inset-bottom));
+    margin: 4px auto calc(8px + env(safe-area-inset-bottom));
     opacity: 1;
   }
 }
