@@ -70,6 +70,7 @@ const VERBS = {
   theme: "theme", themes: "theme", palette: "theme",
   settings: "settings", options: "settings", preferences: "settings",
   prefs: "settings", config: "settings",
+  about: "about", credits: "about", info: "about", version: "about",
 };
 
 const NO_MATCH = (raw) => ({ matched: false, verb: null, target: null, targetRaw: null, modifier: null, raw });
@@ -126,6 +127,6 @@ export const HELP = [
   "  Meta+:   prestige   (begin a new, stronger turning) · settings (theme · difficulty)",
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",
-  "  Settings: settings  (theme / color palette · about & credits)",
+  "  Settings: settings  (theme · text speed · music · about & credits) · about (credits)",
   "Or just describe what you want to do in your own words — your magical companion will try to follow.",
 ];

@@ -789,6 +789,9 @@ function route(s, cmd) {
     case "settings":
       return openSettingsMenu(s);
 
+    case "about":
+      return showAbout(s);
+
     case "abilities":
       return openAbilitiesMenu(s);
   }
