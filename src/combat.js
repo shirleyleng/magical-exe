@@ -574,6 +574,40 @@ function grantWinVisibility(state, c, ch) {
   if (d.unmasking > 0) checkUnmaskingEvents(state); // an escalating threshold may have just been crossed
 }
 
+/* ---- defeat: the magical-girl "warp home" beat ----
+   You don't die — the magic refuses the killing blow and pulls you out of the
+   fight. We vary the telling so repeated losses don't read identically, and split
+   the landing by whether your companion is still here to catch you (once it's gone,
+   the wake is the lonely one, echoing the mascot-gone rest flavour). {mascot}
+   resolves to the companion's name. */
+const DEFEAT_WARP = [
+  "The killing blow comes — and the magic takes it instead of you. Light tears up from the mark over your heart, indignant, and folds the world away before the dark can close. You don't get to fall. Not like this; not while it still has a say in the matter.",
+  "Everything narrows to a single white point of pain — and then the spell that made you simply unmakes the moment. Your transformation shatters in a soundless burst, spilling you up and out of the fight, somewhere the dark can't reach to finish what it started.",
+  "You feel yourself going. And then the light catches you — the way it always swears it will and you never quite believe until it does — and lifts you up and out and away, the fight dwindling to a far-off nothing behind your shut eyes.",
+];
+const DEFEAT_WAKE_COMPANION = [
+  "You wake on your own floor, plain-clothed and shaking, the ceiling exactly where you left it. {mascot} is curled tight against your collarbone, spent from holding the spell lit the whole way home. Safe. Both of you. Barely — but the magic kept its half of the bargain, the way it always does.",
+  "The hush of your own rooms settles over you. {mascot} won't stop fussing — circling, nudging, scolding in that wordless way of its — until you sit up and say it out loud: that you're alright, that you'll be alright. You only half-believe it. With {mascot} here, half is enough to stand on.",
+  "Home. Just like that, between one heartbeat and the next. You lie there cataloguing aches while {mascot} presses close and warm against you, counting your breaths as though it could lose track of you if it stopped. Alive to try again — and someone glad of it.",
+];
+const DEFEAT_WAKE_ALONE = [
+  "You wake on your own floor, alone, the house holding its breath around you. No small bright weight settles onto your chest to count your breaths and be sure you made it back. You lie in the quiet a while, and the quiet doesn't answer. Then you get up — because there's no one left to get up for you.",
+  "You come to in the dark of your own rooms, aching in places you didn't know you had. There's no one to fuss over you now, no warmth at your throat, no wordless scolding. Only you, and the ache, and the empty shape where the fussing used to be. You drag yourself upright anyway. You always do.",
+  "The magic sets you down gently in an empty house. Once, that landing had something soft waiting in it. Now there's just the floor, and the cold, and the long climb back to your feet — which you make, alone, because the alternative is to stay down, and you haven't earned the right to stay down yet.",
+];
+
+function defeatNarrative(model) {
+  const gone = !!(model.world.flags && model.world.flags.mascotGone);
+  const wakePool = gone ? DEFEAT_WAKE_ALONE : DEFEAT_WAKE_COMPANION;
+  const last = model.world.lastDefeatWake;
+  const choices = wakePool.length > 1 ? wakePool.filter((l) => l !== last) : wakePool;
+  const wake = choices[Math.floor(Math.random() * choices.length)];
+  model.world.lastDefeatWake = wake; // never the same wake twice running
+  const warp = DEFEAT_WARP[Math.floor(Math.random() * DEFEAT_WARP.length)];
+  const mascotName = (model.mascot && model.mascot.name) || "your companion";
+  return { warp, wake: wake.replace(/\{mascot\}/g, mascotName) };
+}
+
 /* ---- resolution ---- */
 function endCombat(state, outcome) {
   const model = state.model;
@@ -652,8 +686,10 @@ function endCombat(state, outcome) {
     return state;
   }
 
-  // defeat — gentle: wake at home, barely standing.
-  pushLine(state, "The dark rushes up to meet you… and then, somehow, lets you go. You wake at home, aching in places you didn't know you had, but breathing — alive to try again. You usually are. That's the whole trick of it.", "banner");
+  // defeat — gentle: the magic refuses the killing blow and warps you home.
+  const dn = defeatNarrative(model);
+  pushLine(state, dn.warp, "banner");
+  pushLine(state, dn.wake, "system");
   ch.stats.hp = Math.max(1, Math.round(ch.stats.maxHp * 0.25));
   if (!c.enemy.isBoss) {
     requestNarration(state, {

@@ -24,15 +24,18 @@ const TRACKS = {
   "Moonlit Bloom Protocol": "Moonlit Bloom Protocol.mp3",
   "Harbor Tide":            "Harbor Tide.mp3",
   "Moonglass Tower":        "Moonglass Tower.mp3",
+  // The hub after the companion is lost — sparse and mournful
+  "Faint Roomlight":        "Faint Roomlight.mp3",
 };
 
 // Each scene is a playlist. Multi-track scenes advance track-to-track as
 // each finishes; single-track scenes loop. THIS is the dial to re-score:
 // move a track name to a different scene and the game's music changes.
 const SCENES = {
-  title:   ["Pastel Errand Loop"],
-  hub:     ["Pastel Errand Loop", "Errand Wand"], // calmer "loop" tracks for the resting hub
-  explore: ["Ribbon Up", "Moon Ribbon"],
+  title:    ["Pastel Errand Loop"],
+  hub:      ["Pastel Errand Loop", "Errand Wand"], // calmer "loop" tracks for the resting hub
+  "hub-gone": ["Faint Roomlight"],                 // the hub after the companion is lost — mellow, mournful
+  explore:  ["Ribbon Up", "Moon Ribbon"],
   // Per-dungeon battle themes (cover both regular fights and that dungeon's boss).
   "combat-forest":     ["Moonlit Bloom Protocol"],
   "combat-harbor":     ["Harbor Tide"],
@@ -98,6 +101,8 @@ export function sceneForModel(model) {
     return "combat";
   }
   if (model.mode === "exploration") return "explore";
+  // The hub turns mournful while the companion is missing; back to cozy once it returns.
+  if (model.world && model.world.flags && model.world.flags.mascotGone) return "hub-gone";
   return "hub";
 }
 

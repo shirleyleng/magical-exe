@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="MAGICAL.EXE">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#241d3d"/>
+      <stop offset="1" stop-color="#140f1e"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7eb6"/>
+      <stop offset="0.5" stop-color="#b48ef0"/>
+      <stop offset="1" stop-color="#5fe3c8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.47" r="0.5">
+      <stop offset="0" stop-color="#cda9ff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#cda9ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- app tile (the ".exe") -->
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#tile)"
+        stroke="#cda9ff" stroke-opacity="0.28" stroke-width="1.5"/>
+  <!-- soft magic glow behind the star -->
+  <circle cx="32" cy="30" r="22" fill="url(#glow)"/>
+  <!-- main 4-point sparkle (the "magic") -->
+  <path d="M32 8 Q36.2 25.8 54 30 Q36.2 34.2 32 52 Q27.8 34.2 10 30 Q27.8 25.8 32 8 Z" fill="url(#spark)"/>
+  <!-- white sheen core -->
+  <path d="M32 18 Q34.1 27.9 42 30 Q34.1 32.1 32 42 Q29.9 32.1 22 30 Q29.9 27.9 32 18 Z" fill="#ffffff" fill-opacity="0.85"/>
+  <!-- secondary sparkle -->
+  <path d="M49 12 Q50.4 16.6 55 18 Q50.4 19.4 49 24 Q47.6 19.4 43 18 Q47.6 16.6 49 12 Z" fill="#5fe3c8"/>
+  <!-- micro sparkle -->
+  <circle cx="15.5" cy="46.5" r="1.7" fill="#ffb27e"/>
+</svg>

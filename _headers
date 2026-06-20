@@ -17,6 +17,18 @@
 /themes.css
   Cache-Control: no-cache
 
+# Brand assets — unhashed names, so revalidate (lets an updated icon/logo show).
+/favicon.svg
+  Cache-Control: no-cache
+/logo.svg
+  Cache-Control: no-cache
+/apple-touch-icon.png
+  Cache-Control: no-cache
+/favicon-32.png
+  Cache-Control: no-cache
+/favicon-16.png
+  Cache-Control: no-cache
+
 # Long-lived, rarely-changing assets can cache hard.
 /music/*
   Cache-Control: public, max-age=604800
