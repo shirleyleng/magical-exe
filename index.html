@@ -25,7 +25,30 @@
       <span class="dot dot--peach" aria-hidden="true"></span>
       <span class="dot dot--teal" aria-hidden="true"></span>
       <span class="titlebar__name">✦ MAGICAL.EXE ✦</span>
-      <span class="titlebar__hint">v1.0.0 · terminal shell</span>
+      <div class="titlebar__right">
+        <span class="titlebar__hint">v1.0.0 · terminal shell</span>
+        <!-- Background-music control (wired by main.js → music.js) -->
+        <div class="music" role="group" aria-label="Music">
+          <div class="music__title" id="music-title" hidden aria-hidden="true">
+            <span class="music__title-inner"></span>
+          </div>
+          <button
+            id="music-toggle"
+            class="music__toggle"
+            type="button"
+            aria-pressed="true"
+            title="Toggle music"
+          >♪</button>
+          <input
+            id="music-volume"
+            class="music__volume"
+            type="range"
+            min="0" max="100" value="50" step="1"
+            aria-label="Music volume"
+            title="Music volume"
+          />
+        </div>
+      </div>
     </header>
 
     <!-- hud-hidden: STATUS + MASCOT stay hidden until the player meets their

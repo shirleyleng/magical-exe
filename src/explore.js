@@ -10,7 +10,7 @@
    ============================================================ */
 
 import { CONFIG } from "../config.js";
-import { pushLine } from "./state.js";
+import { pushLine, markStoryActivity } from "./state.js";
 import { DUNGEONS, getRoom, BOSS_ENEMY, unlockedDungeons, resolveDungeon } from "./dungeons.js";
 import { startCombat } from "./combat.js";
 import { requestNarration } from "./narrate.js";
@@ -104,6 +104,7 @@ export function enterDungeon(state, dungeonId = "forest") {
     return state;
   }
   model.mode = "exploration";
+  markStoryActivity(model); // venturing out breaks the training rut
   model.world.currentLocation = dungeonId;
   model.world.currentRoom = d.entrance;
   if (dungeonId === "secret") {

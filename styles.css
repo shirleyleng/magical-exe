@@ -101,11 +101,94 @@ body {
   color: var(--lilac);
   text-shadow: 0 0 12px rgba(205, 169, 255, 0.35);
 }
-.titlebar__hint {
+.titlebar__right {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.titlebar__hint {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* ---- music control (titlebar) ---- */
+.music {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* now-playing marquee: a fixed window with the title scrolling under an
+   edge-fade mask. Two copies of the text in the inner span make the
+   translateX(-50%) loop seamless. */
+.music__title {
+  width: 116px;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+.music__title[hidden] { display: none; }
+.music__title-inner {
+  display: inline-block;
+  will-change: transform;
+  animation: music-marquee 11s linear infinite;
+}
+@keyframes music-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .music__title-inner { animation: none; }
+}
+.music__toggle {
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1;
+  width: 26px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--lilac);
+  background: var(--bg-input);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  transition: color 0.15s, opacity 0.15s, box-shadow 0.15s;
+}
+.music__toggle:hover { box-shadow: 0 0 8px rgba(205, 169, 255, 0.4); }
+.music__toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* muted: dim glyph + a struck-through look via aria state */
+.music__toggle[aria-pressed="false"] { color: var(--text-muted); opacity: 0.65; }
+.music__volume {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 72px;
+  height: 4px;
+  border-radius: 3px;
+  background: var(--bg-input);
+  cursor: pointer;
+}
+.music__volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--lilac);
+  cursor: pointer;
+}
+.music__volume::-moz-range-thumb {
+  width: 12px; height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--lilac);
+  cursor: pointer;
+}
+.music__volume:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---- Layout: terminal + side panels ---- */
 .layout {
@@ -447,6 +530,9 @@ body {
   .titlebar { padding: 10px 14px; }
   .titlebar__name { letter-spacing: 0.08em; }
   .titlebar__hint { display: none; }
+  /* Save room on phones: keep the music toggle, drop the slider + marquee. */
+  .music__volume { display: none; }
+  .music__title { display: none; }
 
   .layout {
     display: flex;

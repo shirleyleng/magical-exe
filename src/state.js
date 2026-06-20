@@ -24,6 +24,13 @@ export function pushLine(state, text = "", kind = "system") {
   if (kind === "mascot" && state.ui) state.ui.mascotSpoke = true;
 }
 
+/** Record that the player did something story-moving (explore, shop, errand,
+ *  spar, skirmish, dilemma) on the current day. The training-rut nudge in
+ *  hub.js reads the gap between this and the current day. */
+export function markStoryActivity(model) {
+  if (model && model.hub) model.hub.lastVariedDay = model.day;
+}
+
 /** Derive pronouns from a gender presentation. */
 export function pronounsFor(gender) {
   switch (gender) {
@@ -81,6 +88,8 @@ export function freshModel(opts = {}) {
       slotsUsedToday: { training: 0, combat: 0, errand: 0, sparring: 0 },
       errandsDoneToday: [],           // errand vignette ids done today (reset each day)
       pendingDamageControl: false,    // T15: a mid-tier investigator costs a slot next day
+      lastVariedDay: 1,               // last day a non-training activity happened (training-rut nudge)
+      lastNudgeDay: 0,                // last day the training-rut nudge fired (throttle)
     },
     world: {
       currentLocation: "homebase",
@@ -155,6 +164,9 @@ export function createState(model) {
   }
   // Backfill the per-day errand offer tracker.
   if (m.hub && m.hub.errandsDoneToday === undefined) m.hub.errandsDoneToday = [];
+  // Backfill training-rut nudge tracking (default: no nudge for an existing save).
+  if (m.hub && m.hub.lastVariedDay === undefined) m.hub.lastVariedDay = m.day || 1;
+  if (m.hub && m.hub.lastNudgeDay === undefined) m.hub.lastNudgeDay = 0;
   // Backfill T17 mascot presence fields for saves made before the mascot could leave.
   if (m.mascot) {
     if (m.mascot.present === undefined) m.mascot.present = true;

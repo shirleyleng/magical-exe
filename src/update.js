@@ -13,7 +13,7 @@
    ============================================================ */
 
 import { CONFIG } from "../config.js";
-import { freshModel, pushLine } from "./state.js";
+import { freshModel, pushLine, markStoryActivity } from "./state.js";
 import { parse, HELP } from "./parser.js";
 import { beginCreation, handleCreationInput, handleMenuSelect } from "./creation.js";
 import { aiAvailable, parseAIJson } from "./ai.js";
@@ -820,6 +820,7 @@ function routeHub(s, cmd) {
         return s;
       }
       s.model.hub.slotsUsedToday.combat += 1;
+      markStoryActivity(s.model); // a skirmish counts as breaking the training rut
       return startCombat(s, "dust_sprite", { returnMode: "hub", fromSlot: true });
     }
 

@@ -10,7 +10,7 @@
    ============================================================ */
 
 import { CONFIG } from "../config.js";
-import { pushLine } from "./state.js";
+import { pushLine, markStoryActivity } from "./state.js";
 import { getAbility, meetsLearnReq, learnableAbilities } from "./abilities.js";
 import { coolUnmasking, relaxUnmasking, recapHeat, adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
 import { adjustAlignment } from "./alignment.js";
@@ -363,6 +363,7 @@ export function buyItem(state, id) {
   }
   ch.coins -= it.price;
   ch.inventory.push(it.name);
+  markStoryActivity(state.model); // shopping counts as breaking the training rut
   pushLine(state, `You buy a ${it.name}. (${coin()}${ch.coins} left)`, "system");
   return openShopMenu(state); // stay in the shop
 }
@@ -593,9 +594,51 @@ function restFlavorLine(model) {
   return line.replace(/\{mascot\}/g, (model.mascot && model.mascot.name) || "your companion");
 }
 
+/* ---- training-rut nudge ----
+   If the player has spent whole days doing nothing but training/sparring
+   (never exploring, shopping, running errands, fighting, or reaching the
+   alliance), the story stalls. After NUDGE_AFTER such days, drop a gentle
+   in-fiction prompt at rest pointing at the things that actually move the
+   story along. Throttled so it surfaces at most once every NUDGE_AFTER days.
+
+   Who does the prodding depends on who's around: normally it's your magical
+   companion. Once it's gone (the Boss #4 loss), there's no companion to coax
+   you — so Sable, your sparring partner through that stretch, takes over and
+   points you at the alliance (the way out of that arc). */
+const NUDGE_AFTER = 2;
+function maybeIdleNudge(state) {
+  const model = state.model;
+  const lastVaried = model.hub.lastVariedDay ?? 1;
+  const streak = model.day - lastVaried;           // full days since anything but training
+  if (streak < NUDGE_AFTER) return;
+  if (model.day - (model.hub.lastNudgeDay || 0) < NUDGE_AFTER) return; // don't nag daily
+  model.hub.lastNudgeDay = model.day;
+
+  if (model.world.flags.mascotGone) {
+    // No companion to nudge you — Sable does, blunt as ever, from the day's sparring.
+    const sable = rivalName(model);
+    const companion = (model.mascot && model.mascot.name) || "your companion";
+    pushLine(
+      state,
+      `${streak} days now, and the sparring ring is the only place you've been. ${sable}'s words from this evening's bout stay with you, flat and certain: you won't drill your way back to ${companion}, and you won't find a way forward in a training circle. Stop sharpening. Start looking.`,
+      "mascot"
+    );
+    pushLine(state, "Try: alliance (ask them the way through) · explore · errands (the city still needs you).", "hint");
+    return;
+  }
+
+  pushLine(
+    state,
+    `${streak} days now, and the training dummy is the only thing that's seen you. Muscle won't carry the story forward on its own — the world is out there waiting.`,
+    "mascot"
+  );
+  pushLine(state, "Try: explore (seek out trouble) · shop (gear up) · errands (help the city).", "hint");
+}
+
 /* ---- rest ---- */
 export function doRest(state) {
   const model = state.model;
+  maybeIdleNudge(state); // reflect on how the days have been spent, before the next dawns
   beginDay(state);
   pushLine(state, `You rest. Day ${model.day} dawns; your ${model.hub.slotsMax} slots are fresh and you feel restored.`, "system");
   const flavor = restFlavorLine(model); // additive day-passing texture (distinct from city mood)
@@ -681,6 +724,8 @@ export function visitAlliance(state) {
   if (!flags.secretPlaceUnlocked) {
     flags.allianceVisited = true;
     flags.secretPlaceUnlocked = true;
+    markStoryActivity(model); // reaching the alliance is real progress, not a rut
+
     pushLine(state, "You finally reach the alliance — really reach them, the way Sable told you to.", "banner");
     pushLine(state, `An elder's voice answers, worn and kind: "We wondered when you'd call. Your magical companion didn't fail you — it bought you time. What took it can't be beaten as you are now. You have to AWAKEN."`, "mascot");
     pushLine(state, `"Awakening isn't given, child. You walk back to who you were before any of this — your truest place — and you face the doubt that waits there. Your weapon sleeps in that place. So does your magical companion."`, "mascot");
@@ -766,6 +811,7 @@ export function doErrand(state, id) {
   const hope = (a.hope || 0) + (b.hope || 0);
 
   model.hub.slotsUsedToday.errand += a.slots;
+  markStoryActivity(model); // errands move the story / the city along
   if (virtue || corruption) adjustAlignment(ch, { virtue, corruption });
   if (fame || unmasking) adjustVisibility(ch, { fame, unmasking });
   if (hope) adjustHope(ch, hope);

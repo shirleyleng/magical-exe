@@ -11,6 +11,7 @@ import { createState } from "./state.js";
 import { update } from "./update.js";
 import { render, initDom, setRenderSpeed, finishTyping, switchToTerminalTab } from "./render.js";
 import { initMascotAnim } from "./mascotAnim.js";
+import { initMusic, setScene, sceneForModel, toggleEnabled, setVolume, getMusicState } from "./music.js";
 import { saveModel, loadActive, loadSlot, saveRecap, loadRecap } from "./persist.js";
 import { callAI, setCaptchaProvider } from "./ai.js";
 import { getCaptchaToken } from "./captcha.js";
@@ -46,6 +47,7 @@ function dispatch(event) {
     saveRecap(state.model.saveSlotName, buildRecap(state.log));
   }
   render(state);
+  setScene(sceneForModel(state.model)); // swap background music to match the scene
   if (state.ui.effect) applyEffect();
   restoreFocusIfMenuClosed();
 }
@@ -125,10 +127,51 @@ function makeCaptchaProvider() {
   };
 }
 
+/* Wire the titlebar music control to the audio engine. The engine owns the
+   truth (enabled/volume, persisted); the sync callback reflects it back into
+   the toggle's pressed-state and the slider so a reload restores the UI. */
+function initMusicControls() {
+  const toggle = document.getElementById("music-toggle");
+  const volume = document.getElementById("music-volume");
+  const titleBox = document.getElementById("music-title");
+  const titleInner = titleBox && titleBox.querySelector(".music__title-inner");
+
+  // Paint the now-playing marquee. Two copies of the title (with a separator)
+  // make the CSS translateX(-50%) scroll loop seamlessly; hide it when silent.
+  function paintTitle(track) {
+    if (!titleBox || !titleInner) return;
+    if (track) {
+      titleInner.textContent = `♪ ${track} • ♪ ${track} • `;
+      titleBox.hidden = false;
+    } else {
+      titleInner.textContent = "";
+      titleBox.hidden = true;
+    }
+  }
+
+  initMusic(({ enabled, volume: vol, track }) => {
+    if (toggle) {
+      toggle.setAttribute("aria-pressed", String(enabled));
+      toggle.textContent = enabled ? "♪" : "♪̸";
+      toggle.title = enabled ? "Mute music" : "Play music";
+    }
+    if (volume) volume.value = String(Math.round(vol * 100));
+    paintTitle(track);
+  });
+  // Reflect the persisted state into the controls on load.
+  const st = getMusicState();
+  if (toggle) toggle.setAttribute("aria-pressed", String(st.enabled));
+  if (volume) volume.value = String(Math.round(st.volume * 100));
+  paintTitle(st.track);
+  if (toggle) toggle.addEventListener("click", () => toggleEnabled());
+  if (volume) volume.addEventListener("input", () => setVolume(Number(volume.value) / 100));
+}
+
 function boot() {
   initDom();
   // Start the HUD mascot animator (single interval; targets the live <pre>).
   initMascotAnim(() => document.querySelector("#mascot-panel .mascot-art"));
+  initMusicControls();
   setCaptchaProvider(makeCaptchaProvider());
   applyTheme(getStoredTheme()); // restore the saved palette before first paint
 
