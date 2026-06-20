@@ -331,8 +331,12 @@ body {
   display: flex;
   flex-direction: column;
 }
-.panel--stats { flex: 0 0 auto; }
-.panel--mascot { flex: 1; min-height: 0; }
+/* STATUS sizes to its content but yields (shrinks + scrolls internally) when the
+   sidebar is short, so the MASCOT below it is never clipped. MASCOT fills any
+   leftover room and keeps a floor height so its art + caption always fit. */
+.panel--stats { flex: 0 1 auto; min-height: 0; }
+.panel--stats .panel__body { overflow-y: auto; min-height: 0; }
+.panel--mascot { flex: 1 1 auto; min-height: 168px; }
 
 .panel__title {
   margin: 0 0 10px;
@@ -351,7 +355,7 @@ body {
   margin: 0;
   font-family: var(--font);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-dim);
   white-space: pre;
 }
@@ -500,6 +504,7 @@ body {
      full vertical card it is on desktop. Always shown. */
   .panel--mascot {
     flex: 0 0 auto;
+    min-height: 0; /* reset the desktop floor — the mobile band is a slim strip */
     order: -1; /* always pinned to the top of .panels, above the stat sheet */
     flex-direction: row;
     align-items: center;
