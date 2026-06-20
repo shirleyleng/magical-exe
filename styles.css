@@ -336,7 +336,7 @@ body {
    leftover room and keeps a floor height so its art + caption always fit. */
 .panel--stats { flex: 0 1 auto; min-height: 0; }
 .panel--stats .panel__body { overflow-y: auto; min-height: 0; }
-.panel--mascot { flex: 1 1 auto; min-height: 168px; }
+.panel--mascot { flex: 1 1 auto; min-height: 182px; }
 
 .panel__title {
   margin: 0 0 10px;
@@ -348,7 +348,7 @@ body {
   padding-bottom: 8px;
 }
 .panel__body { color: var(--text-dim); font-size: 14px; }
-.panel__body--muted { color: var(--text-muted); font-style: italic; }
+.panel__body--muted { margin: 0; color: var(--text-muted); font-style: italic; }
 
 /* STATUS panel: monospace block so columns line up */
 .stat-block {
