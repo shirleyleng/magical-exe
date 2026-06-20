@@ -93,12 +93,8 @@ export const ART = {
   // T19 — Virtuous Ascension: the mascot becomes its own guardian-animal deity.
   // A clean, centred 4-line figure — halo · haloed face · radiant heart-base ·
   // halo — every line symmetric around the same centre column so it never looks
-  // ragged. Per-base forms vary only the face. (Generic fallback first.)
-  deity_large: `  ☆ · ✦ · ☆
-  ✦ (^o^) ✦
- ─=( ♡ ♡ ♡ )=─
-  ☆ · ✦ · ☆`,
-
+  // ragged. Per-base forms vary only the face; `blob_deity` doubles as the
+  // generic fallback if a future base ever ships without its own deity art.
   blob_deity: `  ☆ · ✦ · ☆
   ✦ (o o) ✦
  ─=( ♡ ♡ ♡ )=─

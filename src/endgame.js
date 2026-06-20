@@ -57,7 +57,7 @@ const mascotName = (state) => (state.model.mascot && state.model.mascot.name) ||
 function deityArt(state) {
   const k = state.model.mascot && state.model.mascot.artKeyLarge;
   const base = k ? k.replace(/_large$/, "") : "";
-  return ART[`${base}_deity`] || ART.deity_large;
+  return ART[`${base}_deity`] || ART.blob_deity;
 }
 const rivalName = (state) => ((state.model.rivals && state.model.rivals[0] && state.model.rivals[0].name) || "Sable");
 

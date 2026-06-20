@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://magical-exe.redmint.studio">
+    <img src="og-image.png" alt="MAGICAL.EXE — a cozy magical-girl terminal RPG" width="720" />
+  </a>
+</p>
+
 # ✦ MAGICAL.EXE ✦
 
 A cozy, browser-based text adventure where you discover you're a magical girl (or

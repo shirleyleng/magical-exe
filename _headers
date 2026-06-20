@@ -28,6 +28,10 @@
   Cache-Control: no-cache
 /favicon-16.png
   Cache-Control: no-cache
+/og-image.png
+  Cache-Control: no-cache
+/og-image.svg
+  Cache-Control: no-cache
 
 # Long-lived, rarely-changing assets can cache hard.
 /music/*
