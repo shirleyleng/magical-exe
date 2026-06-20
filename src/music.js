@@ -29,8 +29,9 @@ const TRACKS = {
   // The Misted Place (secret dungeon) and the companion's revival
   "Mothlight Box":          "Mothlight Box.mp3",
   "Pastel Return":          "Pastel Return.mp3",
-  // The City's Despair finale (hope path)
+  // The City's Despair finale — hope path and corrupted path
   "Heart of the City":      "Heart of the City.mp3",
+  "Despair of the City":    "Despair of the City.mp3",
 };
 
 // Each scene is a playlist. Multi-track scenes advance track-to-track as
@@ -50,10 +51,8 @@ const SCENES = {
   "combat-secret":     ["Mothlight Box"],
   combat:  ["Star Wand Static"], // generic fallback (hub skirmishes, later dungeons)
   boss:    ["Sailor Hope"],      // boss fights in dungeons without their own theme
-  finale:  ["Heart of the City"], // the City's Despair fight + the hope-path brink/ending
-  // The corrupted path: kicks in the moment the player chooses to seize the Despair.
-  // (Falls through to `finale` until the dark-finale track is added.)
-  "finale-dark": ["Heart of the City"],
+  finale:  ["Heart of the City"],   // the City's Despair fight + the hope-path brink/ending
+  "finale-dark": ["Despair of the City"], // kicks in the moment the player chooses to seize the Despair at the brink
 };
 
 // Which dungeon (world.currentLocation) maps to which battle scene.
