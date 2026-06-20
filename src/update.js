@@ -197,7 +197,8 @@ function onBoot(s, event) {
 
   if (!s.model.character.created) {
     // Fresh game (or a save from mid-creation) -> run character creation.
-    pushLine(s, "A cozy, ordinary evening. On your way home, you hear a cry for help…", "system");
+    pushLine(s, "An ordinary evening — your evening, the same walk home you could make with your eyes closed.", "system");
+    pushLine(s, "Then, close enough to stop you cold, a voice cries out for help…", "system");
     beginCreation(s);
     return s;
   }
