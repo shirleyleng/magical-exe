@@ -203,12 +203,29 @@ function onBoot(s, event) {
   }
 
   refreshSlotsMax(s.model); // keep slot count correct on load
-  const place = s.model.character.city || "your city";
-  pushLine(s, `Welcome back to ${place}. (save loaded — Day ${s.model.day})`, "system");
+  pushLine(s, bootWelcome(s.model), "system");
   printRecap(s, event.recap);
   pushLine(s, "Type /help to see your commands.", "hint");
   pushLine(s, "");
   return s;
+}
+
+/* A warm, personal "welcome back" on load: the player's name, their mascot
+   (and a quieter line when it's missing during the Boss #4 arc), the day,
+   and the city. Deterministic so the load is instant and stable. */
+function bootWelcome(model) {
+  const c = model.character;
+  const place = c.city || "your city";
+  const who = c.name && c.name !== "???" ? c.name : "magical girl";
+  const m = model.mascot;
+  const gone = (model.world && model.world.flags && model.world.flags.mascotGone) || (m && m.present === false);
+  if (m && m.name && gone) {
+    return `Welcome back, ${who}. ${place} feels too quiet — ${m.name} still isn't at your side. Day ${model.day}.`;
+  }
+  if (m && m.name) {
+    return `Welcome back, ${who}. ${m.name} stirs and blinks up at you, glad you're home — Day ${model.day} in ${place}.`;
+  }
+  return `Welcome back, ${who}. Day ${model.day} in ${place}.`;
 }
 
 /* A short "last time" recap of the most recent lines, replayed on load so a returning
