@@ -73,7 +73,7 @@ const rivalName = (model) => (model.rivals && model.rivals[0] && model.rivals[0]
     Sparring takes its place. Returns true (and prints a redirect) if blocked. */
 function trainingClosed(state) {
   if (!state.model.world.flags.mascotGone) return false;
-  pushLine(state, `There's no one to train you now — your mascot is gone. Spar with ${rivalName(state.model)} instead. (type spar)`, "system");
+  pushLine(state, `There's no one to train you now — your magical companion is gone. Spar with ${rivalName(state.model)} instead. (type spar)`, "system");
   return true;
 }
 
@@ -198,7 +198,7 @@ const pickLine = (arr, rival) => arr[Math.floor(Math.random() * arr.length)].rep
 export function doSpar(state, statKey) {
   const model = state.model;
   if (!sparringOpen(state)) {
-    pushLine(state, "Your mascot still guides your training — there's no need to spar yet.", "system");
+    pushLine(state, "Your magical companion still guides your training — there's no need to spar yet.", "system");
     return state;
   }
   if (slotsFree(model) <= 0) {
@@ -235,7 +235,7 @@ export function doSpar(state, statKey) {
 /** `spar <stat>` from the command parser. */
 export function sparCommand(state, target) {
   if (!sparringOpen(state)) {
-    pushLine(state, "Your mascot still guides your training — there's no need to spar yet.", "system");
+    pushLine(state, "Your magical companion still guides your training — there's no need to spar yet.", "system");
     return state;
   }
   const key = resolveStat(target);
@@ -245,10 +245,11 @@ export function sparCommand(state, target) {
   return state;
 }
 
-/** `spar` with no argument -> a selection menu. */
-export function openSparMenu(state) {
+/** `spar` with no argument -> a selection menu. `opts.again` re-opens it after a
+    spar with a short prompt (the dojo stays open so you can go again right away). */
+export function openSparMenu(state, opts = {}) {
   if (!sparringOpen(state)) {
-    pushLine(state, "Your mascot still guides your training — there's no need to spar yet.", "system");
+    pushLine(state, "Your magical companion still guides your training — there's no need to spar yet.", "system");
     return state;
   }
   if (slotsFree(state.model) <= 0) {
@@ -270,8 +271,12 @@ export function openSparMenu(state) {
     const cost = def.learn.slotCost || 1;
     options.push({ label: `Learn ${name} — ${def.learn.blurb} [${cost} slot]`, value: `learn:${name}` });
   }
-  options.push({ label: "Cancel", value: "__cancel__" });
-  pushLine(state, `${rivalName(state.model)} rolls their shoulders till they crack and brings their blade up. "No mercy from me — that's the only way anyone gets strong, and you don't have time for the kind way. A spar can break something open, or just hold the line, or go badly. All three teach you something. Choose."`, "system");
+  options.push({ label: "Done sparring", value: "__cancel__" });
+  if (opts.again) {
+    pushLine(state, `"Again." ${rivalName(state.model)} resets their stance, no give in it. Go once more — or call it.`, "hint");
+  } else {
+    pushLine(state, `${rivalName(state.model)} rolls their shoulders till they crack and brings their blade up. "No mercy from me — that's the only way anyone gets strong, and you don't have time for the kind way. A spar can break something open, or just hold the line, or go badly. All three teach you something. Choose."`, "system");
+  }
   state.ui.menu = { active: true, kind: "spar", options, index: 0 };
   return state;
 }
@@ -555,7 +560,7 @@ const REST_FLAVOR = {
     "The house is too quiet to sleep in. You leave a light on out of a habit that no longer has a reason, and lie awake listening for a small bright voice that doesn't come.",
     "You set out two cups before you remember, and then you put the second one quietly back. The day ends the way they all have lately — heavily, and alone.",
     "You work until your hands ache and fall asleep where you sit, because the bed is where you'd have to be still, and being still is where the missing gets loudest.",
-    "Somewhere out there, you tell yourself, your mascot is sleeping too. You have to believe that. You hold onto it like a railing in the dark, and at last — at long last — you drift off.",
+    "Somewhere out there, you tell yourself, your magical companion is sleeping too. You have to believe that. You hold onto it like a railing in the dark, and at last — at long last — you drift off.",
   ],
   // tier-agnostic seasonal cadence: the world keeps turning around you
   seasonal: [
@@ -677,8 +682,8 @@ export function visitAlliance(state) {
     flags.allianceVisited = true;
     flags.secretPlaceUnlocked = true;
     pushLine(state, "You finally reach the alliance — really reach them, the way Sable told you to.", "banner");
-    pushLine(state, `An elder's voice answers, worn and kind: "We wondered when you'd call. Your mascot didn't fail you — it bought you time. What took it can't be beaten as you are now. You have to AWAKEN."`, "mascot");
-    pushLine(state, `"Awakening isn't given, child. You walk back to who you were before any of this — your truest place — and you face the doubt that waits there. Your weapon sleeps in that place. So does your mascot."`, "mascot");
+    pushLine(state, `An elder's voice answers, worn and kind: "We wondered when you'd call. Your magical companion didn't fail you — it bought you time. What took it can't be beaten as you are now. You have to AWAKEN."`, "mascot");
+    pushLine(state, `"Awakening isn't given, child. You walk back to who you were before any of this — your truest place — and you face the doubt that waits there. Your weapon sleeps in that place. So does your magical companion."`, "mascot");
     const place = ch.secretPlace ? `“${ch.secretPlace}”` : "the place you used to hide when the world was too much";
     const toy = ch.magicalWeapon && ch.magicalWeapon.fromToy ? ` And you remember ${ch.magicalWeapon.fromToy} — the one thing you never quite threw away.` : "";
     pushLine(state, `You know the place at once: ${place}.${toy}`, "system");
@@ -686,7 +691,7 @@ export function visitAlliance(state) {
     return state;
   }
 
-  pushLine(state, `The alliance has told you all they can. "Go to your secret place. Awaken. Then finish what took your mascot." The channel goes quiet.`, "mascot");
+  pushLine(state, `The alliance has told you all they can. "Go to your secret place. Awaken. Then finish what took your magical companion." The channel goes quiet.`, "mascot");
   return state;
 }
 
@@ -833,8 +838,21 @@ export function handleHubMenu(state, kind, opt) {
   }
 
   if (kind === "spar") {
-    if (opt.value.startsWith("learn:")) return learnAbility(state, opt.value.slice(6), "sparring");
-    return doSpar(state, opt.value);
+    if (opt.value.startsWith("learn:")) learnAbility(state, opt.value.slice(6), "sparring");
+    else doSpar(state, opt.value);
+    // Keep the dojo open: re-offer the spar menu so the player can go again without
+    // retyping `spar`, until they're done or out of slots (a grind, by design).
+    if (sparringOpen(state) && slotsFree(state.model) > 0) return openSparMenu(state, { again: true });
+    if (sparringOpen(state)) {
+      pushLine(state, `That's the last of the day's strength in you. ${rivalName(state.model)} waves you off. (Rest, then spar again.)`, "hint");
+    }
+    return state;
+  }
+
+  if (kind === "spireBlock") {
+    if (opt.value === "alliance") return visitAlliance(state);
+    pushLine(state, "You turn from the spire, its grey weight at your back. (The alliance is still there when you're ready — type alliance.)", "hint");
+    return state;
   }
 
   if (kind === "errand") return doErrand(state, opt.value);

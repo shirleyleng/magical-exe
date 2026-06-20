@@ -35,7 +35,7 @@ const TOPICS = {
   ],
   return: [
     { id: "corruption", keys: ["corruption", "the grey", "the truth", "real story", "whole shape", "not telling", "aren't they telling", "arent they telling", "lying", "the story"],
-      answer: `"All I'll say — and it's already more than I should — is that the corruption isn't a weed you pull. It's older than the briefings, and it wants something, and the people who hand you your orders either don't know that or don't want you to. Your mascot's not lying to you. They just don't have the whole shape of it. Neither do I. But I've seen enough of the edges to know the picture's wrong."` },
+      answer: `"All I'll say — and it's already more than I should — is that the corruption isn't a weed you pull. It's older than the briefings, and it wants something, and the people who hand you your orders either don't know that or don't want you to. Your magical companion's not lying to you. They just don't have the whole shape of it. Neither do I. But I've seen enough of the edges to know the picture's wrong."` },
     { id: "seen", keys: ["what have you seen", "what did you see", "seen", "edges", "out there", "where were you"],
       answer: `"Things that didn't match the map. A 'cleared' district that went quiet wrong. Grey that moved like it was listening. I don't have it all — I've just learned to trust the part of me that says 'that's not right' over the part of me that wants the simple version. You should too."` },
     { id: "why", keys: ["why warn", "why tell me", "why trust", "why me", "why are you", "why bother", "trust you", "trust me"],

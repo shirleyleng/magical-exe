@@ -86,6 +86,19 @@ export function enterDungeon(state, dungeonId = "forest") {
   const d = DUNGEONS[dungeonId];
   if (!d) { pushLine(state, "There's nowhere like that to explore.", "system"); return state; }
   const model = state.model;
+  // You can't walk back into the place that took your companion — not while they're
+  // still gone. Offer the alliance's road instead (lifts once they're recovered).
+  if (dungeonId === "spire" && model.world.flags.mascotGone) {
+    const m = (model.mascot && model.mascot.name) || "your companion";
+    const rival = (model.rivals && model.rivals[0] && model.rivals[0].name) || "Sable";
+    pushLine(state, `You set foot on the first rain-worn step of the Sorrowing Spire — and stop dead. Your body simply will not climb it. Not back up there. Not to the place that took ${m}, and not as you are now.`, "system");
+    pushLine(state, `${rival}'s words come back to you, quiet and certain: stop fighting the way you were trained to, and ASK the alliance for a better way. There's nothing for you at the top of that spire yet — only the same grief, waiting.`, "mascot");
+    state.ui.menu = { active: true, kind: "spireBlock", options: [
+      { label: "Reach out to the alliance", value: "alliance" },
+      { label: "Turn back for now", value: "__turnback__" },
+    ], index: 0 };
+    return state;
+  }
   if (model.character.stats.stamina <= 0) {
     pushLine(state, "You're too exhausted to set out. Rest to recover Stamina first.", "system");
     return state;

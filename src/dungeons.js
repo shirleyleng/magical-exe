@@ -226,7 +226,7 @@ export const DUNGEONS = {
       },
       secret_hollow: {
         name: "The Remembering",
-        desc: "Memories hang in the mist like washing on a line: the mascot teaching you to stand, to breathe, to try again. Among them, half-seen, the shape of a beloved old toy turns slowly, just out of reach. The mist deepens ahead.",
+        desc: "Memories hang in the mist like washing on a line: your magical companion teaching you to stand, to breathe, to try again. Among them, half-seen, the shape of a beloved old toy turns slowly, just out of reach. The mist deepens ahead.",
         exits: { out: "secret_threshold", in: "secret_heart" },
         items: ["dew vial"],
         encounter: { monster: "grief_wisp", chance: 0.4 },
@@ -234,7 +234,7 @@ export const DUNGEONS = {
       },
       secret_heart: {
         name: "The Still Heart",
-        desc: "At the center of everything, the mascot lies sleeping, curled around a small object that gives off its own quiet light. Between you and them stands a figure wearing your own face — and your own worst doubt.",
+        desc: "At the center of everything, your magical companion lies sleeping, curled around a small object that gives off its own quiet light. Between you and them stands a figure wearing your own face — and your own worst doubt.",
         exits: { out: "secret_hollow" },
         items: [],
         encounter: null,

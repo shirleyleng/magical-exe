@@ -102,7 +102,7 @@ const TOWNSFOLK = [
       { label: "The kitten's safe, but Pen's still shaking — walk them the long way home and let them talk",
         outcome: "Pen talks the entire way: about the kitten, about the grey, about being scared in a way they don't have grown-up words for yet and so describe with terrible, perfect accuracy. You mostly listen. By their gate they're walking lighter. So, you notice, are you." },
       { label: "Pen's afraid the grey will take the kitten for good — teach them the little warding song",
-        outcome: "It's the silly hum your mascot taught you, the one for small frightened things in the dark. Pen learns it in one go and sings it, fierce and off-key, into the kitten's fur. \"Now it can't get us,\" they declare. And the awful thing is — said like that, you almost believe it too." },
+        outcome: "It's the silly hum your magical companion taught you, the one for small frightened things in the dark. Pen learns it in one go and sings it, fierce and off-key, into the kitten's fur. \"Now it can't get us,\" they declare. And the awful thing is — said like that, you almost believe it too." },
     ],
     payoff: {
       line: "Pen barrels into you at the corner, beaming, kitten draped over one shoulder. \"It's BRIGHTER. Look! I sang it every night like you said!\" And — you'd swear it on anything — the little creature's fur does catch the light a shade warmer than the grey ever allowed. \"When I'm big,\" Pen announces, \"I'm gonna be exactly like you.\"",

@@ -58,7 +58,7 @@ export function tickRival(state) {
     rival.disposition = "respectful";
     rival.scheduleState = "returned";
     pushLine(state, `${rival.name} is leaning against your gate again — but the smirk's gone, and they're not quite meeting your eye.`, "banner");
-    pushLine(state, `"You've gotten strong. Properly strong — strong enough that I'll trust you with something I shouldn't. Not everything about the corruption is the way your mascot tells it. They're not lying to you. They just don't have the whole shape of it either."`, "mascot");
+    pushLine(state, `"You've gotten strong. Properly strong — strong enough that I'll trust you with something I shouldn't. Not everything about the corruption is the way your magical companion tells it. They're not lying to you. They just don't have the whole shape of it either."`, "mascot");
     pushLine(state, `"I'm still alliance, before you ask. But I've seen things the people higher up don't put in the briefings. Keep winning. And for both our sakes — keep your eyes open while you do it."`, "mascot");
     pushLine(state, `"…And I'll keep coming for you. Somebody's got to keep you sharp, and clearly it's going to have to be me." They almost smile. It's a near thing.`, "mascot");
     return beginRivalTalk(state, "return"); // she lingers — you can talk to her now

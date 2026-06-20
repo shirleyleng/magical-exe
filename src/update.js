@@ -580,7 +580,7 @@ function cleanProse(text) {
 /** Friendly message when the AI parser couldn't be used (gated / offline). */
 function aiUnavailableLine(reason) {
   if (reason === "resting" || reason === "limit") {
-    return "The mascot's a little tuckered out — sticking to plain commands for now.";
+    return "Your magical companion's a little tuckered out — sticking to plain commands for now.";
   }
   return "Hmm, I didn't quite catch that.";
 }

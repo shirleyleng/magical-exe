@@ -187,10 +187,10 @@ export function handleStoryLoss(state) {
 
   // The rival pivots: the thread of hope, and the road to T18.
   pushLine(state, "", "system");
-  pushLine(state, `A knock. ${rival.name} lets themselves in without waiting, takes one look at the empty room and the way you're sitting in it, and goes very still. The usual edge drops clean off them. "...So it took your mascot. I'm sorry. Truly. They don't come back from that on their own — I won't lie to you about that part."`, "banner");
+  pushLine(state, `A knock. ${rival.name} lets themselves in without waiting, takes one look at the empty room and the way you're sitting in it, and goes very still. The usual edge drops clean off them. "...So it took your magical companion. I'm sorry. Truly. They don't come back from that on their own — I won't lie to you about that part."`, "banner");
   pushLine(state, `"So listen to me. Hitting that thing head-on was never going to work — ${m} knew it, that's the whole reason it stepped in front of you. Stop fighting the way they trained you to and ASK the alliance for a better way. There's a war they're losing very, very quietly, and nobody up top wants to say so out loud."`, "mascot");
   pushLine(state, `"And there's a tier past Knight. Awakened. You reach it by going back to find what you were before any of this got its hands on you — and if anything in this world can wake ${m} again, it's that. Go to the alliance. Then come back to me."`, "mascot");
-  pushLine(state, `"I can't train you the way your mascot did — I don't have that kind of gentle in me. But I can make you bleed for every inch, and right now that might be exactly what you need. Spar with me. Type ‘spar.’ And don't you DARE give up on me." For once, there's no smirk anywhere on their face.`, "mascot");
-  pushLine(state, "(Training is gone with your mascot. You can SPAR with " + rival.name + " now — a harder road, but the only one left. Type spar.)", "hint");
+  pushLine(state, `"I can't train you the way your magical companion did — I don't have that kind of gentle in me. But I can make you bleed for every inch, and right now that might be exactly what you need. Spar with me. Type ‘spar.’ And don't you DARE give up on me." For once, there's no smirk anywhere on their face.`, "mascot");
+  pushLine(state, "(Training is gone with your magical companion. You can SPAR with " + rival.name + " now — a harder road, but the only one left. Type spar.)", "hint");
   return state;
 }

@@ -126,5 +126,5 @@ export const HELP = [
   "  Explore: n s e w · look · take <item> · retreat",
   "  Meta:    status · save [name] · load · saves · delete <name> · /help",
   "  Settings: settings  (theme / color palette · about & credits)",
-  "Or just describe what you want to do in your own words — the mascot will try to follow.",
+  "Or just describe what you want to do in your own words — your magical companion will try to follow.",
 ];
