@@ -64,6 +64,7 @@ export function coolUnmasking(ch) {
 /** Fire any newly-crossed Unmasking event. Call after an Unmasking gain. */
 export function checkUnmaskingEvents(state) {
   const ch = state.model.character;
+  if (ch.identityRevealed) return; // once the mask is off, heat is meaningless — no more events
   const tier = unmaskingTier(ch.unmasking || 0);
   if (tierIndex(tier) <= tierIndex(ch.unmaskingTierSeen || "none")) return;
   ch.unmaskingTierSeen = tier;
@@ -80,9 +81,18 @@ function fireUnmaskingEvent(state, tier) {
     state.model.hub.pendingDamageControl = true; // costs a slot at the start of your next day
     pushLine(state, "(You'll burn part of tomorrow covering your tracks. Lower your Unmasking before this gets worse.)", "hint");
   } else if (tier === "high") {
-    pushLine(state, "‼ YOUR IDENTITY IS ON THE LINE. One more public mistake and the mask comes off for good.", "banner");
     ch.mustLieLow = true; // no public skirmishes until heat drops below mid
-    pushLine(state, "(You can't risk public magic now. `lie low` or `misdirection` until the heat dies down.)", "hint");
+    // The FIRST time you cross high, the danger isn't abstract — it arrives as a
+    // person to save. Arm the one-shot crisis; update.js surfaces the menu the
+    // moment you're back at the hub (never mid-combat). After it's resolved once,
+    // re-crossing high just reinstates the lie-low warning.
+    if (!state.model.world.flags.unmaskingCrisisSeen) {
+      ch.pendingUnmaskingCrisis = true;
+      pushLine(state, "‼ YOUR IDENTITY IS ON THE LINE — and the city isn't going to give you a quiet moment to fix it.", "banner");
+    } else {
+      pushLine(state, "‼ The heat flares back to the edge. One more public mistake and the mask comes off for good.", "banner");
+      pushLine(state, "(You can't risk public magic now. `lie low` or `misdirection` until the heat dies down.)", "hint");
+    }
   }
 }
 
@@ -102,6 +112,10 @@ export function relaxUnmasking(state) {
 /** A short status line on current heat — shown in the rest recap. */
 export function recapHeat(state) {
   const ch = state.model.character;
+  if (ch.identityRevealed) {
+    pushLine(state, "The city knows your face now. There's no heat left to hide from — only a name to live up to.", "hint");
+    return;
+  }
   const tier = unmaskingTier(ch.unmasking || 0);
   if (tier === "none") return;
   const note = {

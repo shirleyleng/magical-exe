@@ -372,6 +372,7 @@ body {
 .unmask--low  { color: var(--accent); }
 .unmask--mid  { color: #d98a3d; }
 .unmask--high { color: #e0556a; font-weight: 700; }
+.unmask--revealed { color: var(--accent); font-style: italic; }
 
 .panel--mascot .panel__body {
   display: flex;

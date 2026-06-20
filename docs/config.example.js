@@ -73,6 +73,25 @@ export const CONFIG = {
     minDay: 2,           // don't pester the player on day 1
   },
 
+  // ---- the Unmasking crisis (T20 high-threshold reveal-or-hide fork) ----
+  // One-shot forced story crisis the first time Unmasking crosses `high`: someone
+  // is in danger in the open and the only way to save them is to act as your
+  // magical self in front of the city. Surfaces back at the hub right after the
+  // public win that exposed you (never mid-combat). Latched in flags.unmaskingCrisisSeen.
+  // Magnitudes feed the finale hope gate (endgame.js effHopeThreshold = clamp(50 −
+  // fame·0.2, 30, 50)): a big Fame swing from `reveal` lowers the hope you'll need.
+  unmaskingCrisis: {
+    // REVEAL — tear off the mask, save them in the open. Permanent one-way door.
+    //   Fame = axes.fame.gainSaveCivilian + revealFameBonus (a famous, witnessed choice).
+    reveal:  { revealFameBonus: 24, hope: 8 },
+    // STAY HIDDEN — save them quietly, at a cost. Retreat into the shadows.
+    hide:    { hope: -6, unmaskingShed: 30 },  // keeps mustLieLow until heat falls below mid
+    // CLOUD THEIR MEMORY (virtuous-only) — keep the secret kindly; it drains your magic.
+    cloud:   { hope: 3, spiritCost: 2, unmaskingShed: 18 },
+    // SILENCE THE WITNESS (corrupt-only) — keep the secret by force; conspicuous + dark.
+    silence: { corruption: 10, unmasking: 6, hope: -4 },
+  },
+
   // ---- starting character stats ----
   startingStats: {
     hp: 30, maxHp: 30, power: 6, spirit: 6, defense: 4,

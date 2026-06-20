@@ -339,6 +339,14 @@ function unmaskingBar(c) {
 const UNMASK_LABEL = { none: "hidden", low: "rumors", mid: "hunted", high: "EXPOSED" };
 
 function metersHtml(c) {
+  // Once the mask is off for good, the Unmasking danger bar is meaningless — the
+  // city already knows your face. Swap it for a quiet "public hero" readout.
+  if (c.identityRevealed) {
+    return (
+      `Fame   ${c.fame || 0}\n` +
+      `Unmask <span class="unmask unmask--revealed">— known to the city</span>`
+    );
+  }
   const tier = unmaskingTier(c.unmasking || 0);
   const warn = tier === "mid" || tier === "high" ? "⚠ " : "";
   const label = UNMASK_LABEL[tier];

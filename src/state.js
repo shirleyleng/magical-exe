@@ -55,6 +55,8 @@ function freshCharacter() {
     unmasking: CONFIG.startingMeters.unmasking,
     unmaskingTierSeen: "none",      // highest Unmasking event tier already fired (T15)
     mustLieLow: false,              // high-threshold lock: no public skirmishes until heat drops (T15)
+    pendingUnmaskingCrisis: false,  // T20: high tier crossed → surface the reveal-or-hide crisis at the hub
+    identityRevealed: false,        // T20: tore off the mask in public — permanent; heat stops mattering
     hopeTally: CONFIG.startingMeters.hopeTally,
     inventory: [],
     abilities: ["light bolt", "guard"],
@@ -92,6 +94,7 @@ export function freshModel(opts = {}) {
         boss4Attempted: false, mascotGone: false, sparringUnlocked: false,
         allianceVisited: false, secretPlaceUnlocked: false,
         dilemmasSeen: [],
+        unmaskingCrisisSeen: false, // T20: the one-shot reveal-or-hide crisis has fired
         ascended: false, // T19: set once the finale resolves into an ascension win
         roomBeats: [],   // dungeon lore beats already surfaced (keyed by room id)
       },
@@ -119,6 +122,9 @@ export function createState(model) {
     // Backfill T15 fields for older saves so events/locks read correctly.
     if (m.character.unmaskingTierSeen === undefined) m.character.unmaskingTierSeen = "none";
     if (m.character.mustLieLow === undefined) m.character.mustLieLow = false;
+    // Backfill T20 (Unmasking reveal-or-hide crisis) fields.
+    if (m.character.pendingUnmaskingCrisis === undefined) m.character.pendingUnmaskingCrisis = false;
+    if (m.character.identityRevealed === undefined) m.character.identityRevealed = false;
   }
   // Backfill T16 story-beat + rival-schedule tracking for older saves.
   if (m.world && m.world.flags) {
@@ -137,6 +143,8 @@ export function createState(model) {
     if (f.secretPlaceUnlocked === undefined) f.secretPlaceUnlocked = false;
     // Backfill T19 (dilemma events) tracking.
     if (f.dilemmasSeen === undefined) f.dilemmasSeen = [];
+    // Backfill T20 Unmasking-crisis latch.
+    if (f.unmaskingCrisisSeen === undefined) f.unmaskingCrisisSeen = false;
     // Backfill T19 finale flag.
     if (f.ascended === undefined) f.ascended = false;
     // Backfill dungeon lore-beat tracking (fleshed-out Harbor/Clocktower).

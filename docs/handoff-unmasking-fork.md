@@ -1,6 +1,18 @@
 # Handoff prompt — build the high-tier Unmasking "reveal-or-hide" fork
 
-> Paste the section below into a fresh session. It's written to be acted on cold.
+> ✅ **BUILT (T20, 2026-06-20).** This crisis now ships. Decisions settled with the
+> user: reveal = permanent one-way door; stay-hidden = saved quietly at a cost;
+> the path-gated third branch (cloud/silence) is built; the menu surfaces at the
+> hub right after the public win (via `afterCombat`). Implementation:
+> `src/unmaskingcrisis.js` (scene + 4-way resolver), armed in `visibility.js`
+> (`fireUnmaskingEvent` high branch → `character.pendingUnmaskingCrisis`), routed in
+> `update.js` (`afterCombat` surfaces it, `menuSelect` kind `unmaskingcrisis`,
+> non-escapable in `menuCancel`), config in `unmaskingCrisis` block (both
+> `config.js` + `docs/config.example.js`), HUD revealed readout in `render.js` +
+> `.unmask--revealed` in `styles.css`, latch `flags.unmaskingCrisisSeen` +
+> `character.identityRevealed`/`pendingUnmaskingCrisis` seeded & backfilled in
+> `state.js`. Test: `scripts/sim/unmasking-crisis-test.js` (11 checks). The
+> sections below are the original spec, kept for reference.
 
 ---
 

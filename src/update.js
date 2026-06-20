@@ -30,6 +30,7 @@ import { enterDungeon, openExploreMenu, moveDir, lookRoom, takeItem, retreat, ex
 import { unlockedDungeons, resolveDungeon, DUNGEONS } from "./dungeons.js";
 import { tickRival } from "./rival.js";
 import { maybeDilemma, resolveDilemma } from "./dilemmas.js";
+import { maybeUnmaskingCrisis, resolveUnmaskingCrisis } from "./unmaskingcrisis.js";
 import {
   startCombat, playerAttack, playerGuard, playerBurst, playerSpare, combatUse, combatLook, playerFlee,
   applyJudgedAction,
@@ -46,7 +47,9 @@ function afterCombat(out) {
   if (out.ui.justDefeatedBoss) return handleBossDefeat(out);
   if (out.ui.justLostStoryBoss) return handleStoryLoss(out);
   if (out.ui.finaleResolve) return handleFinaleResolve(out);
-  return out;
+  // A public win may have just crossed the top Unmasking tier — surface the
+  // reveal-or-hide crisis now that we're safely back at the hub (no-op otherwise).
+  return maybeUnmaskingCrisis(out);
 }
 
 export function update(state, event) {
@@ -146,6 +149,12 @@ export function update(state, event) {
         s.ui.menu = null;
         return resolveDilemma(s, dilemmaId, opt.value);
       }
+      if (m.kind === "unmaskingcrisis") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        return resolveUnmaskingCrisis(s, opt.value); // T20: reveal / hide / (path-gated) cloud|silence
+      }
       if (m.kind === "brink") {
         const opt = m.options[m.index];
         pushLine(s, opt.label, "echo");
@@ -176,8 +185,9 @@ export function update(state, event) {
       return onAIResult(s, event);
     case "menuCancel": {
       const m = s.ui.menu;
-      // creation + the finale brink are not escapable (the brink has no take-back).
-      if (m && m.active && m.kind !== "creation" && m.kind !== "brink") {
+      // creation, the finale brink, and the Unmasking crisis are not escapable
+      // (each is a forced, no-take-back choice).
+      if (m && m.active && m.kind !== "creation" && m.kind !== "brink" && m.kind !== "unmaskingcrisis") {
         if (m.kind === "theme") s.ui.effect = { type: "theme", id: m.original, preview: true }; // undo preview
         s.ui.menu = null;
         pushLine(s, "(cancelled)", "hint");
