@@ -125,6 +125,7 @@ export function freshModel(opts = {}) {
         unmaskingCrisisSeen: false, // T20: the one-shot reveal-or-hide crisis has fired
         ascended: false, // T19: set once the finale resolves into an ascension win
         finaleActive: false, // T19: keeps finale music through the brink + ending (cleared on next command)
+        finaleCorrupt: false, // T19: set when the player chooses "seize" at the brink — swaps to the dark-finale theme
         roomBeats: [],   // dungeon lore beats already surfaced (keyed by room id)
       },
     },
@@ -190,6 +191,7 @@ export function createState(model) {
     // Backfill T19 finale flag.
     if (f.ascended === undefined) f.ascended = false;
     if (f.finaleActive === undefined) f.finaleActive = false;
+    if (f.finaleCorrupt === undefined) f.finaleCorrupt = false;
     // Backfill dungeon lore-beat tracking (fleshed-out Harbor/Clocktower).
     if (f.roomBeats === undefined) f.roomBeats = [];
     // Backfill recurring-errand relationship progress (living-town errands).

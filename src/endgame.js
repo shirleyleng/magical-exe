@@ -106,7 +106,10 @@ export function resolveBrink(state, choice) {
   if (choice === "hope") {
     return enoughHope ? virtuousAscension(state) : quietTragedy(state);
   }
-  // seize
+  // seize — the music turns the moment the player commits to the dark road,
+  // regardless of whether they have the corruption to hold it (Eldritch Merge
+  // is still a seize-path ending, just one without enough fuel to stay whole).
+  state.model.world.flags.finaleCorrupt = true;
   return enoughSeize ? darkAscension(state) : eldritchMerge(state);
 }
 

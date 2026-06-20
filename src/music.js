@@ -29,6 +29,8 @@ const TRACKS = {
   // The Misted Place (secret dungeon) and the companion's revival
   "Mothlight Box":          "Mothlight Box.mp3",
   "Pastel Return":          "Pastel Return.mp3",
+  // The City's Despair finale (hope path)
+  "Heart of the City":      "Heart of the City.mp3",
 };
 
 // Each scene is a playlist. Multi-track scenes advance track-to-track as
@@ -48,7 +50,10 @@ const SCENES = {
   "combat-secret":     ["Mothlight Box"],
   combat:  ["Star Wand Static"], // generic fallback (hub skirmishes, later dungeons)
   boss:    ["Sailor Hope"],      // boss fights in dungeons without their own theme
-  finale:  ["Sailor Hope"],
+  finale:  ["Heart of the City"], // the City's Despair fight + the hope-path brink/ending
+  // The corrupted path: kicks in the moment the player chooses to seize the Despair.
+  // (Falls through to `finale` until the dark-finale track is added.)
+  "finale-dark": ["Heart of the City"],
 };
 
 // Which dungeon (world.currentLocation) maps to which battle scene.
@@ -101,7 +106,11 @@ export function sceneForModel(model) {
   if (!model || !model.character || !model.character.created) return "title";
   // The finale theme carries through the fight, the brink choice, and the ending
   // (flags.finaleActive stays set until the player issues their next command).
-  if (model.world && model.world.flags && model.world.flags.finaleActive) return "finale";
+  // Once the player chooses to SEIZE the Despair at the brink, the music turns:
+  // finale-dark covers both Dark Ascension and the Eldritch Merge.
+  if (model.world && model.world.flags && model.world.flags.finaleActive) {
+    return model.world.flags.finaleCorrupt ? "finale-dark" : "finale";
+  }
   if (model.mode === "combat" && model.combat) {
     if (model.combat.finale) return "finale";
     // A dungeon with its own battle theme uses it for every fight there (boss included).

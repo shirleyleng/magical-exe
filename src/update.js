@@ -258,6 +258,7 @@ function onInput(s, event) {
   // command means they've moved on, so hand the music back to the hub.
   if (s.model.world && s.model.world.flags && s.model.world.flags.finaleActive) {
     s.model.world.flags.finaleActive = false;
+    s.model.world.flags.finaleCorrupt = false;
   }
 
   // Dev-only escape hatch (not a real game verb).

@@ -73,7 +73,20 @@ console.log("Tragedy credits:");
   ok("non-ascension endings also roll credits");
 }
 
-// ---- 5. The mascot's deity art exists (god-tier panel source) ----
+// ---- 5. Corrupt brink → music swaps to finale-dark; clears with next command ----
+console.log("Corrupt music:");
+{
+  const s = atBrink((m) => { m.character.path = "corrupt"; m.character.corruption = 80; });
+  resolveBrink(s, "seize");
+  assert.strictEqual(s.model.world.flags.finaleCorrupt, true, "seize flips the corrupt flag");
+  assert.strictEqual(sceneForModel(s.model), "finale-dark", "music turns dark");
+  const s2 = update(s, { type: "input", text: "status" });
+  assert.strictEqual(s2.model.world.flags.finaleCorrupt, false, "next command clears it");
+  assert.strictEqual(sceneForModel(s2.model), "hub", "and returns the player to the hub track");
+  ok("seize at the brink turns the music dark, and clears on next command");
+}
+
+// ---- 6. The mascot's deity art exists (god-tier panel source) ----
 console.log("God-tier art:");
 {
   assert.ok(ART.catflick_deity && /♡/.test(ART.catflick_deity), "per-base deity art present for the panel");
