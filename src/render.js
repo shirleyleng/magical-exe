@@ -278,7 +278,8 @@ function renderStats(model) {
   const s = c.stats;
   const eff = effectiveStats(c);          // warp: Power up / HP down · grace: Defense up
   const mark = isWarped(c) ? "  ⚠" : isGraced(c) ? "  ✦" : "";
-  const pad = (n, w = 3) => String(n).padEnd(w);
+  // One stat per line; labels padded to a fixed width so the values line up.
+  const row = (label, value) => `${label.padEnd(8)}${value}`;
 
   const statusLine =
     model.mode === "hub"
@@ -293,12 +294,14 @@ function renderStats(model) {
     `Day ${model.day} · ${model.mode} · ${c.transformationTier}${prestigeTag}`,
     statusLine,
     ``,
-    `HP    ${s.hp}/${eff.maxHp}`,
-    `PWR ${pad(eff.power)} SPR ${pad(s.spirit)}`,
-    `DEF ${pad(eff.defense)} SPD ${pad(s.speed)}`,
-    `DODGE ${s.dodge}`,
-    `STA   ${s.stamina}/${s.maxStamina}`,
-    `Coins ${CONFIG.economy.currencySymbol}${c.coins ?? 0}`,
+    row("HP", `${s.hp}/${eff.maxHp}`),
+    row("Stamina", `${s.stamina}/${s.maxStamina}`),
+    row("Power", eff.power),
+    row("Spirit", s.spirit),
+    row("Defense", eff.defense),
+    row("Speed", s.speed),
+    row("Dodge", s.dodge),
+    row("Coins", `${CONFIG.economy.currencySymbol}${c.coins ?? 0}`),
     `──────────────`,
     `Virtue ${alignmentBar(c)} Corr${mark}`,
   ].join("\n");
