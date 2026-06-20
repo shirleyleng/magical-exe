@@ -37,6 +37,19 @@ function currentRoom(model) {
   return getRoom(model.world.currentLocation, model.world.currentRoom);
 }
 
+/** Fire a room's one-time lore beat the first time it's peacefully taken in (no
+ *  encounter/boss interrupting). Latched in world.flags.roomBeats so it never repeats. */
+function maybeRoomBeat(state) {
+  const model = state.model;
+  const r = currentRoom(model);
+  if (!r || !r.roomBeat) return;
+  const flags = model.world.flags;
+  if (!flags.roomBeats) flags.roomBeats = [];
+  if (flags.roomBeats.includes(model.world.currentRoom)) return;
+  flags.roomBeats.push(model.world.currentRoom);
+  pushLine(state, r.roomBeat, "system");
+}
+
 /** Live (mutable, per-playthrough) item list for a room, seeded from data. */
 function liveItems(model, roomId) {
   if (!model.world.roomItems) model.world.roomItems = {};
@@ -89,6 +102,7 @@ export function enterDungeon(state, dungeonId = "forest") {
     pushLine(state, `You slip away to the ${d.name}.`, "system");
   }
   describeRoom(state);
+  maybeRoomBeat(state);
   maybeNarrateRoom(state);
   return state;
 }
@@ -196,7 +210,8 @@ export function moveDir(state, dir) {
   if (nr && nr.encounter && !model.world.cleared[dest] && Math.random() < nr.encounter.chance) {
     return startCombat(state, nr.encounter.monster, { returnMode: "exploration", returnRoom: dest });
   }
-  maybeNarrateRoom(state); // no encounter — narrate the new room
+  maybeRoomBeat(state);    // no encounter — surface any lore beat, then narrate
+  maybeNarrateRoom(state);
   return state;
 }
 

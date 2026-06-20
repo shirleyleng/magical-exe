@@ -95,6 +95,17 @@ export const CONFIG = {
       { id: "stamina_tonic",   name: "stamina tonic",   price: 6, sell: 3, type: "stamina", amount: 15 },
       { id: "moonstone_shard", name: "moonstone shard", price: 12, sell: 6, type: "material" },
     ],
+    // Non-shop items: loot drops + the signature find from each dungeon. `use <item>`
+    // reads `type` exactly like the shop catalog (findItem searches both). The goth-cozy
+    // flavour for each lives in hub.useItem.
+    //   restore -> tops up BOTH HP (`hp`) and Stamina (`stamina`); a big number means "to full".
+    items: [
+      { id: "dew_vial", name: "dew vial", type: "heal", amount: 12 },
+      // Drowned Harbor — a panic-heal wrung from sea-glass.
+      { id: "tideglass_charm", name: "tideglass charm", type: "restore", hp: 30, stamina: 12 },
+      // Hollow Clocktower — gives the road behind you back; a long second wind.
+      { id: "stopped_hour_cog", name: "stopped-hour cog", type: "restore", hp: 10, stamina: 999 },
+    ],
   },
 
   // ---- crafting ----

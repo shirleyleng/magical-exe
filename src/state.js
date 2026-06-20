@@ -93,6 +93,7 @@ export function freshModel(opts = {}) {
         allianceVisited: false, secretPlaceUnlocked: false,
         dilemmasSeen: [],
         ascended: false, // T19: set once the finale resolves into an ascension win
+        roomBeats: [],   // dungeon lore beats already surfaced (keyed by room id)
       },
     },
     combat: null,      // active fight state, or null (set by combat.js)
@@ -138,6 +139,8 @@ export function createState(model) {
     if (f.dilemmasSeen === undefined) f.dilemmasSeen = [];
     // Backfill T19 finale flag.
     if (f.ascended === undefined) f.ascended = false;
+    // Backfill dungeon lore-beat tracking (fleshed-out Harbor/Clocktower).
+    if (f.roomBeats === undefined) f.roomBeats = [];
     // Backfill recurring-errand relationship progress (living-town errands).
     if (m.world.townsfolk === undefined) m.world.townsfolk = {};
   }

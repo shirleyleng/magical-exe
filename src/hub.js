@@ -278,8 +278,19 @@ export function openSparMenu(state) {
 
 /* ---- shop (free, no slot) ---- */
 function findItem(id) {
-  return CONFIG.economy.shop.find((it) => it.id === id || it.name === id);
+  const inShop = CONFIG.economy.shop.find((it) => it.id === id || it.name === id);
+  if (inShop) return inShop;
+  return (CONFIG.economy.items || []).find((it) => it.id === id || it.name === id);
 }
+
+/* Goth-cozy flavour for the signature dungeon finds when you spend them. Keyed by
+   item name; a generic line covers anything else of type "restore". */
+const RESTORE_FLAVOR = {
+  "tideglass charm":
+    "You close your hand around the tideglass and the harbor gives back what it drowned — cold salt-light spreading up your arm, into your chest.",
+  "stopped-hour cog":
+    "You thumb the dead cog and the road behind you quietly un-walks itself; the ache simply forgets it was ever in your legs.",
+};
 const coin = () => CONFIG.economy.currencySymbol;
 
 /** Human-readable effect of an item, built from its type/amount (facts stay in config). */
@@ -462,6 +473,18 @@ export function useItem(state, target) {
     stats.stamina = Math.min(stats.maxStamina, stats.stamina + it.amount);
     ch.inventory.splice(i, 1);
     pushLine(state, `You drink the ${name}. Stamina is now ${stats.stamina}/${stats.maxStamina}.`, "system");
+    return state;
+  }
+  if (it && it.type === "restore") {
+    if (stats.hp >= stats.maxHp && stats.stamina >= stats.maxStamina) {
+      pushLine(state, `You're already whole — best to save the ${name} for when it's dire.`, "system");
+      return state;
+    }
+    stats.hp = Math.min(stats.maxHp, stats.hp + (it.hp || 0));
+    stats.stamina = Math.min(stats.maxStamina, stats.stamina + (it.stamina || 0));
+    ch.inventory.splice(i, 1);
+    const flavor = RESTORE_FLAVOR[name] || `You spend the ${name}; warmth floods back through you.`;
+    pushLine(state, `${flavor} HP ${stats.hp}/${stats.maxHp} · Stamina ${stats.stamina}/${stats.maxStamina}.`, "system");
     return state;
   }
   if (it && it.type === "material") {

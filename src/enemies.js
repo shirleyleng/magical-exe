@@ -38,6 +38,22 @@ export const ENEMIES = {
     coins: 7,
     loot: ["dew vial"],
   },
+  // A second harbor mob (the Sunken Chapel): a slow, heavy revenant still in its oilskins.
+  drowned_sailor: {
+    id: "drowned_sailor",
+    name: "drowned sailor",
+    maxHp: 32, power: 11, defense: 2, speed: 4, dodge: 2,
+    coins: 8,
+    loot: ["dew vial"],
+  },
+  // Side-room guardian (Glass Tidepool): the harbor's own reflection, risen to keep its glass.
+  glass_warden: {
+    id: "glass_warden",
+    name: "glass warden",
+    maxHp: 48, power: 12, defense: 5, speed: 7, dodge: 4,
+    coins: 18,
+    loot: ["moonstone shard"],
+  },
   // Boss #2 — meet-the-rival gate.
   tideheart_wraith: {
     id: "tideheart_wraith",
@@ -54,6 +70,22 @@ export const ENEMIES = {
     name: "gear wretch",
     maxHp: 34, power: 11, defense: 4, speed: 5, dodge: 3,
     coins: 9,
+    loot: ["moonstone shard"],
+  },
+  // A second clocktower mob (the Hour-Keeper's Room): a fast, fragile thing of wings and brass.
+  brass_moth: {
+    id: "brass_moth",
+    name: "brass moth",
+    maxHp: 28, power: 10, defense: 3, speed: 9, dodge: 6,
+    coins: 9,
+    loot: ["dew vial"],
+  },
+  // Side-room guardian (Pendulum Vault): a wound-down automaton that never got the word to stop.
+  stopped_sentinel: {
+    id: "stopped_sentinel",
+    name: "stopped sentinel",
+    maxHp: 56, power: 14, defense: 7, speed: 4, dodge: 1,
+    coins: 22,
     loot: ["moonstone shard"],
   },
   // Boss #3 — Soldier -> Knight gate.
