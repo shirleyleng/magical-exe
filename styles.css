@@ -485,11 +485,54 @@ body {
     min-height: 0;
   }
 
-  /* ---- Tab content switching ---- */
-  /* Terminal tab (default): panels hidden */
-  .layout[data-mobile-tab="terminal"] .panels { display: none; }
+  /* ---- Panels: the mascot is a persistent companion band above the terminal,
+     visible on EVERY tab. .panels sits at the top (order -1); it hugs the mascot
+     band on PLAY and grows to hold the scrollable stat sheet on STATUS. ---- */
+  .panels {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    min-height: 0;
+    order: -1;
+  }
 
-  /* Status tab: hide terminal scrollback, show status panel */
+  /* Mascot band: art on the left, name on the right — a slim strip, never the
+     full vertical card it is on desktop. Always shown. */
+  .panel--mascot {
+    flex: 0 0 auto;
+    order: -1; /* always pinned to the top of .panels, above the stat sheet */
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+  }
+  .panel--mascot .panel__title { display: none; }
+  .panel--mascot .panel__body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 0;
+  }
+  .panel--mascot .mascot-art {
+    flex: 0 0 auto;
+    margin: 0;
+    min-height: 0;
+    font-size: 11px;
+    line-height: 1.25;
+    text-align: left;
+  }
+  .panel--mascot .panel__body--muted {
+    margin: 0;
+    font-size: 12.5px;
+  }
+
+  /* PLAY tab (default): stats hidden, terminal fills the rest. */
+  .layout[data-mobile-tab="terminal"] .panel--stats { display: none; }
+
+  /* STATUS tab: mascot band stays, the stat sheet expands and scrolls below it,
+     terminal scrollback collapses to just the input line. */
   .layout[data-mobile-tab="status"] .output,
   .layout[data-mobile-tab="status"] .menu,
   .layout[data-mobile-tab="status"] .example-prompt,
@@ -506,48 +549,13 @@ body {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
   }
-  .layout[data-mobile-tab="status"] .panels {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    order: -1;
-  }
-  .layout[data-mobile-tab="status"] .panel--mascot { display: none; }
+  .layout[data-mobile-tab="status"] .panels { flex: 1; }
   .layout[data-mobile-tab="status"] .panel--stats {
+    display: flex;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
   }
-
-  /* Mascot tab: hide terminal scrollback, show mascot panel */
-  .layout[data-mobile-tab="mascot"] .output,
-  .layout[data-mobile-tab="mascot"] .menu,
-  .layout[data-mobile-tab="mascot"] .example-prompt,
-  .layout[data-mobile-tab="mascot"] .captcha { display: none !important; }
-  .layout[data-mobile-tab="mascot"] .terminal {
-    flex: 0 0 auto;
-    min-height: 0;
-    background: none;
-    border: none;
-    padding: 0;
-  }
-  .layout[data-mobile-tab="mascot"] .terminal .inputline {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-  }
-  .layout[data-mobile-tab="mascot"] .panels {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    order: -1;
-  }
-  .layout[data-mobile-tab="mascot"] .panel--stats { display: none; }
-  .layout[data-mobile-tab="mascot"] .panel--mascot {
-    flex: 1;
-    min-height: 0;
-  }
-  .panel--mascot .panel__body { min-height: 150px; }
 
   /* ---- Touch UX ---- */
   .inputline { padding: 12px 14px; }
