@@ -29,6 +29,15 @@ const ERef = (e) => (!e ? "It" : !builtInArticle(e) ? `The ${e.name}` : e.isRiva
 
 const coin = () => CONFIG.economy.currencySymbol;
 
+/* The player's awakened weapon as a noun phrase ("the PS Vita"), woven into
+   ability flavour via a {weapon} token (see "true strike"). Falls back if the
+   toy was never recorded. */
+const weaponNoun = (ch) => {
+  const t = ch && ch.magicalWeapon && ch.magicalWeapon.fromToy;
+  return t ? `the ${t}` : "your true weapon";
+};
+const resolveVerb = (ab, ch) => ((ab && ab["verb"]) || "").replace(/\{weapon\}/g, weaponNoun(ch));
+
 /* ---- environment tags (T13 plausibility judge) ----
    What the player can plausibly improvise with this fight. Read at startCombat
    from the current dungeon+room (exploration) or the hub defaults, then frozen
@@ -264,6 +273,7 @@ export function playerAbility(state, name) {
     pushLine(state, `You don't know "${name}". You know: ${ch.abilities.join(", ")}.`, "system");
     return state; // not a turn-consuming action
   }
+  const verb = resolveVerb(ab, ch); // {weapon} → the player's named weapon
   const eff = effectiveStats(ch);   // warp: Power up / HP down · grace: Defense up
   // Spirit is the magical-strength stat: it costs nothing to cast, but it SCALES an ability's
   // damage and healing (a high-Spirit mage hits and mends harder). `mult` multiplies it.
@@ -283,7 +293,7 @@ export function playerAbility(state, name) {
   if (ab.kind === "heal") {
     const heal = Math.max(1, Math.round((eff.maxHp * (ab.healPct || 0.3) + magic) * healMultiplier(ch)));
     stats.hp = Math.min(eff.maxHp, stats.hp + heal);
-    pushLine(state, `You ${ab.verb}; ${heal} HP returns.`, "system");
+    pushLine(state, `You ${verb}; ${heal} HP returns.`, "system");
 
   } else if (ab.kind === "lifesteal") {
     if (rolls(dodgeChance(e.dodge))) {
@@ -293,12 +303,12 @@ export function playerAbility(state, name) {
       e.hp = Math.max(0, e.hp - dmg);
       const heal = Math.max(1, Math.round(dmg * (ab.lifestealPct || 0.5)));
       stats.hp = Math.min(eff.maxHp, stats.hp + heal);
-      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}, drawing ${heal} back into yourself.`, "system");
+      pushLine(state, `You ${verb} ${eRef(e)} for ${dmg}, drawing ${heal} back into yourself.`, "system");
     }
 
   } else if (ab.kind === "buff") {
     if (ab.applyFx) installEffect(c, ab.applyFx.kind, ab.applyFx.magnitude, ab.applyFx.turns);
-    pushLine(state, `You ${ab.verb}.`, "system");
+    pushLine(state, `You ${verb}.`, "system");
 
   } else if (ab.kind === "purify") {
     if (hasFx(c, "burn")) delete c.fx.burn; // cleanse a lingering burn on yourself
@@ -314,11 +324,11 @@ export function playerAbility(state, name) {
       stats.hp = Math.min(eff.maxHp, stats.hp + heal);
       parts.push(`+${heal} HP`);
     }
-    pushLine(state, `You ${ab.verb}; the shadow in you thins.${parts.length ? ` (${parts.join(", ")})` : ""}`, "system");
+    pushLine(state, `You ${verb}; the shadow in you thins.${parts.length ? ` (${parts.join(", ")})` : ""}`, "system");
 
   } else { // damage (with optional applyFx, e.g. radiance's dazzle)
     if (rolls(dodgeChance(e.dodge))) {
-      pushLine(state, `You ${ab.verb} ${eRef(e)}, but it evades!`, "system");
+      pushLine(state, `You ${verb} ${eRef(e)}, but it evades!`, "system");
     } else {
       const dmg = damageAfterDefense(Math.round(magic * (ab.mult || 1)), exposedDefense(c, e));
       e.hp = Math.max(0, e.hp - dmg);
@@ -327,7 +337,7 @@ export function playerAbility(state, name) {
         installEffect(c, ab.applyFx.kind, ab.applyFx.magnitude, ab.applyFx.turns);
         extra = " The light leaves it reeling.";
       }
-      pushLine(state, `You ${ab.verb} ${eRef(e)} for ${dmg}!${extra}`, "system");
+      pushLine(state, `You ${verb} ${eRef(e)} for ${dmg}!${extra}`, "system");
     }
   }
 

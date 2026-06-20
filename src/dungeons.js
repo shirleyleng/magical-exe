@@ -4,7 +4,19 @@
    touching logic (DESIGN > State Shape). Static definition only —
    per-playthrough mutable bits (items taken) live in model.world, not
    here, so picking something up never mutates these constants.
+
+   Most room descs are plain strings; a few are (model) => string so they can
+   weave in the player's own toy/weapon and companion, or read differently once
+   their encounter is cleared (see the Misted Place). describeRoom resolves both.
    ============================================================ */
+
+/* The player's childhood toy as a possessive phrase ("your PS Vita"), and their
+   companion's name — woven into the memory-dungeon prose. */
+const toyPhrase = (m) => {
+  const t = m.character && m.character.magicalWeapon && m.character.magicalWeapon.fromToy;
+  return t ? `your ${t}` : "a beloved old toy";
+};
+const companionName = (m) => (m.mascot && m.mascot.name) || "your magical companion";
 
 export const DUNGEONS = {
   forest: {
@@ -226,7 +238,7 @@ export const DUNGEONS = {
       },
       secret_hollow: {
         name: "The Remembering",
-        desc: "Memories hang in the mist like washing on a line: your magical companion teaching you to stand, to breathe, to try again. Among them, half-seen, the shape of a beloved old toy turns slowly, just out of reach. The mist deepens ahead.",
+        desc: (m) => `Memories hang in the mist like washing on a line: ${companionName(m)} teaching you to stand, to breathe, to try again. Among them, half-seen, the shape of ${toyPhrase(m)} turns slowly, just out of reach. The mist deepens ahead.`,
         exits: { out: "secret_threshold", in: "secret_heart" },
         items: ["dew vial"],
         encounter: { monster: "grief_wisp", chance: 0.4 },
@@ -234,7 +246,10 @@ export const DUNGEONS = {
       },
       secret_heart: {
         name: "The Still Heart",
-        desc: "At the center of everything, your magical companion lies sleeping, curled around a small object that gives off its own quiet light. Between you and them stands a figure wearing your own face — and your own worst doubt.",
+        desc: (m) =>
+          m.world.flags.bossesDefeated.includes("secretPlace")
+            ? `The doubt that wore your face is gone, and the hush here has turned gentle. ${companionName(m)} keeps close at your side now — awake, dim but mending, wholly yours again — and ${toyPhrase(m)}, remade in light, rests sure in your grip. Nothing waits here anymore. Only the quiet, and the way back out.`
+            : `At the center of everything, ${companionName(m)} lies sleeping, curled around ${toyPhrase(m)}, glowing faint with its own quiet light. Between you and them stands a figure wearing your own face — and your own worst doubt.`,
         exits: { out: "secret_hollow" },
         items: [],
         encounter: null,

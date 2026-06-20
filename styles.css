@@ -421,7 +421,10 @@ body {
    sidebar is short, so the MASCOT below it is never clipped. MASCOT fills any
    leftover room and keeps a floor height so its art + caption always fit. */
 .panel--stats { flex: 0 1 auto; min-height: 0; }
-.panel--stats .panel__body { overflow-y: auto; min-height: 0; }
+/* overflow: hidden auto — clip X explicitly. (overflow-y:auto alone makes the
+   browser compute overflow-x:auto too, which surfaced a stray horizontal
+   scrollbar at high tiers when a status line ran long.) */
+.panel--stats .panel__body { overflow: hidden auto; min-height: 0; min-width: 0; }
 .panel--mascot { flex: 1 1 auto; min-height: 182px; }
 
 .panel__title {
@@ -443,7 +446,12 @@ body {
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-dim);
-  white-space: pre;
+  /* pre-wrap (not pre) so an over-long line — a high-tier status like
+     "VS Grief Herald 200/200" — wraps inside the panel instead of forcing a
+     horizontal scrollbar. Short aligned rows never reach the edge, so their
+     padded columns still line up. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .stat-block::first-line {
   color: var(--lilac);

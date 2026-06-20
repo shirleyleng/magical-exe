@@ -69,13 +69,15 @@ function recoverWeaponAndMascot(state) {
   const ch = model.character;
   const m = mascotName(state);
   ch.magicalWeapon.found = true;
+  const toy = ch.magicalWeapon.fromToy ? `your ${ch.magicalWeapon.fromToy}` : "the toy you loved";
   pushLine(state, "The doubt wearing your own face shudders, thins, and — at last, like a held breath finally let go — releases its grip on you.", "banner");
-  pushLine(state, `Where it stood, a small light gathers and hardens into something solid, something real: ${ch.magicalWeapon.object}. Your weapon. After all these years you'd know it in the pitch dark, by weight alone.`, "system");
+  pushLine(state, `Where it stood, a small light gathers and hardens into something solid, something real — ${ch.magicalWeapon.object}: ${toy}, kept close all these years and remade now into a weapon. You'd know it in the pitch dark, by weight alone.`, "system");
   pushLine(state, `And curled around it, half-buried in its own faint glow, ${m} stirs — battered, dimmed almost to nothing, but breathing. Its eyes crack open and find yours, and fill. "…You came back. For me. You absolute, wonderful idiot. I knew you would. I told myself you would the whole time."`, "mascot");
   if (model.mascot) { model.mascot.present = true; model.mascot.injured = false; }
-  model.world.flags.mascotGone = false; // training reopens (sparring stays — its own flag)
+  model.world.flags.mascotGone = false;       // training reopens (sparring stays — its own flag)
+  model.world.flags.mascotRecovered = true;   // latch the recovery
+  model.world.flags.pendingReturnPraise = true; // Sable greets you next time you reach the hub
   if (state.ui) state.ui.mascotReact = "hurt"; // it's back, but battered — the hurt animation plays
-
 }
 
 /* Narrative beats that fire when a boss falls, regardless of whether a tier-up
@@ -99,7 +101,9 @@ const BOSS_BEAT = {
     pushLine(state, "The Grief Herald comes apart at last — not beaten so much as finally *answered*, the way grief lets go when someone at last says the right thing to it. The long rain over the spire stops. The sky, for once, holds its breath.", "banner");
     pushLine(state, `${rival.name} is waiting when you come down, and for once they don't bother hiding the grin spreading across their face. "You went back up there. And you WON. …I had a whole speech ready, you know. Something cutting about not throwing your life away. Guess I'll just have to keep it."`, "mascot");
     pushLine(state, `"You're the real thing now — no asterisk. I'll keep coming for you, same as always. But as an equal, from here on. Somebody's got to keep an Awakened honest." They hold out a hand, and mean it.`, "mascot");
+    pushLine(state, "(They're waiting. You could shake their hand.)", "hint");
     rival.disposition = "respectful";
+    state.model.world.flags.pendingHandshake = true;
   },
 };
 

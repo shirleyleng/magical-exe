@@ -31,6 +31,22 @@ export function markStoryActivity(model) {
   if (model && model.hub) model.hub.lastVariedDay = model.day;
 }
 
+/** Capitalize a free-typed proper noun for prose: each word's first letter is
+ *  upper-cased; all-consonant words (likely acronyms — "ps"→PS, "tv"→TV,
+ *  "dvd"→DVD) are fully upper-cased; any word the player already cased (has an
+ *  uppercase letter) is left intact, so "iPhone"/"McGuffin" survive. "y" counts
+ *  as a vowel so everyday words ("my", "gameboy") aren't shouted. Idempotent;
+ *  null/empty passes through unchanged. */
+export function properNoun(s) {
+  if (!s) return s;
+  return String(s).replace(/\S+/g, (w) => {
+    if (/[A-Z]/.test(w)) return w;                       // player already cased it
+    const letters = w.replace(/[^a-z]/g, "");
+    if (letters.length >= 2 && !/[aeiouy]/.test(letters)) return w.toUpperCase(); // acronym
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  });
+}
+
 /** Derive pronouns from a gender presentation. */
 export function pronounsFor(gender) {
   switch (gender) {
@@ -102,9 +118,13 @@ export function freshModel(opts = {}) {
         bossesDefeated: [], storyBeats: [],
         boss4Attempted: false, mascotGone: false, sparringUnlocked: false,
         allianceVisited: false, secretPlaceUnlocked: false,
+        pendingReturnPraise: false, // T18: Sable greets you at the hub after the companion's recovery
+        mascotRecovered: false,     // T18: latched once the companion is recovered
+        pendingHandshake: false,    // T18: Sable's offered hand after the Boss #4 rematch (shake to take it)
         dilemmasSeen: [],
         unmaskingCrisisSeen: false, // T20: the one-shot reveal-or-hide crisis has fired
         ascended: false, // T19: set once the finale resolves into an ascension win
+        finaleActive: false, // T19: keeps finale music through the brink + ending (cleared on next command)
         roomBeats: [],   // dungeon lore beats already surfaced (keyed by room id)
       },
     },
@@ -135,7 +155,16 @@ export function createState(model) {
     // Backfill T20 (Unmasking reveal-or-hide crisis) fields.
     if (m.character.pendingUnmaskingCrisis === undefined) m.character.pendingUnmaskingCrisis = false;
     if (m.character.identityRevealed === undefined) m.character.identityRevealed = false;
+    // Capitalize free-typed proper nouns for prose (idempotent — fixes saves made
+    // before properNoun() existed: "ps vita" → "PS Vita", "clubhouse" → "Clubhouse").
+    m.character.name = properNoun(m.character.name);
+    m.character.city = properNoun(m.character.city);
+    m.character.secretPlace = properNoun(m.character.secretPlace);
+    if (m.character.magicalWeapon) {
+      m.character.magicalWeapon.fromToy = properNoun(m.character.magicalWeapon.fromToy);
+    }
   }
+  if (m.mascot && m.mascot.name) m.mascot.name = properNoun(m.mascot.name);
   // Backfill T16 story-beat + rival-schedule tracking for older saves.
   if (m.world && m.world.flags) {
     const f = m.world.flags;
@@ -151,12 +180,16 @@ export function createState(model) {
     // Backfill T18 (alliance / secret-place) flags.
     if (f.allianceVisited === undefined) f.allianceVisited = false;
     if (f.secretPlaceUnlocked === undefined) f.secretPlaceUnlocked = false;
+    if (f.pendingReturnPraise === undefined) f.pendingReturnPraise = false;
+    if (f.mascotRecovered === undefined) f.mascotRecovered = false;
+    if (f.pendingHandshake === undefined) f.pendingHandshake = false;
     // Backfill T19 (dilemma events) tracking.
     if (f.dilemmasSeen === undefined) f.dilemmasSeen = [];
     // Backfill T20 Unmasking-crisis latch.
     if (f.unmaskingCrisisSeen === undefined) f.unmaskingCrisisSeen = false;
     // Backfill T19 finale flag.
     if (f.ascended === undefined) f.ascended = false;
+    if (f.finaleActive === undefined) f.finaleActive = false;
     // Backfill dungeon lore-beat tracking (fleshed-out Harbor/Clocktower).
     if (f.roomBeats === undefined) f.roomBeats = [];
     // Backfill recurring-errand relationship progress (living-town errands).

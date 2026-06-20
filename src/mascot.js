@@ -91,54 +91,50 @@ export const ART = {
   ☆ · ✦ · ☆`,
 
   // T19 — Virtuous Ascension: the mascot becomes its own guardian-animal deity.
-  // A crowned, radiant elevation of the celebration pose (generic fallback).
-  deity_large: ` ☆  ·  ✦  ·  ☆
-  .  \\( ^o^ )/  .
- ✦ ──( ♡♡♡ )── ✦
-  '  /  |||  \\  '
- ☆  ·  ✦  ·  ☆`,
+  // A clean, centred 4-line figure — halo · haloed face · radiant heart-base ·
+  // halo — every line symmetric around the same centre column so it never looks
+  // ragged. Per-base forms vary only the face. (Generic fallback first.)
+  deity_large: `  ☆ · ✦ · ☆
+  ✦ (^o^) ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
 
-  // Per-base Virtuous Ascension forms — each fusion ascends into its OWN
-  // guardian-spirit deity: its real face, haloed and winged in radiance.
-  blob_deity: `   ☆ · ✦ · ☆
-  ✦ ( o   o ) ✦
- ──( \\  w  / )──
-   ✦ · ♡♡♡ · ✦
-    ☆ · ✦ · ☆`,
-  catflick_deity: `   ☆ · ✦ · ☆
-   ✦  /\\_/\\  ✦
- ──( =w= )──
-   ✦ · ♡♡♡ · ✦
-    ☆ · ✦ · ☆`,
-  peek_deity: `   ☆ · ✦ · ☆
-  ✦ ( o w o ) ✦
- ── c(   )o ──
-   ✦ · ♡♡♡ · ✦
-    ☆ · ✦ · ☆`,
-  bean_deity: `   ☆ · ✦ · ☆
-  ✦ ( ^ o ^ ) ✦
- ──(  ♡♡♡  )──
-    ☆ · ✦ · ☆`,
-  wing_deity: `   ☆ · ✦ · ☆
- ✦ <( ^ v ^ )> ✦
- ──  \\ ♡♡♡ /  ──
-    ☆ · ✦ · ☆`,
-  loaf_deity: `   ☆ · ✦ · ☆
-  ✦ ( =^.^= ) ✦
- ──[ ♡♡♡♡♡ ]──
-    ☆ · ✦ · ☆`,
-  deer_deity: `   ☆ ·\\|/· ☆
-   ✦  (o.o)  ✦
- ──(  ♡ ♡ ♡  )──
-    ☆ · ✦ · ☆`,
-  aqua_deity: `   ☆ · ✦ · ☆
-  ✦  >( o )>  ✦
- ── ~ ♡♡♡ ~ ──
-    ☆ · ✦ · ☆`,
-  fluff_deity: `   ☆ · ✦ · ☆
-  ✦ (( ^o^ )) ✦
- ──(  ♡♡♡  )──
-    ☆ · ✦ · ☆`,
+  blob_deity: `  ☆ · ✦ · ☆
+  ✦ (o o) ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  catflick_deity: `  ☆ · ✦ · ☆
+  ✦ /\\_/\\ ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  peek_deity: `  ☆ · ✦ · ☆
+  ✦ (owo) ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  bean_deity: `  ☆ · ✦ · ☆
+  ✦ (^o^) ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  wing_deity: `  ☆ · ✦ · ☆
+  ✦ <^v^> ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  loaf_deity: `  ☆ · ✦ · ☆
+  ✦ =^.^= ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  deer_deity: `  ☆ \\|/ ☆
+  ✦ (o.o) ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  aqua_deity: `  ☆ · ✦ · ☆
+  ✦ >(o)> ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
+  fluff_deity: `  ☆ · ✦ · ☆
+  ✦ (^.^) ✦
+ ─=( ♡ ♡ ♡ )=─
+  ☆ · ✦ · ☆`,
 };
 
 /* ---- T19 — Eldritch Merge: corrupt the player's OWN mascot art ----

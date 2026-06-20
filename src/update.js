@@ -254,6 +254,11 @@ function onInput(s, event) {
   if (!raw) return s;
   pushLine(s, raw, "echo");
   s.ui.turn = (s.ui.turn || 0) + 1; // advances the rotating example prompt
+  // The finale theme lingers through the brink + ending; the player's next typed
+  // command means they've moved on, so hand the music back to the hub.
+  if (s.model.world && s.model.world.flags && s.model.world.flags.finaleActive) {
+    s.model.world.flags.finaleActive = false;
+  }
 
   // Dev-only escape hatch (not a real game verb).
   if (raw.toLowerCase() === "reset") {
@@ -771,6 +776,23 @@ function routeCombat(s, cmd) {
   }
 }
 
+/* Shake the rival's offered hand (after the Boss #4 rematch). One-shot, armed by
+   the boss4 beat (flags.pendingHandshake); works whether you're still at the spire
+   (exploration) or back at the hub. */
+function doHandshake(s) {
+  const flags = s.model.world.flags;
+  const rival = (s.model.rivals && s.model.rivals[0]) || { name: "Sable" };
+  if (!flags.pendingHandshake) {
+    pushLine(s, "No one's holding out a hand just now.", "system");
+    return s;
+  }
+  flags.pendingHandshake = false;
+  const m = (s.model.mascot && s.model.mascot.name) || "your companion";
+  pushLine(s, `You take ${rival.name}'s hand. Their grip is firm, calloused, and — for once — entirely without its edge. "Equals," they say, like they're weighing the word and finding they like it. ${m} bobs between you, fit to burst.`, "banner");
+  rival.disposition = "respectful";
+  return s;
+}
+
 /* ---- hub-mode verbs ---- */
 function routeHub(s, cmd) {
   const { verb, target } = cmd;
@@ -839,6 +861,8 @@ function routeHub(s, cmd) {
     case "talk":
       pushLine(s, "There's no one here to talk to right now.", "system");
       return s;
+    case "shake":
+      return doHandshake(s);
     case "retreat":
       pushLine(s, "You're already home.", "system");
       return s;
@@ -872,6 +896,8 @@ function routeExplore(s, cmd) {
     case "talk":
       pushLine(s, "The wood doesn't answer.", "system");
       return s;
+    case "shake":
+      return doHandshake(s);
 
     case "train":
     case "spar":

@@ -43,6 +43,7 @@ const VERBS = {
   skills: "abilities", spellbook: "abilities",
   // social
   talk: "talk", speak: "talk", ask: "talk",
+  shake: "shake", handshake: "shake", shakehand: "shake",
   // hub
   train: "train", practice: "train",
   spar: "spar", sparring: "spar", duel: "spar",

@@ -77,6 +77,24 @@ function trainingClosed(state) {
   return true;
 }
 
+/** T18: the first time you reach the hub after recovering your companion, Sable is
+    there — gruff but plainly relieved — and walks you through what's open again
+    (training returns; sparring stays). Fires once (flags.pendingReturnPraise). */
+export function maybeMascotReturnPraise(state) {
+  const model = state.model;
+  const flags = model.world.flags;
+  if (!flags || !flags.pendingReturnPraise) return state;
+  flags.pendingReturnPraise = false;
+  const rival = rivalName(model);
+  const m = (model.mascot && model.mascot.name) || "your companion";
+  pushLine(state, "", "system");
+  pushLine(state, `${rival} is waiting on your step when you get home, and goes still at the sight of ${m} tucked against you — alive, dim but breathing. The usual smirk never arrives. "...You actually did it. You went back into that and you carried them out. I didn't think you had it in you." A rough breath. "I have never been so glad to be wrong about someone."`, "banner");
+  pushLine(state, `${m} pipes up from the crook of your arm, faint but fierce: "And we are NOT done growing, you and me. Now that you've Awakened, there's a true strike I can finally teach you — your real weapon, brought down with everything you are. Train with me and we'll unlock it together."`, "mascot");
+  pushLine(state, `${rival} rolls their eyes, but there's no heat in it. "Or you learn it the hard way. Spar with me and I'll beat techniques into you that your gentle friend there never could. Both roads are open now — walk whichever one you need, day to day."`, "mascot");
+  pushLine(state, `(Training is back. Try: train <stat> or train <ability> (with ${m}) · spar <stat> or spar <ability> (with ${rival}) · explore · errands.)`, "hint");
+  return state;
+}
+
 /* ---- training ---- */
 export function trainDirect(state, statKey) {
   const model = state.model;

@@ -438,6 +438,12 @@ function renderMascot(model) {
     pre.textContent = ART[model.mascot.artKeySmall] || ART.blob_small;
     caption.textContent = `${model.mascot.name} — bound`;
     syncMascot({ base, status: "dimmed" }); // bound; no perky motion
+  } else if (model.mascot && model.mascot.name && model.world && model.world.flags && model.world.flags.ascended) {
+    // T19: Virtuous Ascension — the companion stands in its guardian-deity form.
+    // (Dark Ascension is caught above by the dimmed branch.)
+    pre.textContent = ART[`${base}_deity`] || ART.deity_large;
+    caption.textContent = `${model.mascot.name} — ascended`;
+    syncMascot({ base, status: "ascended" }); // static radiant pose; animator stays out
   } else if (model.mascot && model.mascot.name) {
     pre.textContent = idleFrame(base); // animator's geometry; it takes over live
     caption.textContent = model.mascot.name;

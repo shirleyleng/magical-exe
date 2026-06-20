@@ -28,6 +28,28 @@ import { pushLine } from "./state.js";
 import { refreshSlotsMax } from "./hub.js";
 import { ART, corruptArt } from "./mascot.js";
 import { helpedEchoes } from "./errands.js";
+import { versionLabel } from "./version.js";
+
+const KOFI_URL = "https://ko-fi.com/shirleyleng";
+
+/** Closing credits + support link — the true end-of-game coda, shown after any
+    ending. Kept short and warm; the Ko-fi line is a plain URL so the terminal
+    stays copy-pasteable. */
+function endCredits(state) {
+  pushLine(state, "", "system");
+  pushLine(state, "─────────  CREDITS  ─────────", "banner");
+  pushLine(state, "MAGICAL.EXE — a Red Mint Studio game.", "system");
+  pushLine(state, "Designed & vibe-coded by Shirley Leng.", "system");
+  pushLine(state, "Original soundtrack generated with Suno.", "system");
+  pushLine(state, `${versionLabel()}`, "system");
+  pushLine(state, "", "system");
+  pushLine(state, "Made with: Claude Code · Suno · JetBrains Mono · Cloudflare Pages.", "hint");
+  pushLine(state, "", "system");
+  pushLine(state, "If this one stayed with you, you can keep the little studio going:", "system");
+  pushLine(state, `♥ Support on Ko-fi — ${KOFI_URL}`, "hint");
+  pushLine(state, "", "system");
+  pushLine(state, "Thank you for playing. ✦", "banner");
+}
 
 const mascotName = (state) => (state.model.mascot && state.model.mascot.name) || "your mascot";
 
@@ -55,6 +77,7 @@ export function handleFinaleResolve(state) {
   const m = mascotName(state);
 
   pushLine(state, "", "system");
+  state.model.world.flags.finaleActive = true; // hold the finale theme through the brink + ending
   pushLine(state, "THE BRINK", "banner");
   pushLine(state, "The Despair kneels before you, beaten and yet somehow not gone, vast and grey and waiting — and for one long held breath the whole world seems to wait with it, to hold still on the point of what you choose to do next. You can feel two roads open under your feet, as real as cold ground.", "system");
   pushLine(state, `One: open your hands and answer all that sorrow with everything the city has poured back into you — every errand walked, every small promise kept, every face that learned how to believe again because of you. Give it all away at once, and trust, with no proof at all, that it's enough.`, "system");
@@ -122,7 +145,8 @@ function ascensionCoda(state, slotGain) {
   if (slotGain > 0) pushLine(state, `(You stand fully realized now — ${state.model.hub.slotsMax} activity slots.)`, "hint");
   pushLine(state, "", "system");
   pushLine(state, "✦ Your watch over this city is done. Sleep, hero. You've more than earned it. ✦", "banner");
-  pushLine(state, "(There are always other cities, other mornings that need someone. When you're ready to lay this life down and begin again — stronger, into a harder world — type prestige. Until then: thank you, truly, for playing MAGICAL.EXE.)", "hint");
+  pushLine(state, "(There are always other cities, other mornings that need someone. When you're ready to lay this life down and begin again — stronger, into a harder world — type prestige.)", "hint");
+  endCredits(state);
 }
 
 /* ---- the four endings ---- */
@@ -167,6 +191,7 @@ function quietTragedy(state) {
   pushLine(state, `${m}, very soft: "It wasn't enough yet. *Yet.* They need more time to believe — and so we give them more time. We come back. We always come back."`, "mascot");
   pushLine(state, "", "system");
   pushLine(state, "(The Heart of the Grey is still open to you. Keep bringing the city hope — errands, dilemmas, every life you lift — and return when more of it believes. Some endings have to be earned twice.)", "hint");
+  endCredits(state);
   returnHome(state);
   return state;
 }
@@ -188,6 +213,7 @@ function eldritchMerge(state) {
   pushLine(state, "", "system");
   pushLine(state, "✦ This is where your story ends — or where, in another life, you reach instead for something light enough to carry. ✦", "banner");
   pushLine(state, "(That other life is yours to take. Type prestige to lay this one down and begin again — changed, and knowing now what you know.)", "hint");
+  endCredits(state);
   returnHome(state);
   return state;
 }

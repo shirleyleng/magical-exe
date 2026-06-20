@@ -11,7 +11,7 @@
    AI-generated version is swapped in later (PROMPTS.md > E, Phase 4).
    ============================================================ */
 
-import { pushLine, pronounsFor } from "./state.js";
+import { pushLine, pronounsFor, properNoun } from "./state.js";
 import { fuseMascot, randomNames, ART } from "./mascot.js";
 import { aiAvailable } from "./ai.js";
 
@@ -25,7 +25,7 @@ function toyToWeapon(toy) {
   if (/yo-?yo/.test(t)) return { fromToy: toy, object: "a humming yo-yo", found: false };
   if (/marble/.test(t)) return { fromToy: toy, object: "a glass marble that holds a galaxy", found: false };
   if (/kite/.test(t)) return { fromToy: toy, object: "a kite that catches impossible winds", found: false };
-  return { fromToy: toy, object: `your ${toy || "old toy"}, remade in light`, found: false };
+  return { fromToy: toy, object: "a shard of pure, humming light", found: false };
 }
 
 /* ---- Step definitions ---- */
@@ -243,7 +243,7 @@ function commit(state) {
   const d = state.ui.creation.draft;
   const ch = state.model.character;
 
-  ch.name = d.name;
+  ch.name = properNoun(d.name);
   ch.created = true;
   ch.gender = d.gender;
   ch.pronouns = pronounsFor(d.gender);
@@ -253,15 +253,15 @@ function commit(state) {
     formalCasual: d.formalCasual ?? 0.5,
     cautiousBold: d.cautiousBold ?? 0.5,
   };
-  ch.city = d.city;
-  ch.secretPlace = d.secret;
-  ch.magicalWeapon = toyToWeapon(d.toy);
+  ch.city = properNoun(d.city);
+  ch.secretPlace = properNoun(d.secret);
+  ch.magicalWeapon = toyToWeapon(properNoun(d.toy));
 
   // Difficulty (T20) — model-level, defaults to Normal; tunable later in settings.
   state.model.difficulty = d.difficulty || "normal";
 
   // Fuse the mascot (T5).
-  const mascot = fuseMascot(d.animals, d.mascotName);
+  const mascot = fuseMascot(d.animals, properNoun(d.mascotName));
   state.model.mascot = mascot;
 
   // ---- Reveal ----

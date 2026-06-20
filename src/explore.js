@@ -14,6 +14,7 @@ import { pushLine, markStoryActivity } from "./state.js";
 import { DUNGEONS, getRoom, BOSS_ENEMY, unlockedDungeons, resolveDungeon } from "./dungeons.js";
 import { startCombat } from "./combat.js";
 import { requestNarration } from "./narrate.js";
+import { maybeMascotReturnPraise } from "./hub.js";
 
 /** Narrate a room the first time it's entered (T12). Skips re-visits to limit
  *  cost and repetition; only fires while still exploring (no combat triggered). */
@@ -27,7 +28,7 @@ function maybeNarrateRoom(state) {
   const r = currentRoom(model);
   if (!r) return;
   requestNarration(state, {
-    scene: `${r.name} — ${r.desc}`,
+    scene: `${r.name} — ${roomDesc(model, r)}`,
     resolved: `you step into the ${r.name.toLowerCase()} and take it in`,
     mood: model.world.currentLocation === "forest" ? "hushed, moonlit, a little eerie" : "atmospheric",
   });
@@ -35,6 +36,11 @@ function maybeNarrateRoom(state) {
 
 function currentRoom(model) {
   return getRoom(model.world.currentLocation, model.world.currentRoom);
+}
+
+/** Resolve a room's description — some are (model) => string (toy-aware / cleared-state). */
+function roomDesc(model, r) {
+  return typeof r.desc === "function" ? r.desc(model) : r.desc;
 }
 
 /** Fire a room's one-time lore beat the first time it's peacefully taken in (no
@@ -127,7 +133,7 @@ export function describeRoom(state) {
   if (!r) { pushLine(state, "You're nowhere in particular.", "system"); return state; }
 
   pushLine(state, `— ${r.name} —`, "banner");
-  pushLine(state, r.desc, "system");
+  pushLine(state, roomDesc(model, r), "system");
 
   const items = liveItems(model, model.world.currentRoom);
   if (items.length) pushLine(state, "You see: " + items.join(", ") + ".", "system");
@@ -209,6 +215,13 @@ export function moveDir(state, dir) {
       const m = (model.mascot && model.mascot.name) || "Your mascot";
       pushLine(state, `${m}: "...No. No, not this one — turn back, turn back right now, please!"`, "mascot");
       pushLine(state, `${m}: "I have never felt corruption like this in my whole long life. Whatever happens up here — whatever it does — do NOT let it take you. Promise me. PROMISE me."`, "mascot");
+    } else if (nr.boss === "boss4") {
+      // The rematch: companion is back, you're Awakened — no fear in it now.
+      const m = (model.mascot && model.mascot.name) || "Your mascot";
+      const weapon = model.character.magicalWeapon && model.character.magicalWeapon.fromToy;
+      const wphrase = weapon ? `${weapon} in your hand` : "your true weapon in hand";
+      pushLine(state, `${m} flares bright at your shoulder — steady this time, not a tremor in it. "There it is. The Grief Herald. Last time it had us before we'd even begun." `, "mascot");
+      pushLine(state, `${m}: "But look at you now. AWAKENED — stronger than it has any idea, ${wphrase}, and abilities it has never once had to answer for. Call them up the moment you need them. We finish this together. Let's go take back what it took."`, "mascot");
     } else {
       pushLine(state, "The corruption draws itself together out of the dark, up and up into a single towering shape...", "mascot");
     }
@@ -263,6 +276,7 @@ export function retreat(state, forced = false) {
   model.world.currentLocation = "homebase";
   model.world.currentRoom = null;
   if (!forced) pushLine(state, "You slip back home, the city quiet around you.", "system");
+  maybeMascotReturnPraise(state); // Sable greets you the first time home with the recovered companion
   pushLine(state, "(You're back at the hub.)", "hint");
   return state;
 }

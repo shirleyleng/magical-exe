@@ -26,6 +26,9 @@ const TRACKS = {
   "Moonglass Tower":        "Moonglass Tower.mp3",
   // The hub after the companion is lost — sparse and mournful
   "Faint Roomlight":        "Faint Roomlight.mp3",
+  // The Misted Place (secret dungeon) and the companion's revival
+  "Mothlight Box":          "Mothlight Box.mp3",
+  "Pastel Return":          "Pastel Return.mp3",
 };
 
 // Each scene is a playlist. Multi-track scenes advance track-to-track as
@@ -36,10 +39,13 @@ const SCENES = {
   hub:      ["Pastel Errand Loop", "Errand Wand"], // calmer "loop" tracks for the resting hub
   "hub-gone": ["Faint Roomlight"],                 // the hub after the companion is lost — mellow, mournful
   explore:  ["Ribbon Up", "Moon Ribbon"],
+  "misted-place": ["Mothlight Box"],               // the secret dungeon of memory (explore + the doubt fight)
+  reunion:        ["Pastel Return"],               // the secret dungeon once the companion is revived
   // Per-dungeon battle themes (cover both regular fights and that dungeon's boss).
   "combat-forest":     ["Moonlit Bloom Protocol"],
   "combat-harbor":     ["Harbor Tide"],
   "combat-clocktower": ["Moonglass Tower"],
+  "combat-secret":     ["Mothlight Box"],
   combat:  ["Star Wand Static"], // generic fallback (hub skirmishes, later dungeons)
   boss:    ["Sailor Hope"],      // boss fights in dungeons without their own theme
   finale:  ["Sailor Hope"],
@@ -50,6 +56,7 @@ const DUNGEON_COMBAT = {
   forest:     "combat-forest",
   harbor:     "combat-harbor",
   clocktower: "combat-clocktower",
+  secret:     "combat-secret", // the doubt fight stays in the misted mood
 };
 
 const ENABLED_KEY = "magicalexe.music.enabled";
@@ -92,6 +99,9 @@ const trackUrl = (name) => encodeURI(TRACK_DIR + (TRACKS[name] || ""));
 /* Map the game model to a scene name. Pure read; safe on partial models. */
 export function sceneForModel(model) {
   if (!model || !model.character || !model.character.created) return "title";
+  // The finale theme carries through the fight, the brink choice, and the ending
+  // (flags.finaleActive stays set until the player issues their next command).
+  if (model.world && model.world.flags && model.world.flags.finaleActive) return "finale";
   if (model.mode === "combat" && model.combat) {
     if (model.combat.finale) return "finale";
     // A dungeon with its own battle theme uses it for every fight there (boss included).
@@ -100,7 +110,14 @@ export function sceneForModel(model) {
     if (model.combat.enemy && model.combat.enemy.isBoss) return "boss";
     return "combat";
   }
-  if (model.mode === "exploration") return "explore";
+  if (model.mode === "exploration") {
+    // The Misted Place: mysterious memory music, but it turns warm the moment the
+    // companion is revived there (and stays warm on any later visit).
+    if (model.world && model.world.currentLocation === "secret") {
+      return model.world.flags && model.world.flags.mascotRecovered ? "reunion" : "misted-place";
+    }
+    return "explore";
+  }
   // The hub turns mournful while the companion is missing; back to cozy once it returns.
   if (model.world && model.world.flags && model.world.flags.mascotGone) return "hub-gone";
   return "hub";
