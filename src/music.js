@@ -32,6 +32,9 @@ const TRACKS = {
   // The City's Despair finale — hope path and corrupted path
   "Heart of the City":      "Heart of the City.mp3",
   "Despair of the City":    "Despair of the City.mp3",
+  // Late-game places of dread
+  "Sorrowing Spire":        "Sorrowing Spire.mp3",   // the Spire / Boss #4 (Grief Herald)
+  "Hollow Hour Descent":    "Hollow Hour Descent.mp3", // the climb into the Heart of the Grey
 };
 
 // Each scene is a playlist. Multi-track scenes advance track-to-track as
@@ -44,11 +47,14 @@ const SCENES = {
   explore:  ["Ribbon Up", "Moon Ribbon"],
   "misted-place": ["Mothlight Box"],               // the secret dungeon of memory (explore + the doubt fight)
   reunion:        ["Pastel Return"],               // the secret dungeon once the companion is revived
+  "explore-spire":  ["Sorrowing Spire"],           // climbing the Sorrowing Spire (sets the mood for the boss)
+  "explore-source": ["Hollow Hour Descent"],       // descending into the Heart of the Grey before the finale
   // Per-dungeon battle themes (cover both regular fights and that dungeon's boss).
   "combat-forest":     ["Moonlit Bloom Protocol"],
   "combat-harbor":     ["Harbor Tide"],
   "combat-clocktower": ["Moonglass Tower"],
   "combat-secret":     ["Mothlight Box"],
+  "combat-spire":      ["Sorrowing Spire"], // Boss #4 — the Grief Herald
   combat:  ["Star Wand Static"], // generic fallback (hub skirmishes, later dungeons)
   boss:    ["Sailor Hope"],      // boss fights in dungeons without their own theme
   finale:  ["Heart of the City"],   // the City's Despair fight + the hope-path brink/ending
@@ -61,6 +67,16 @@ const DUNGEON_COMBAT = {
   harbor:     "combat-harbor",
   clocktower: "combat-clocktower",
   secret:     "combat-secret", // the doubt fight stays in the misted mood
+  spire:      "combat-spire",  // Boss #4 / the Grief Herald
+};
+
+/* Per-dungeon explore-mode music (the WALK, not the fight). When a dungeon
+   has its own atmosphere, use it; otherwise fall back to the generic explore
+   playlist. The finale dungeon doesn't appear here — it uses the finale theme
+   from the moment combat starts via combat.finale. */
+const DUNGEON_EXPLORE = {
+  spire:  "explore-spire",
+  source: "explore-source",
 };
 
 const ENABLED_KEY = "magicalexe.music.enabled";
@@ -80,11 +96,15 @@ const FADE_TABLE = {
   "hub→combat-forest": 350, "hub→combat-harbor": 350, "hub→combat-clocktower": 350,
   "explore→combat-forest": 350, "explore→combat-harbor": 350,
   "explore→combat-clocktower": 350, "explore→combat-secret": 350,
+  "explore-spire→combat-spire": 600, // a slower bite — the Spire is a heavier fight
+  "hub→explore-spire": 1400, "hub→explore-source": 1800,
+  "explore-source→finale": 1200,     // the descent rolls into the final fight
   // Release after combat — let it breathe.
   "combat→hub": 1500, "combat→explore": 1500,
   "boss→hub": 1500, "boss→explore": 1500,
   "combat-forest→explore": 1500, "combat-harbor→explore": 1500,
   "combat-clocktower→explore": 1500, "combat-secret→explore": 1500,
+  "combat-spire→explore-spire": 1800, "combat-spire→hub": 2000,
   // Emotional / dramatic shifts — long enough to register as a turn of the page.
   "hub→hub-gone": 2000, "hub-gone→hub": 2000,
   "misted-place→reunion": 2200,
@@ -148,11 +168,13 @@ export function sceneForModel(model) {
     return "combat";
   }
   if (model.mode === "exploration") {
+    const loc = model.world && model.world.currentLocation;
     // The Misted Place: mysterious memory music, but it turns warm the moment the
     // companion is revived there (and stays warm on any later visit).
-    if (model.world && model.world.currentLocation === "secret") {
+    if (loc === "secret") {
       return model.world.flags && model.world.flags.mascotRecovered ? "reunion" : "misted-place";
     }
+    if (DUNGEON_EXPLORE[loc]) return DUNGEON_EXPLORE[loc];
     return "explore";
   }
   // The hub turns mournful while the companion is missing; back to cozy once it returns.
