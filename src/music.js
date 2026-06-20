@@ -35,13 +35,15 @@ const TRACKS = {
   // Late-game places of dread
   "Sorrowing Spire":        "Sorrowing Spire.mp3",   // the Spire / Boss #4 (Grief Herald)
   "Hollow Hour Descent":    "Hollow Hour Descent.mp3", // the climb into the Heart of the Grey
+  // Title screen / character creation — the moment before everything begins
+  "Twilight Storybook":     "Twilight Storybook.mp3",
 };
 
 // Each scene is a playlist. Multi-track scenes advance track-to-track as
 // each finishes; single-track scenes loop. THIS is the dial to re-score:
 // move a track name to a different scene and the game's music changes.
 const SCENES = {
-  title:    ["Pastel Errand Loop"],
+  title:    ["Twilight Storybook"],
   hub:      ["Pastel Errand Loop", "Errand Wand"], // calmer "loop" tracks for the resting hub
   "hub-gone": ["Faint Roomlight"],                 // the hub after the companion is lost — mellow, mournful
   explore:  ["Ribbon Up", "Moon Ribbon"],
