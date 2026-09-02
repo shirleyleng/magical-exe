@@ -15,6 +15,7 @@ import { ART } from "./mascot.js";
 import { refreshSlotsMax } from "./hub.js";
 import { armRivalForBoss } from "./rival.js";
 import { adjustHope } from "./hope.js";
+import { track } from "./analytics.js";
 
 const TIER_ORDER = ["novice", "soldier", "knight", "awakened", "ascended"];
 
@@ -155,6 +156,12 @@ export function handleBossDefeat(state) {
   ch.transformationTier = tierName;
   const before = state.model.hub.slotsMax;
   refreshSlotsMax(state.model); // a tier milestone grants +1 slot
+  track("tier_reached", {
+    tier: tierName,
+    day: state.model.day,
+    path: ch.path,
+    prestigeCount: state.model.prestigeCount || 0,
+  });
 
   const reveal = TIER_REVEAL[tierName];
   if (reveal) reveal(state);

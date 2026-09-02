@@ -15,6 +15,7 @@ import { pushLine } from "./state.js";
 import { adjustHope } from "./hope.js";
 import { adjustAlignment } from "./alignment.js";
 import { adjustVisibility } from "./visibility.js";
+import { track } from "./analytics.js";
 
 /* Authored pool. Each choice's deltas are applied silently; only `outcome` prints.
    Keep the "off" option's tone faintly wrong, never labelled as the bad one. */
@@ -94,6 +95,12 @@ export function resolveDilemma(state, dilemmaId, choiceIndex) {
   if (c.virtue || c.corruption) adjustAlignment(ch, { virtue: c.virtue || 0, corruption: c.corruption || 0 });
   if (c.fame || c.unmasking) adjustVisibility(ch, { fame: c.fame || 0, unmasking: c.unmasking || 0 });
   if (c.hope) adjustHope(ch, c.hope);
+  track("dilemma_resolved", {
+    dilemmaId,
+    choiceIndex: Number(choiceIndex),
+    day: state.model.day,
+    path: ch.path,
+  });
   pushLine(state, c.outcome, "system");
   // Staying up to do the good deed costs you the night's rest — you wake only half-restored.
   // (rest already topped Stamina to full before the dilemma fired; this spends it back down.)

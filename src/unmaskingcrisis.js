@@ -21,6 +21,7 @@ import { pushLine } from "./state.js";
 import { adjustHope } from "./hope.js";
 import { adjustAlignment } from "./alignment.js";
 import { adjustVisibility, relaxUnmasking } from "./visibility.js";
+import { track } from "./analytics.js";
 
 /* The scene. A public square, a person about to be hurt, witnesses everywhere —
    and your unmasked, ordinary self too far away to matter. Only the magic reaches. */
@@ -71,6 +72,13 @@ export function resolveUnmaskingCrisis(state, choice) {
   const C = CONFIG.unmaskingCrisis || {};
   model.world.flags.unmaskingCrisisSeen = true; // one-shot, regardless of choice
 
+  track("unmasking_crisis_pick", {
+    choice,
+    day: model.day,
+    path: ch.path,
+    fame: ch.fame || 0,
+    unmasking: ch.unmasking || 0,
+  });
   if (choice === "reveal") return doReveal(state, ch, C);
   if (choice === "cloud") return doCloud(state, ch, C);
   if (choice === "silence") return doSilence(state, ch, C);

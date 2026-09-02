@@ -113,6 +113,14 @@ function startTyping() {
   setTimeout(tick, TYPE_TICK_MS);
 }
 
+/** Re-pin the scrollback to the newest line (used after the viewport resizes —
+    e.g. the on-screen keyboard opening — so the latest output stays in view).
+    Respects the reader's parked scroll position. */
+export function pinScrollBottom() {
+  if (!els || !els.output || !stickBottom) return;
+  els.output.scrollTop = els.output.scrollHeight;
+}
+
 /** Honour the OS "reduce motion" setting — no typewriter, text appears at once. */
 function prefersReducedMotion() {
   return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -208,6 +216,9 @@ function renderMenu(ui) {
   }
   // Menu takes over: hide the text input line + ensure terminal tab is visible.
   switchToTerminalTab();
+  // Blur first so phones dismiss the on-screen keyboard — a tap-to-select menu
+  // needs the screen the keyboard would otherwise be covering.
+  if (els.form.contains(document.activeElement)) document.activeElement.blur();
   els.form.style.display = "none";
   els.menu.hidden = false;
   els.menu.innerHTML = "";

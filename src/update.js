@@ -41,6 +41,7 @@ import { handleBossDefeat, handleStoryLoss } from "./progress.js";
 import { handleFinaleResolve, resolveBrink } from "./endgame.js";
 import { openPrestigeMenu, doPrestige } from "./prestige.js";
 import { listSlots, deleteSlot, hasSlot } from "./persist.js";
+import { track, isOptedOut as analyticsIsOptedOut, setOptOut as setAnalyticsOptOut } from "./analytics.js";
 
 /* Resolve story reactions a combat turn may have triggered: a boss falling
    (tier-up + reveal), the scripted Boss #4 story-loss (mascot gone + hooks), or
@@ -100,7 +101,20 @@ export function update(state, event) {
         if (opt.value === "difficulty") return openDifficultyMenu(s);
         if (opt.value === "textspeed") return openTextSpeedMenu(s);
         if (opt.value === "music") return openMusicMenu(s);
+        if (opt.value === "analytics") return openAnalyticsMenu(s);
         if (opt.value === "about") return showAbout(s);
+        return s;
+      }
+      if (m.kind === "analytics") {
+        const opt = m.options[m.index];
+        pushLine(s, opt.label, "echo");
+        s.ui.menu = null;
+        if (opt.value === "__cancel__") return openSettingsMenu(s);
+        const off = opt.value === "off";
+        setAnalyticsOptOut(off);
+        pushLine(s, off
+          ? "Analytics off. No events will be sent."
+          : "Analytics on. Thank you for the signal — it helps polish the rough edges.", "system");
         return s;
       }
       if (m.kind === "music") {
@@ -127,6 +141,7 @@ export function update(state, event) {
         if (opt.value === "__cancel__") return s;
         s.ui.effect = { type: "textspeed", id: opt.value }; // main.js persists + applies live
         pushLine(s, `Text speed set to ${textSpeedName(opt.value)}.`, "system");
+        track("settings_changed", { setting: "textspeed", value: opt.value });
         return s;
       }
       if (m.kind === "abilities") {
@@ -153,6 +168,7 @@ export function update(state, event) {
         }
         s.ui.effect = { type: "theme", id: opt.value }; // commit: main.js applies + persists
         pushLine(s, `Theme set to ${themeName(opt.value)}.`, "system");
+        track("settings_changed", { setting: "theme", value: opt.value });
         return s;
       }
       if (m.kind === "explore") {
@@ -195,6 +211,7 @@ export function update(state, event) {
         if (opt.value === "__cancel__") return s;
         s.model.difficulty = opt.value;
         pushLine(s, `Difficulty set to ${opt.value === "easy" ? "Gentle (Easy)" : "Standard (Normal)"}.`, "system");
+        track("settings_changed", { setting: "difficulty", value: opt.value });
         return s;
       }
       return handleHubMenu(s, m.kind, m.options[m.index]);
@@ -349,16 +366,34 @@ function openSettingsMenu(s) {
   const current = document.documentElement.dataset.theme || "lipgloss";
   const music = getMusicState();
   const musicLabel = music.enabled ? `on (${Math.round(music.volume * 100)}%)` : "muted";
+  const analyticsLabel = analyticsIsOptedOut() ? "off" : "on";
   const options = [
     { label: `Theme — ${themeName(current)}`, value: "theme" },
     { label: `Text speed — ${textSpeedName(getStoredTextSpeed())}`, value: "textspeed" },
     { label: `Music — ${musicLabel}`, value: "music" },
     { label: `Difficulty — ${difficultyLabel(s.model.difficulty)}`, value: "difficulty" },
+    { label: `Analytics — ${analyticsLabel}`, value: "analytics" },
     { label: "About & credits", value: "about" },
     { label: "Close", value: "__cancel__" },
   ];
   pushLine(s, "Settings:", "system");
   s.ui.menu = { active: true, kind: "settings", options, index: 0 };
+  return s;
+}
+
+/* Analytics opt-in / opt-out picker. Lightweight Mixpanel wrapper; flipping the
+   toggle persists the choice in localStorage and (if the SDK is already loaded)
+   immediately flips Mixpanel's in-memory opt state too. */
+function openAnalyticsMenu(s) {
+  const optedOut = analyticsIsOptedOut();
+  pushLine(s, "Anonymous play analytics — used to spot rough edges, never to identify you.", "system");
+  pushLine(s, "(no personally identifying data is sent; you can flip this at any time)", "hint");
+  const options = [
+    { label: `On${!optedOut ? " (current)" : ""} — share anonymous gameplay events`, value: "on" },
+    { label: `Off${optedOut ? " (current)" : ""} — opt out of all analytics`, value: "off" },
+    { label: "Back", value: "__cancel__" },
+  ];
+  s.ui.menu = { active: true, kind: "analytics", options, index: optedOut ? 1 : 0 };
   return s;
 }
 

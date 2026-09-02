@@ -525,10 +525,13 @@ body {
 
 /* ---- Responsive: tabbed mobile layout ----
    Desktop is a fixed-size centered window; on phones the window becomes the whole
-   page: full-bleed, with a tab bar (Play / Status / Mascot) so the player can flip
-   views without scrolling. The input line stays visible on every tab.
-   dvh units track the mobile browser chrome + on-screen keyboard so the layout
-   doesn't jump when the address bar collapses or the keyboard opens. */
+   page: full-bleed, with a tab bar (Play / Status) so the player can flip views
+   without scrolling. The input line stays visible on every tab.
+
+   Height comes from --app-h (the real visual-viewport height, published by
+   src/viewport.js) with dvh as the fallback, and body is position:fixed — so an
+   opening keyboard shortens the app in place instead of scrolling the titlebar
+   and the input line off the screen. */
 @media (max-width: 720px) {
   :root {
     --pad: 14px;
@@ -536,11 +539,20 @@ body {
   }
   html { overflow-x: clip; }
   body {
-    padding: 0;
+    /* viewport-fit=cover lets the background bleed edge to edge; keep actual
+       content out of the notch / rounded corners. */
+    padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
     display: flex;
     flex-direction: column;
+    /* fixed: the document itself can never scroll, so the browser has nothing to
+       yank around when the keyboard opens. */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 100vh;
     height: 100dvh;
+    height: var(--app-h, 100dvh);
     overflow: hidden;
   }
   .screen {
@@ -682,11 +694,20 @@ body {
 
   /* ---- Touch UX ---- */
   .inputline { padding: 12px 14px; }
+  /* 16px exactly: anything smaller makes iOS Safari zoom the page on focus. */
   .inputline__field { font-size: 16px; }
   .menu__item {
     padding: 9px 12px;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+  /* A long menu (themes, shop) on a keyboard-shortened screen would otherwise
+     spill past the terminal's bottom edge — let it shrink and scroll instead. */
+  .menu {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   /* Ko-fi: flow into page bottom, clear of panels, safe-area aware */
@@ -699,4 +720,16 @@ body {
     margin: 4px auto calc(8px + env(safe-area-inset-bottom));
     opacity: 1;
   }
+
+  /* ---- Keyboard open (body.kb-open, set by src/viewport.js) ----
+     Half the screen is now keyboard. Give the remaining half to the thing the
+     player is actually looking at — the scrollback and the line they're typing —
+     by folding away the decorative chrome. Everything comes back on blur. */
+  body.kb-open .kofi,
+  body.kb-open .example-prompt,
+  body.kb-open .panel--mascot { display: none; }
+  /* .panels is empty on the PLAY tab once the mascot band folds away — collapse
+     its gap too, so the terminal gains the whole strip rather than a blank row. */
+  body.kb-open .layout[data-mobile-tab="terminal"] .panels { display: none; }
+  body.kb-open .titlebar { padding: 6px 14px; }
 }

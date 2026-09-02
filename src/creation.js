@@ -14,6 +14,7 @@
 import { pushLine, pronounsFor, properNoun } from "./state.js";
 import { fuseMascot, randomNames, ART } from "./mascot.js";
 import { aiAvailable } from "./ai.js";
+import { track } from "./analytics.js";
 
 /* ---- Map a free-toy answer to a recognizable magical weapon object ---- */
 function toyToWeapon(toy) {
@@ -296,6 +297,14 @@ function commit(state) {
   state.ui.creation = null;
   state.ui.menu = null;
   state.model.mode = "hub";
+
+  track("character_created", {
+    gender: ch.gender,
+    occupation: ch.occupation.type,
+    difficulty: state.model.difficulty,
+    animals: (mascot.animals || []).join(","),
+    mascotArt: mascot.artKey || null,
+  });
 }
 
 function labelFor(gender) {

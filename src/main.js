@@ -9,7 +9,7 @@
 
 import { createState } from "./state.js";
 import { update } from "./update.js";
-import { render, initDom, setRenderSpeed, finishTyping, switchToTerminalTab } from "./render.js";
+import { render, initDom, setRenderSpeed, finishTyping, switchToTerminalTab, pinScrollBottom } from "./render.js";
 import { initMascotAnim } from "./mascotAnim.js";
 import { initMusic, setScene, sceneForModel, toggleEnabled, setVolume, getMusicState } from "./music.js";
 import { saveModel, loadActive, loadSlot, saveRecap, loadRecap } from "./persist.js";
@@ -18,6 +18,8 @@ import { getCaptchaToken } from "./captcha.js";
 import { applyTheme, getStoredTheme, setStoredTheme, setStoredTextSpeed } from "./theme.js";
 import { versionLabel } from "./version.js";
 import { CONFIG } from "../config.js";
+import { initAnalytics, track } from "./analytics.js";
+import { initViewport, isCoarsePointer } from "./viewport.js";
 
 let state;
 let inputEl = null;       // the command field (set in boot); used to restore focus
@@ -56,7 +58,10 @@ function dispatch(event) {
    player can keep typing without clicking (the menu hides the field while it's open). */
 function restoreFocusIfMenuClosed() {
   const menuActive = !!(state.ui.menu && state.ui.menu.active);
-  if (menuWasActive && !menuActive && inputEl) inputEl.focus();
+  // Touch devices are excluded: focusing there summons the on-screen keyboard,
+  // which would half-cover the screen the moment a menu closed. Phone players
+  // tap the input line when they actually want to type.
+  if (menuWasActive && !menuActive && inputEl && !isCoarsePointer()) inputEl.focus();
   menuWasActive = menuActive;
 }
 
@@ -72,6 +77,12 @@ async function applyEffect() {
       render(state);
       dispatch({ type: "loaded", name: effect.name, recap: loadRecap(effect.name) });
       recapBaseline = state.log.length;
+      track("save_loaded", {
+        slotName: effect.name,
+        day: state.model.day,
+        tier: state.model.character && state.model.character.transformationTier,
+        prestigeCount: state.model.prestigeCount || 0,
+      });
     } else {
       state.ui.effect = null;
       render(state);
@@ -115,6 +126,9 @@ function makeCaptchaProvider() {
     if (!siteKey || siteKey.includes("YOUR_") || !box || !widget) return null;
     box.hidden = false;
     widget.innerHTML = "";
+    // The check is a tap target; on a phone the still-open keyboard would be
+    // sitting right on top of it. Dismiss it.
+    if (isCoarsePointer() && document.activeElement === inputEl) inputEl.blur();
     try {
       return await getCaptchaToken(widget, siteKey, { scriptUrl: CONFIG.turnstile.scriptUrl });
     } catch (e) {
@@ -163,7 +177,10 @@ function initMusicControls() {
   if (toggle) toggle.setAttribute("aria-pressed", String(st.enabled));
   if (volume) volume.value = String(Math.round(st.volume * 100));
   paintTitle(st.track);
-  if (toggle) toggle.addEventListener("click", () => toggleEnabled());
+  if (toggle) toggle.addEventListener("click", () => {
+    toggleEnabled();
+    track("settings_changed", { setting: "music_toggle", value: getMusicState().enabled });
+  });
   if (volume) volume.addEventListener("input", () => setVolume(Number(volume.value) / 100));
 }
 
@@ -172,6 +189,8 @@ function boot() {
   // Start the HUD mascot animator (single interval; targets the live <pre>).
   initMascotAnim(() => document.querySelector("#mascot-panel .mascot-art"));
   initMusicControls();
+  // Analytics is opt-out and silent — boot-time events queue until the SDK lands.
+  initAnalytics();
   // Settings cog — dispatches the same "settings" command typing would.
   const settingsBtn = document.getElementById("settings-btn");
   if (settingsBtn) settingsBtn.addEventListener("click", () => {
@@ -192,6 +211,15 @@ function boot() {
   const bootRecap = loaded ? loadRecap(state.model.saveSlotName) : [];
   dispatch({ type: "boot", loaded: !!loaded, recap: bootRecap });
   recapBaseline = state.log.length; // recap from here on reflects only this session's play
+
+  track("session_start", {
+    loaded: !!loaded,
+    day: state.model.day,
+    prestigeCount: state.model.prestigeCount || 0,
+    difficulty: state.model.difficulty || "normal",
+    characterCreated: !!(state.model.character && state.model.character.created),
+    tier: state.model.character && state.model.character.transformationTier,
+  });
 
   // ---- mobile tab bar ----
   const layout = document.querySelector(".layout");
@@ -290,10 +318,15 @@ function boot() {
   document.addEventListener("click", () => {
     finishTyping(); // a tap anywhere skips the typewriter to the end
     if (state.ui.menu && state.ui.menu.active) return;
+    if (isCoarsePointer()) return; // a tap to skip the typewriter must not open the keyboard
     if (window.getSelection().toString() === "") input.focus();
   });
 
-  input.focus();
+  // Track the real (visual) viewport height so an opening keyboard shortens the
+  // app in place, and re-pin the scrollback once it has settled.
+  initViewport({ input, onChange: pinScrollBottom });
+
+  if (!isCoarsePointer()) input.focus();
 }
 
 boot();

@@ -15,6 +15,7 @@ import { DUNGEONS, getRoom, BOSS_ENEMY, unlockedDungeons, resolveDungeon } from 
 import { startCombat } from "./combat.js";
 import { requestNarration } from "./narrate.js";
 import { maybeMascotReturnPraise } from "./hub.js";
+import { track } from "./analytics.js";
 
 /** Narrate a room the first time it's entered (T12). Skips re-visits to limit
  *  cost and repetition; only fires while still exploring (no combat triggered). */
@@ -113,6 +114,12 @@ export function enterDungeon(state, dungeonId = "forest") {
   markStoryActivity(model); // venturing out breaks the training rut
   model.world.currentLocation = dungeonId;
   model.world.currentRoom = d.entrance;
+  track("dungeon_entered", {
+    dungeonId,
+    day: model.day,
+    tier: model.character.transformationTier,
+    path: model.character.path,
+  });
   if (dungeonId === "secret") {
     const place = model.character.secretPlace;
     pushLine(state, place

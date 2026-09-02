@@ -42,6 +42,8 @@ const SUBS = [
   { env: "SUPABASE_URL", placeholder: "https://YOUR_PROJECT_REF.supabase.co" },
   { env: "SUPABASE_ANON_KEY", placeholder: "YOUR_SUPABASE_ANON_PUBLIC_KEY" },
   { env: "TURNSTILE_SITE_KEY", placeholder: "YOUR_TURNSTILE_SITE_KEY" },
+  // MIXPANEL_TOKEN is OPTIONAL — unset = analytics stays disabled, no error.
+  { env: "MIXPANEL_TOKEN", placeholder: "YOUR_MIXPANEL_TOKEN", optional: true },
 ];
 
 function main() {
@@ -56,11 +58,11 @@ function main() {
   text = text.split("__BUILD_STAMP__").join(stamp);
 
   const missing = [];
-  for (const { env, placeholder } of SUBS) {
+  for (const { env, placeholder, optional } of SUBS) {
     const val = process.env[env];
     if (!val) {
-      missing.push(env);
-      continue;
+      if (!optional) missing.push(env);
+      continue; // optional missing -> leave the placeholder in place
     }
     if (!text.includes(placeholder)) {
       console.warn(`[build-config] placeholder "${placeholder}" for ${env} not found — config.example.js may have changed.`);

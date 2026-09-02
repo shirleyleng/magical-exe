@@ -29,6 +29,7 @@ import { refreshSlotsMax } from "./hub.js";
 import { ART, corruptArt } from "./mascot.js";
 import { helpedEchoes } from "./errands.js";
 import { versionLabel } from "./version.js";
+import { track } from "./analytics.js";
 
 const KOFI_URL = "https://ko-fi.com/shirleyleng";
 
@@ -102,6 +103,22 @@ export function resolveBrink(state, choice) {
   const F = CONFIG.finale;
   const enoughHope = (ch.hopeTally || 0) >= effHopeThreshold(ch);
   const enoughSeize = ch.path === "corrupt" || (ch.corruption || 0) >= F.seizeCorrThreshold;
+
+  const ending =
+    choice === "hope"
+      ? (enoughHope ? "virtuous_ascension" : "quiet_tragedy")
+      : (enoughSeize ? "dark_ascension" : "eldritch_merge");
+  track("ending_reached", {
+    ending,
+    brinkChoice: choice,
+    day: state.model.day,
+    path: ch.path,
+    hopeTally: ch.hopeTally || 0,
+    fame: ch.fame || 0,
+    corruption: ch.corruption || 0,
+    virtue: ch.virtue || 0,
+    prestigeCount: state.model.prestigeCount || 0,
+  });
 
   if (choice === "hope") {
     return enoughHope ? virtuousAscension(state) : quietTragedy(state);

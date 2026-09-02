@@ -19,6 +19,7 @@ import { adjustAlignment, effectiveStats, fizzleChance, healMultiplier, derivePa
 import { adjustVisibility, checkUnmaskingEvents } from "./visibility.js";
 import { getAbility } from "./abilities.js";
 import { beginRivalTalk } from "./rivaltalk.js";
+import { track } from "./analytics.js";
 
 /* A named rival takes no article ("Sable hits you", not "the Sable hits you");
    a boss whose name already begins with "the" (e.g. "the Grey Sovereign") keeps its
@@ -176,6 +177,19 @@ export function startCombat(state, enemyId, opts = {}) {
   };
   model.mode = "combat";
   clampHpToWarp(model.character); // corruption gained since last fight may cap HP lower
+
+  track("battle_start", {
+    enemyId: enemy.id,
+    enemyName: enemy.name,
+    isBoss: !!enemy.isBoss,
+    isRival: !!enemy.isRival,
+    bossId: opts.bossId || null,
+    finale: !!opts.finale,
+    storyLoss: !!opts.storyLoss,
+    day: model.day,
+    tier: model.character.transformationTier,
+    difficulty: model.difficulty,
+  });
 
   pushLine(state, enemy.isRival
     ? `${enemy.name} steps into your path, weapon already drawn!`
@@ -480,6 +494,13 @@ function storyLossIntervene(state) {
   model.world.currentRoom = null;
   pushLine(state, "You wake at home, on the floor, in your clothes. You don't remember the climb down the spire, or the road back, or any of it. The house is very quiet. The house is going to be very quiet for a while.", "system");
   state.ui.justLostStoryBoss = "boss4"; // progress.js: aftermath + alliance/Awakened hook + sparring unlock
+  track("boss_outcome", {
+    bossId: "boss4",
+    outcome: "storyLoss",
+    day: model.day,
+    tier: ch.transformationTier,
+    path: ch.path,
+  });
   return state;
 }
 
@@ -681,6 +702,15 @@ function endCombat(state, outcome) {
     if (c.bossId && !model.world.flags.bossesDefeated.includes(c.bossId)) {
       model.world.flags.bossesDefeated.push(c.bossId);
       state.ui.justDefeatedBoss = c.bossId; // T9 reacts to this (tier-up, reveal)
+      track("boss_outcome", {
+        bossId: c.bossId,
+        outcome: "win",
+        day: model.day,
+        tier: ch.transformationTier,
+        path: ch.path,
+        corruption: ch.corruption || 0,
+        virtue: ch.virtue || 0,
+      });
     }
     restoreAfterBattle(state, ch); // wounds don't carry between fights
     model.combat = null;

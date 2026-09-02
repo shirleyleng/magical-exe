@@ -8,6 +8,7 @@
  * Side-effect-free helpers over the character object; the only mutator is adjustAlignment().
  */
 import { CONFIG } from "../config.js";
+import { track } from "./analytics.js";
 
 const A = () => CONFIG.axes.alignment;
 
@@ -34,9 +35,16 @@ export function adjustAlignment(ch, delta = {}) {
   const dV = delta.virtue || 0;
   const beforeC = ch.corruption || 0;
   const beforeV = ch.virtue || 0;
+  const oldPath = ch.path;
   ch.corruption = clampMeter(beforeC + dC - drain * dV);
   ch.virtue = clampMeter(beforeV + dV - drain * dC);
   ch.path = derivePath(ch);
+  if (oldPath && ch.path !== oldPath) {
+    track("alignment_path_shift", {
+      oldPath, newPath: ch.path,
+      corruption: ch.corruption, virtue: ch.virtue,
+    });
+  }
   return { corruption: ch.corruption - beforeC, virtue: ch.virtue - beforeV };
 }
 

@@ -15,6 +15,7 @@
  *     fences even when told not to — see PROMPTS.md implementation notes).
  */
 import { CONFIG } from "../config.js";
+import { track } from "./analytics.js";
 
 const SUPABASE_ESM = "https://esm.sh/@supabase/supabase-js@2";
 
@@ -122,6 +123,11 @@ export async function callAI(kind, vars = {}) {
     }
     if (token) data = await postProxy(session, kind, vars, token);
   }
+  track("ai_call", {
+    kind,
+    ok: !!(data && data.ok),
+    reason: data && data.ok === false ? (data.reason || "unknown") : null,
+  });
   return data;
 }
 

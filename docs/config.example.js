@@ -324,6 +324,15 @@ export const CONFIG = {
     functionName: "ai-proxy",
   },
 
+  // ---- Mixpanel analytics ----
+  // Project token (public, browser-safe). Leave the placeholder to disable
+  // tracking entirely; players can also opt out from Settings → Analytics.
+  // In deploys, the build script substitutes MIXPANEL_TOKEN from the env.
+  analytics: {
+    mixpanelToken: "YOUR_MIXPANEL_TOKEN",
+    superProps: {},
+  },
+
   // ---- Turnstile (human-check on first AI use; T11b "Option B") ----
   // The ai-proxy Edge Function requires a Cloudflare Turnstile token before the FIRST paid
   // AI call per browser, blocking bots from burning the Anthropic budget. Only the PUBLIC

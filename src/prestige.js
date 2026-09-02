@@ -14,6 +14,7 @@
 import { CONFIG } from "../config.js";
 import { pushLine, freshModel } from "./state.js";
 import { refreshSlotsMax } from "./hub.js";
+import { track } from "./analytics.js";
 
 const mascotName = (model) => (model.mascot && model.mascot.name) || "Your mascot";
 
@@ -98,6 +99,13 @@ export function doPrestige(state) {
 
   refreshSlotsMax(fresh);
   state.model = fresh;
+
+  track("prestige_started", {
+    prestigeCount: fresh.prestigeCount,
+    difficulty: fresh.difficulty,
+    priorDay: old.day,
+    priorTier: oc.transformationTier,
+  });
 
   const m = mascotName(fresh);
   pushLine(state, "", "system");
