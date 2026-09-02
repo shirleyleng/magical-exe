@@ -123,6 +123,16 @@
             spellcheck="false"
             enterkeyhint="go"
           />
+          <!-- Touch-only send key. Phones with no visible Return key (and players
+               who'd rather tap than hunt for Go) need a target; CSS hides it on
+               desktop, where Enter already does the job. -->
+          <button
+            id="send"
+            class="inputline__send"
+            type="submit"
+            aria-label="Send command"
+            title="Send"
+          >↵</button>
         </form>
       </section>
 

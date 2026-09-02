@@ -257,6 +257,13 @@ function boot() {
     requestAnimationFrame(() => input.setSelectionRange(n, n)); // caret to end
   }
 
+  // Send key (touch only; CSS hides it on desktop). It submits the form on its
+  // own as type="submit" — all we add is refusing focus on press, so the input
+  // keeps it and the keyboard stays up. Letting the button take focus would
+  // collapse the keyboard and reflow the whole app on every single send.
+  const sendBtn = document.getElementById("send");
+  if (sendBtn) sendBtn.addEventListener("pointerdown", (e) => e.preventDefault());
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     switchToTerminalTab();

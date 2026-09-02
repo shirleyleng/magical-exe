@@ -408,6 +408,9 @@ body {
 }
 .inputline__field {
   flex: 1;
+  /* A text input's intrinsic min-width is ~20 characters, which on a narrow
+     phone refuses to shrink and pushes the send key out past the line's edge. */
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
@@ -416,6 +419,10 @@ body {
   caret-color: var(--pink);
 }
 .inputline__field::placeholder { color: var(--text-muted); }
+
+/* Send key — touch only. Shown by the responsive block; on desktop the
+   Return key is the affordance and a button would just be clutter. */
+.inputline__send { display: none; }
 
 /* ---- Mobile tab bar ----
    Hidden on desktop; shown on mobile once the HUD reveals. Three tabs
@@ -693,9 +700,41 @@ body {
   }
 
   /* ---- Touch UX ---- */
-  .inputline { padding: 12px 14px; }
+  /* Trimmed right padding: the send key's own inset supplies the edge gap. */
+  .inputline { padding: 8px 8px 8px 14px; }
   /* 16px exactly: anything smaller makes iOS Safari zoom the page on focus. */
   .inputline__field { font-size: 16px; }
+
+  /* Send key: styled like the titlebar's chrome buttons, one step louder —
+     accent border and glyph so it reads as the line's primary action. */
+  .inputline__send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    font-family: inherit;
+    font-size: 17px;
+    line-height: 1;
+    color: var(--accent);
+    background: var(--bg-input);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 90ms ease, background 90ms ease;
+  }
+  .inputline__send:active {
+    transform: scale(0.92);
+    background: color-mix(in srgb, var(--accent) 18%, var(--bg-input));
+  }
+  .inputline__send:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .inputline__send { transition: none; }
+    .inputline__send:active { transform: none; }
+  }
   .menu__item {
     padding: 9px 12px;
     white-space: pre-wrap;
